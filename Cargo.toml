@@ -1,0 +1,13 @@
+[package]
+name = "flint"
+version = "0.1.0"
+authors = ["Soham Karandikar <sohamk10@gmail.com>"]
+license = "MIT"
+edition = "2021"
+
+[dependencies]
+color-eyre = "0.6.3"
+crossterm = "0.28.1"
+ratatui = "0.29.0"
+throbber-widgets-tui = "0.8.0"
+toml = "0.8.19"
