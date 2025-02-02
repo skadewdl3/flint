@@ -6,6 +6,8 @@ use ratatui::{
 };
 use throbber_widgets_tui::{Throbber, ThrobberState};
 
+use crate::util::toml::create_toml_config;
+
 #[derive(Debug)]
 pub struct InitWidget {
     throbber_state: ThrobberState,
@@ -62,5 +64,7 @@ impl InitWidget {
 
         let list_widget = List::new(list);
         frame.render_stateful_widget(list_widget, layout[2], &mut self.list_state);
+
+        _ = create_toml_config("./flint.toml");
     }
 }

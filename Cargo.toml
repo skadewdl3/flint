@@ -8,6 +8,8 @@ edition = "2021"
 [dependencies]
 color-eyre = "0.6.3"
 crossterm = "0.28.1"
+ignore = "0.4.23"
 ratatui = "0.29.0"
+serde = { version = "1.0.217", features = ["derive"] }
 throbber-widgets-tui = "0.8.0"
 toml = "0.8.19"

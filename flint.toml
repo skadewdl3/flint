@@ -1,2 +1,5 @@
-[lang.all]
-abc = "d"
+ip = "127.0.0.1"
+
+[keys]
+github = "xxxxxxxxxxxxxxxxx"
+travis = "yyyyyyyyyyyyyyyyy"
