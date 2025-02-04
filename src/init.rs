@@ -1,7 +1,7 @@
 use ratatui::{
     layout::{Constraint, Direction, Layout},
     text::Text,
-    widgets::{List, ListState},
+    widgets::{Block, List, ListDirection, ListState},
     Frame,
 };
 use throbber_widgets_tui::{Throbber, ThrobberState};
@@ -23,21 +23,8 @@ impl Default for InitWidget {
     }
 }
 
-impl InitWidget {
-    pub fn get_throbber<'a>(label: &'a str) -> Throbber<'a> {
-        Throbber::default()
-            .style(ratatui::style::Style::default().fg(ratatui::style::Color::Cyan))
-            .label(label)
-            .throbber_style(
-                ratatui::style::Style::default()
-                    .fg(ratatui::style::Color::Red)
-                    .add_modifier(ratatui::style::Modifier::BOLD),
-            )
-            .throbber_set(throbber_widgets_tui::CLOCK)
-            .use_type(throbber_widgets_tui::WhichUse::Spin)
-    }
-
-    pub fn draw(&mut self, frame: &mut Frame) {
+impl crate::AppWidget for InitWidget {
+    fn draw(&mut self, frame: &mut Frame) {
         self.throbber_state.calc_next();
         let throbber = Self::get_throbber("Loading Init Window");
 
@@ -62,9 +49,29 @@ impl InitWidget {
         let detected_langs = crate::util::file::detect_languages(file_path);
         let list: Vec<String> = detected_langs.into_iter().collect();
 
-        let list_widget = List::new(list);
+        let list_widget = List::new(list)
+            .block(Block::bordered().title("List"))
+            .highlight_symbol(">>")
+            .repeat_highlight_symbol(true)
+            .direction(ListDirection::BottomToTop);
+
         frame.render_stateful_widget(list_widget, layout[2], &mut self.list_state);
 
-        _ = create_toml_config("./flint.toml");
+        // _ = create_toml_config("./flint.toml");
+    }
+}
+
+impl InitWidget {
+    pub fn get_throbber<'a>(label: &'a str) -> Throbber<'a> {
+        Throbber::default()
+            .style(ratatui::style::Style::default().fg(ratatui::style::Color::Cyan))
+            .label(label)
+            .throbber_style(
+                ratatui::style::Style::default()
+                    .fg(ratatui::style::Color::Red)
+                    .add_modifier(ratatui::style::Modifier::BOLD),
+            )
+            .throbber_set(throbber_widgets_tui::CLOCK)
+            .use_type(throbber_widgets_tui::WhichUse::Spin)
     }
 }

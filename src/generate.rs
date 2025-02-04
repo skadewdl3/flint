@@ -14,6 +14,14 @@ impl Default for GenerateWidget {
     }
 }
 
+impl crate::AppWidget for GenerateWidget {
+    fn draw(&mut self, frame: &mut Frame) {
+        self.throbber_state.calc_next();
+        let throbber = Self::get_throbber("Loading Generate Window");
+        frame.render_stateful_widget(throbber, frame.area(), &mut self.throbber_state);
+    }
+}
+
 impl GenerateWidget {
     pub fn get_throbber<'a>(label: &'a str) -> Throbber<'a> {
         Throbber::default()
@@ -26,11 +34,5 @@ impl GenerateWidget {
             )
             .throbber_set(throbber_widgets_tui::CLOCK)
             .use_type(throbber_widgets_tui::WhichUse::Spin)
-    }
-
-    pub fn draw(&mut self, frame: &mut Frame) {
-        self.throbber_state.calc_next();
-        let throbber = Self::get_throbber("Loading Generate Window");
-        frame.render_stateful_widget(throbber, frame.area(), &mut self.throbber_state);
     }
 }
