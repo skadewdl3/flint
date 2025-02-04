@@ -6,16 +6,17 @@ pub mod util;
 
 use std::{io, time::Duration};
 
-use crossterm::event::{self, Event};
+use crossterm::event::{self, Event, KeyCode, KeyEventKind};
 use generate::GenerateWidget;
 use help::HelpWidget;
 use init::InitWidget;
-use ratatui::{text::Text, DefaultTerminal, Frame};
+use ratatui::{DefaultTerminal, Frame};
 use test::TestWidget;
 
 pub trait AppWidget {
     fn draw(&mut self, frame: &mut Frame);
     fn handle_events(&mut self, event: Event) -> io::Result<()> {
+        let _ = event;
         Ok(())
     }
 }
@@ -46,13 +47,13 @@ impl App {
 
         while !self.exit {
             terminal.draw(|frame| self.draw(frame))?;
-            self.handle_events()?;
+            self.handle_all_events()?;
         }
 
         Ok(())
     }
 
-    fn handle_events(&mut self) -> io::Result<()> {
+    fn handle_all_events(&mut self) -> io::Result<()> {
         // Exit early if no events are available
         if let Ok(event_exists) = event::poll(Duration::from_millis(100)) {
             if !event_exists {
@@ -61,13 +62,28 @@ impl App {
         }
 
         let event = event::read().expect("Could not get event");
+        self.handle_events(event)
+    }
+}
+
+impl AppWidget for App {
+    fn draw(&mut self, frame: &mut Frame) {
+        self.active_widget.draw(frame);
+    }
+
+    fn handle_events(&mut self, event: Event) -> io::Result<()> {
+        match event {
+            Event::Key(key_event) if key_event.kind == KeyEventKind::Press => {
+                match key_event.code {
+                    KeyCode::Char('q') => self.exit = true,
+                    _ => {}
+                }
+            }
+            _ => {}
+        }
         self.active_widget.handle_events(event)?;
 
         Ok(())
-    }
-
-    fn draw(&mut self, frame: &mut Frame) {
-        self.active_widget.draw(frame);
     }
 }
 
