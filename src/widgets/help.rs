@@ -1,6 +1,8 @@
 use ratatui::Frame;
 use throbber_widgets_tui::{Throbber, ThrobberState};
 
+use super::AppWidget;
+
 #[derive(Debug)]
 pub struct HelpWidget {
     throbber_state: ThrobberState,
@@ -14,7 +16,7 @@ impl Default for HelpWidget {
     }
 }
 
-impl crate::AppWidget for HelpWidget {
+impl AppWidget for HelpWidget {
     fn draw(&mut self, frame: &mut Frame) {
         self.throbber_state.calc_next();
         let throbber = Self::get_throbber("Loading Help Window");

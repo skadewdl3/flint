@@ -3,6 +3,7 @@ use std::collections::{BTreeSet, HashMap};
 use std::path::Path;
 use std::sync::OnceLock;
 
+#[allow(unused)]
 struct FileTypeDetails<'a> {
     name: &'a str,
     linters: Vec<&'a str>,

@@ -1,12 +1,14 @@
 use ratatui::Frame;
 use throbber_widgets_tui::{Throbber, ThrobberState};
 
+use super::AppWidget;
+
 #[derive(Debug)]
-pub struct TestWidget {
+pub struct GenerateWidget {
     throbber_state: ThrobberState,
 }
 
-impl Default for TestWidget {
+impl Default for GenerateWidget {
     fn default() -> Self {
         Self {
             throbber_state: ThrobberState::default(),
@@ -14,15 +16,7 @@ impl Default for TestWidget {
     }
 }
 
-impl crate::AppWidget for TestWidget {
-    fn draw(&mut self, frame: &mut Frame) {
-        self.throbber_state.calc_next();
-        let throbber = Self::get_throbber("Loading Test Window");
-        frame.render_stateful_widget(throbber, frame.area(), &mut self.throbber_state);
-    }
-}
-
-impl TestWidget {
+impl GenerateWidget {
     pub fn get_throbber<'a>(label: &'a str) -> Throbber<'a> {
         Throbber::default()
             .style(ratatui::style::Style::default().fg(ratatui::style::Color::Cyan))
@@ -34,5 +28,13 @@ impl TestWidget {
             )
             .throbber_set(throbber_widgets_tui::CLOCK)
             .use_type(throbber_widgets_tui::WhichUse::Spin)
+    }
+}
+
+impl AppWidget for GenerateWidget {
+    fn draw(&mut self, frame: &mut Frame) {
+        self.throbber_state.calc_next();
+        let throbber = Self::get_throbber("Loading Generate Window");
+        frame.render_stateful_widget(throbber, frame.area(), &mut self.throbber_state);
     }
 }
