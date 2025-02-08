@@ -35,6 +35,7 @@ impl App {
             };
         }
 
+        self.active_widget.setup();
         while !self.exit {
             terminal.draw(|frame| self.draw(frame))?;
             self.handle_all_events()?;
