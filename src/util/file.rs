@@ -11,6 +11,7 @@ struct FileTypeDetails<'a> {
 }
 
 static LANGUAGE_MAP: OnceLock<HashMap<&'static str, FileTypeDetails<'static>>> = OnceLock::new();
+static SUPPORTED_LANGUAGES: OnceLock<BTreeSet<&'static str>> = OnceLock::new();
 fn get_language_map() -> &'static HashMap<&'static str, FileTypeDetails<'static>> {
     LANGUAGE_MAP.get_or_init(|| {
         let mut m = HashMap::new();
@@ -41,6 +42,17 @@ fn get_language_map() -> &'static HashMap<&'static str, FileTypeDetails<'static>
     })
 }
 
+pub fn get_supported_languages() -> &'static BTreeSet<&'static str> {
+    SUPPORTED_LANGUAGES.get_or_init(|| {
+        let mut s = BTreeSet::new();
+        s.insert("JavaScript");
+        s.insert("TypeScript");
+        s.insert("C#");
+        s.insert("SQL");
+        s
+    })
+}
+
 impl<'a> FileTypeDetails<'a> {
     pub fn new(name: &'a str, linters: Vec<&'a str>, testers: Vec<&'a str>) -> Self {
         return Self {
@@ -51,7 +63,9 @@ impl<'a> FileTypeDetails<'a> {
     }
 }
 
-pub fn detect_languages<'a>(project_path: impl Into<&'a str>) -> BTreeSet<String> {
+pub fn detect_languages<'a>(
+    project_path: impl Into<&'a str>,
+) -> (BTreeSet<String>, BTreeSet<String>) {
     let mut languages = BTreeSet::new();
     let path = Path::new(project_path.into());
     for result in Walk::new(path) {
@@ -70,5 +84,11 @@ pub fn detect_languages<'a>(project_path: impl Into<&'a str>) -> BTreeSet<String
             }
         }
     }
-    languages
+    let supported_languages = get_supported_languages();
+    let unsupported_languages: BTreeSet<String> = languages
+        .iter()
+        .filter(|lang| !supported_languages.contains(lang.as_str()))
+        .cloned()
+        .collect();
+    (languages, unsupported_languages)
 }

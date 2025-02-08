@@ -1,4 +1,4 @@
-use crate::handle_key_event;
+use crate::util::handle_key_events;
 use crate::widgets::generate::GenerateWidget;
 use crate::widgets::help::HelpWidget;
 use crate::widgets::init::InitWidget;
@@ -62,9 +62,11 @@ impl AppWidget for App {
     }
 
     fn handle_events(&mut self, event: Event) -> io::Result<()> {
-        handle_key_event! {event, {
+        handle_key_events(&event, |_, key_code| match key_code {
             KeyCode::Esc => self.exit = true,
-        }}
+            _ => {}
+        });
+
         self.active_widget.handle_events(event)?;
         Ok(())
     }
