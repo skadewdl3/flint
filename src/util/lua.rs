@@ -3,12 +3,12 @@ use std::collections::BTreeSet;
 use mlua::{Function, Lua, LuaSerdeExt};
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Ord, PartialOrd, Eq, PartialEq)]
 pub struct PluginDetails {
-    id: String,
-    languages: Vec<String>,
-    version: String,
-    author: String,
+    pub id: String,
+    pub languages: Vec<String>,
+    pub version: String,
+    pub author: String,
 }
 
 pub fn list_plugins() -> BTreeSet<PluginDetails> {
@@ -32,23 +32,13 @@ pub fn list_plugins() -> BTreeSet<PluginDetails> {
                         let details: Function = lua.globals().get("Details").unwrap();
                         let lua_val = details.call::<mlua::Value>(()).unwrap();
                         let details: PluginDetails = lua.from_value(lua_val).unwrap();
-                        println!("{:?}", details);
+                        plugins.insert(details);
                     }
                     Err(err) => {
                         eprintln!("Error loading lua file {}: {}", file_path.display(), err);
                         continue;
                     }
                 }
-
-                // if let Some(file_name) = entry.file_name().to_str() {
-                //     let details = PluginDetails {
-                //         id: file_name.to_string(),
-                //         langs: std::collections::BTreeSet::new(),
-                //         version: 1,
-                //         author: String::from("Unknown"),
-                //     };
-                //     plugins.insert(details);
-                // }
             }
         }
     }

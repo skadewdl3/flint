@@ -1,9 +1,9 @@
 function Details()
     local details = {
-        id = "sqlfluff",
+        id = "eslint",
         author = "Soham Karandikar",
         version = "0.0.1",
-        languages = { "sql" }
+        languages = { "javascript", "typescript" }
     }
     return details
 end
