@@ -5,7 +5,7 @@ use toml;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct FlintConfig {
-    pub langs: Vec<String>,
+    // pub langs: Vec<String>,
     pub version: u8,
 }
 

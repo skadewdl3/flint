@@ -1,5 +1,4 @@
 [flint]
-langs = ["rust"]
 version = 1
 
 [common]
@@ -8,3 +7,6 @@ indent_size = 4
 
 [linters.eslint]
 semi = false
+
+# [linters.sqlfluff]
+# capitalization = true

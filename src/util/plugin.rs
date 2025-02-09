@@ -1,4 +1,4 @@
-use std::collections::BTreeSet;
+use std::{collections::BTreeSet, path::PathBuf};
 
 use mlua::{Function, Lua, LuaSerdeExt};
 use serde::{Deserialize, Serialize};
@@ -11,7 +11,13 @@ pub struct PluginDetails {
     pub author: String,
 }
 
-pub fn list_plugins() -> BTreeSet<PluginDetails> {
+#[derive(Serialize, Deserialize, Debug, Ord, PartialOrd, Eq, PartialEq)]
+pub struct Plugin {
+    pub details: PluginDetails,
+    pub path: PathBuf,
+}
+
+pub fn list_plugins() -> BTreeSet<Plugin> {
     let lua = Lua::new();
 
     let mut plugins = BTreeSet::new();
@@ -32,7 +38,10 @@ pub fn list_plugins() -> BTreeSet<PluginDetails> {
                         let details: Function = lua.globals().get("Details").unwrap();
                         let lua_val = details.call::<mlua::Value>(()).unwrap();
                         let details: PluginDetails = lua.from_value(lua_val).unwrap();
-                        plugins.insert(details);
+                        plugins.insert(Plugin {
+                            details,
+                            path: file_path,
+                        });
                     }
                     Err(err) => {
                         eprintln!("Error loading lua file {}: {}", file_path.display(), err);

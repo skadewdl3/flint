@@ -104,7 +104,7 @@ impl<'a> AppWidget for InitWidget<'a> {
                             // create flint.toml
                             let config = Config {
                                 flint: FlintConfig {
-                                    langs: vec!["rust".to_string()],
+                                    // langs: vec!["rust".to_string()],
                                     version: 1,
                                 },
                                 common: CommonConfig {
