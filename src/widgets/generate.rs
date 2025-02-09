@@ -1,4 +1,4 @@
-use super::AppWidget;
+use super::{AppStatus, AppWidget};
 use mlua::Lua;
 use ratatui::Frame;
 
@@ -14,9 +14,12 @@ impl Default for GenerateWidget {
 }
 
 impl AppWidget for GenerateWidget {
-    fn setup(&mut self) {
-        self.lua.load("print('Hello, World!')").exec().unwrap();
+    fn setup(&mut self) -> AppStatus {
+        let lua = &self.lua;
+        AppStatus::Ok
     }
 
-    fn draw(&mut self, frame: &mut Frame) {}
+    fn draw(&mut self, frame: &mut Frame) -> AppStatus {
+        AppStatus::Ok
+    }
 }

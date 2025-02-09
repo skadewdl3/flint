@@ -11,6 +11,8 @@ use ratatui::Frame;
 use std::io;
 use std::time::Duration;
 
+use super::AppStatus;
+
 pub struct App {
     exit: bool,
     active_widget: Box<dyn AppWidget>,
@@ -37,18 +39,32 @@ impl App {
 
         self.active_widget.setup();
         while !self.exit {
-            terminal.draw(|frame| self.draw(frame))?;
-            self.handle_all_events()?;
+            terminal.draw(|frame| match self.draw(frame) {
+                AppStatus::Exit => self.exit = true,
+                AppStatus::Error(err) => {
+                    panic!("{}", err);
+                }
+                _ => (),
+            })?;
+
+            let status = self.handle_all_events();
+            match status {
+                AppStatus::Exit => self.exit = true,
+                AppStatus::Error(err) => {
+                    panic!("{}", err);
+                }
+                _ => (),
+            }
         }
 
         Ok(())
     }
 
-    fn handle_all_events(&mut self) -> io::Result<()> {
+    fn handle_all_events(&mut self) -> AppStatus {
         // Exit early if no events are available
         if let Ok(event_exists) = event::poll(Duration::from_millis(100)) {
             if !event_exists {
-                return Ok(());
+                return AppStatus::Ok;
             }
         }
 
@@ -58,17 +74,24 @@ impl App {
 }
 
 impl AppWidget for App {
-    fn draw(&mut self, frame: &mut Frame) {
-        self.active_widget.draw(frame);
+    fn draw(&mut self, frame: &mut Frame) -> AppStatus {
+        let status = self.active_widget.draw(frame);
+        status
     }
 
-    fn handle_events(&mut self, event: Event) -> io::Result<()> {
-        handle_key_events(&event, |_, key_code| match key_code {
-            KeyCode::Esc => self.exit = true,
-            _ => {}
+    fn handle_events(&mut self, event: Event) -> AppStatus {
+        let status = handle_key_events(event.clone(), |_, key_code| {
+            match key_code {
+                KeyCode::Esc => return AppStatus::Exit,
+                _ => {}
+            }
+            AppStatus::Ok
         });
+        if let AppStatus::Exit = status {
+            return AppStatus::Exit;
+        }
 
-        self.active_widget.handle_events(event)?;
-        Ok(())
+        let status1 = self.active_widget.handle_events(event);
+        status1
     }
 }

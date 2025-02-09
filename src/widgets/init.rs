@@ -1,11 +1,11 @@
-use super::AppWidget;
+use super::{AppStatus, AppWidget};
 use crate::util::handle_key_events;
 use crossterm::event::{Event, KeyCode};
 use ratatui::{
     layout::{Constraint, Direction, Flex, Layout},
     style::{Color, Stylize},
     text::Text,
-    widgets::{Block, List, ListState},
+    widgets::{Block, List},
     Frame,
 };
 use std::io;
@@ -13,23 +13,19 @@ use tui_textarea::TextArea;
 
 #[derive(Debug)]
 pub struct InitWidget<'a> {
-    list_state: ListState,
     textarea: TextArea<'a>,
 }
 
 impl<'a> Default for InitWidget<'a> {
     fn default() -> Self {
-        let mut list_state = ListState::default();
-        list_state.select(Some(0));
         Self {
-            list_state,
             textarea: TextArea::default(),
         }
     }
 }
 
 impl<'a> AppWidget for InitWidget<'a> {
-    fn draw(&mut self, frame: &mut Frame) {
+    fn draw(&mut self, frame: &mut Frame) -> AppStatus {
         let file_path = match std::env::current_dir() {
             Ok(path) => path,
             Err(_) => panic!("Unable to determine current directory"),
@@ -89,17 +85,29 @@ impl<'a> AppWidget for InitWidget<'a> {
         );
 
         frame.render_widget(&self.textarea, layout2[2]);
+        AppStatus::Ok
     }
 
-    fn handle_events(&mut self, event: Event) -> io::Result<()> {
-        handle_key_events(&event, |key_event, key_code| match key_code {
-            KeyCode::Enter => {
-                println!("Got text");
+    fn handle_events(&mut self, event: Event) -> AppStatus {
+        handle_key_events(event, |key_event, key_code| {
+            match key_code {
+                KeyCode::Enter => {
+                    // get input
+                    let input = self.textarea.lines().get(0).unwrap();
+
+                    match input.as_str() {
+                        "n" => return AppStatus::Exit,
+                        "y" => {
+                            // create flint.toml
+                        }
+                        _ => (),
+                    }
+                }
+                _ => {
+                    self.textarea.input(key_event);
+                }
             }
-            _ => {
-                self.textarea.input(key_event);
-            }
-        });
-        Ok(())
+            AppStatus::Ok
+        })
     }
 }
