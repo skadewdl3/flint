@@ -4,18 +4,21 @@ use crate::widgets::help::HelpWidget;
 use crate::widgets::init::InitWidget;
 use crate::widgets::test::TestWidget;
 use crate::widgets::AppWidget;
+use color_eyre::owo_colors::OwoColorize;
 use crossterm::event;
 use crossterm::event::{Event, KeyCode};
 use ratatui::DefaultTerminal;
 use ratatui::Frame;
 use std::io;
 use std::time::Duration;
+use tui_popup::Popup;
 
 use super::AppStatus;
 
 pub struct App {
     exit: bool,
     active_widget: Box<dyn AppWidget>,
+    error: Option<String>,
 }
 
 impl App {
@@ -23,6 +26,7 @@ impl App {
         Self {
             exit: false,
             active_widget: Box::new(HelpWidget::default()),
+            error: None,
         }
     }
     pub fn run(&mut self, terminal: &mut DefaultTerminal) -> io::Result<()> {
@@ -37,12 +41,20 @@ impl App {
             };
         }
 
-        self.active_widget.setup();
+        match self.active_widget.setup() {
+            AppStatus::Error(err) => {
+                self.error = Some(err.to_string());
+            }
+            AppStatus::Exit => {
+                self.exit = true;
+            }
+            _ => (),
+        }
         while !self.exit {
             terminal.draw(|frame| match self.draw(frame) {
                 AppStatus::Exit => self.exit = true,
                 AppStatus::Error(err) => {
-                    panic!("{}", err);
+                    self.error = Some(err.to_string());
                 }
                 _ => (),
             })?;
@@ -51,7 +63,7 @@ impl App {
             match status {
                 AppStatus::Exit => self.exit = true,
                 AppStatus::Error(err) => {
-                    panic!("{}", err);
+                    self.error = Some(err.to_string());
                 }
                 _ => (),
             }
@@ -76,6 +88,10 @@ impl App {
 impl AppWidget for App {
     fn draw(&mut self, frame: &mut Frame) -> AppStatus {
         let status = self.active_widget.draw(frame);
+        if let Some(err) = &self.error {
+            let popup = Popup::new(err.as_str()).title("tui-popup demo");
+            frame.render_widget(&popup, frame.area());
+        }
         status
     }
 

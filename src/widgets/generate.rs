@@ -1,5 +1,5 @@
 use crate::util::{
-    plugin::{list_plugins, Plugin, PluginDetails},
+    plugin::{list_plugins, run_plugin, Plugin, PluginDetails},
     toml::{read_toml_config, Config},
 };
 
@@ -9,46 +9,14 @@ use ratatui::Frame;
 
 #[derive(Debug)]
 pub struct GenerateWidget {
-    lua: Lua,
     plugins: Vec<Plugin>,
 }
 
 impl Default for GenerateWidget {
     fn default() -> Self {
         Self {
-            lua: Lua::new(),
             plugins: Vec::new(),
         }
-    }
-}
-
-impl GenerateWidget {
-    pub fn run_plugin<'a>(&self, toml: &Config, plugin: &Plugin) -> AppStatus<'a> {
-        let plugin_config = toml.linters.get(&plugin.details.id).unwrap();
-        let plugin_config = self.lua.to_value(plugin_config).unwrap();
-        let plugin_config = plugin_config.as_table().unwrap();
-
-        let contents = match std::fs::read_to_string(&plugin.path) {
-            Ok(contents) => contents,
-            Err(_) => {
-                return AppStatus::Error("Error reading plugin code");
-            }
-        };
-
-        let (validate, _generate) = match self.lua.load(contents).exec() {
-            Ok(_) => {
-                let validate: Function = self.lua.globals().get("Validate").unwrap();
-                let generate: Function = self.lua.globals().get("Generate").unwrap();
-                (validate, generate)
-            }
-            Err(_) => {
-                return AppStatus::Error("Error loading lua file");
-            }
-        };
-
-        let _ = validate.call::<mlua::Value>(plugin_config).unwrap();
-
-        AppStatus::Ok
     }
 }
 
@@ -64,7 +32,14 @@ impl AppWidget for GenerateWidget {
 
         for plugin in &self.plugins {
             println!("Running plugin: {}", plugin.details.id);
-            self.run_plugin(&toml, plugin);
+            match run_plugin(&toml, plugin) {
+                Ok(res) => {
+                    println!("Res: {}", res)
+                }
+                Err(err) => {
+                    return AppStatus::Error(err);
+                }
+            }
         }
 
         AppStatus::Ok

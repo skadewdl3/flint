@@ -13,9 +13,9 @@ function Validate(config)
     for k, v in pairs(config) do
         print(k .. " = " .. tostring(v))
     end
-    return true
+    return false
 end
 
-function Generate()
+function Generate(config)
     return ""
 end
