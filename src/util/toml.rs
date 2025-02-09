@@ -1,14 +1,25 @@
-use serde::Serialize;
+use std::{any::Any, collections::HashMap};
+
+use serde::{Deserialize, Serialize};
 use toml;
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct FlintConfig {
-    langs: Vec<String>,
+    pub langs: Vec<String>,
+    pub version: u8,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Config {
-    flint: FlintConfig,
+    pub flint: FlintConfig,
+    pub common: CommonConfig,
+    pub linters: HashMap<String, toml::Value>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct CommonConfig {
+    pub indent_style: String,
+    pub indent_size: u8,
 }
 
 pub fn create_toml_config(path: &str, config: Config) -> Result<(), Box<dyn std::error::Error>> {
@@ -16,4 +27,11 @@ pub fn create_toml_config(path: &str, config: Config) -> Result<(), Box<dyn std:
     std::fs::write(path, toml_str)?;
 
     Ok(())
+}
+
+pub fn read_toml_config(path: &str) -> Result<Config, Box<dyn std::error::Error>> {
+    let toml_str = std::fs::read_to_string(path)?;
+    let config: Config = toml::from_str(&toml_str)?;
+
+    Ok(config)
 }

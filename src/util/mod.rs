@@ -3,7 +3,7 @@ use crossterm::event::{Event, KeyCode, KeyEvent};
 use crate::widgets::AppStatus;
 
 pub mod file;
-
+pub mod lua;
 pub mod toml;
 
 pub fn handle_key_events<'a>(

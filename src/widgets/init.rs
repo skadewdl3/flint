@@ -1,5 +1,8 @@
 use super::{AppStatus, AppWidget};
-use crate::util::handle_key_events;
+use crate::util::{
+    handle_key_events,
+    toml::{create_toml_config, CommonConfig, Config, FlintConfig},
+};
 use crossterm::event::{Event, KeyCode};
 use ratatui::{
     layout::{Constraint, Direction, Flex, Layout},
@@ -8,7 +11,7 @@ use ratatui::{
     widgets::{Block, List},
     Frame,
 };
-use std::io;
+use std::{collections::HashMap, io};
 use tui_textarea::TextArea;
 
 #[derive(Debug)]
@@ -99,6 +102,19 @@ impl<'a> AppWidget for InitWidget<'a> {
                         "n" => return AppStatus::Exit,
                         "y" => {
                             // create flint.toml
+                            let config = Config {
+                                flint: FlintConfig {
+                                    langs: vec!["rust".to_string()],
+                                    version: 1,
+                                },
+                                common: CommonConfig {
+                                    indent_style: String::from("spaces"),
+                                    indent_size: 4,
+                                },
+
+                                linters: HashMap::new(),
+                            };
+                            create_toml_config("./flint.toml", config).unwrap();
                         }
                         _ => (),
                     }
