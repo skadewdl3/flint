@@ -3,7 +3,8 @@ function Details()
         id = "eslint",
         author = "Soham Karandikar",
         version = "0.0.1",
-        languages = { "javascript", "typescript" }
+        extensions = { "js", "ts", "mjs", "cjs" },
+        category = "linter"
     }
     return details
 end

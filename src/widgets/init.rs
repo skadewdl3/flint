@@ -11,31 +11,44 @@ use ratatui::{
     widgets::{Block, List},
     Frame,
 };
-use std::{collections::HashMap, io};
+use std::collections::{BTreeSet, HashMap};
 use tui_textarea::TextArea;
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct InitWidget<'a> {
     textarea: TextArea<'a>,
-}
-
-impl<'a> Default for InitWidget<'a> {
-    fn default() -> Self {
-        Self {
-            textarea: TextArea::default(),
-        }
-    }
+    detected_langs: BTreeSet<String>,
+    unsupported_langs: BTreeSet<String>,
+    created_config: bool,
+    config_exists: bool,
+    cwd: String,
 }
 
 impl<'a> AppWidget for InitWidget<'a> {
-    fn draw(&mut self, frame: &mut Frame) -> AppStatus {
+    fn setup(&mut self) -> AppStatus {
         let file_path = match std::env::current_dir() {
             Ok(path) => path,
-            Err(_) => panic!("Unable to determine current directory"),
+            Err(_) => return AppStatus::Error("Unable to determine current directory"),
         };
 
-        let file_path = file_path.to_str().unwrap();
+        let file_path = file_path
+            .to_str()
+            .expect("Unable to convert path to string");
 
+        let (detected_langs, unsupported_langs) = crate::util::detect_languages(file_path);
+        self.detected_langs = detected_langs;
+        self.unsupported_langs = unsupported_langs;
+        self.cwd = file_path.to_string();
+
+        let config_path = std::path::Path::new(&self.cwd).join("flint.toml");
+        if config_path.exists() {
+            self.config_exists = true;
+        }
+
+        AppStatus::Ok
+    }
+
+    fn draw(&mut self, frame: &mut Frame) -> AppStatus {
         let layout0 = Layout::default()
             .direction(Direction::Vertical)
             .constraints([Constraint::Length(1), Constraint::Fill(1)])
@@ -46,34 +59,37 @@ impl<'a> AppWidget for InitWidget<'a> {
             layout0[0],
         );
 
-        let (detected_langs, unsupported_langs) = crate::util::file::detect_languages(file_path);
         let layout1 = Layout::default()
             .direction(Direction::Vertical)
             .constraints([
-                Constraint::Length((detected_langs.len() + 2) as u16),
-                Constraint::Length((unsupported_langs.len() + 2) as u16),
+                Constraint::Length((self.detected_langs.len() + 2) as u16),
+                Constraint::Length((self.unsupported_langs.len() + 2) as u16),
                 Constraint::Length(1),
             ])
             .split(layout0[1]);
 
-        let detected_langs: Vec<String> = detected_langs.into_iter().collect();
-        let list_widget = List::new(detected_langs)
+        let list_widget = List::new(self.detected_langs.clone())
             .block(Block::bordered().title("Detected Languages"))
             .repeat_highlight_symbol(true);
         frame.render_widget(list_widget, layout1[0]);
 
-        if unsupported_langs.len() > 0 {
-            let unsupported_langs: Vec<String> = unsupported_langs.into_iter().collect();
-            let unsupported_list_widget = List::new(unsupported_langs)
+        if self.unsupported_langs.len() > 0 {
+            let unsupported_list_widget = List::new(self.unsupported_langs.clone())
                 .block(Block::bordered().title("Unsupported Languages"))
                 .repeat_highlight_symbol(true);
             frame.render_widget(unsupported_list_widget, layout1[1]);
         }
 
+        let confirm_message = if self.config_exists {
+            "flint.toml already exists in this directory. Would you like to overwrite it? (y/n)"
+        } else {
+            "Would you like to continue with creating flint.toml? (y/n)"
+        };
+
         let layout2 = Layout::default()
             .direction(Direction::Horizontal)
             .constraints([
-                Constraint::Length(58),
+                Constraint::Length(confirm_message.len() as u16),
                 Constraint::Length(2),
                 Constraint::Fill(1),
             ])
@@ -81,9 +97,7 @@ impl<'a> AppWidget for InitWidget<'a> {
             .split(layout1[2]);
 
         frame.render_widget(
-            Block::default()
-                .title("Would you like to continue with creating flint.toml? (y/n)")
-                .fg(Color::Yellow),
+            Block::default().title(confirm_message).fg(Color::Yellow),
             layout2[0],
         );
 
@@ -95,18 +109,13 @@ impl<'a> AppWidget for InitWidget<'a> {
         handle_key_events(event, |key_event, key_code| {
             match key_code {
                 KeyCode::Enter => {
-                    // get input
                     let input = self.textarea.lines().get(0).unwrap();
 
                     match input.as_str() {
                         "n" => return AppStatus::Exit,
                         "y" => {
-                            // create flint.toml
                             let config = Config {
-                                flint: FlintConfig {
-                                    // langs: vec!["rust".to_string()],
-                                    version: 1,
-                                },
+                                flint: FlintConfig { version: 1 },
                                 common: CommonConfig {
                                     indent_style: String::from("spaces"),
                                     indent_size: 4,
@@ -114,6 +123,7 @@ impl<'a> AppWidget for InitWidget<'a> {
 
                                 linters: HashMap::new(),
                             };
+
                             create_toml_config("./flint.toml", config).unwrap();
                         }
                         _ => (),

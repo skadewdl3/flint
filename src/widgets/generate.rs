@@ -1,11 +1,10 @@
-use crate::util::{
-    plugin::{list_plugins, run_plugin, Plugin, PluginDetails},
-    toml::{read_toml_config, Config},
-};
+use ratatui::Frame;
 
 use super::{AppStatus, AppWidget};
-use mlua::{Function, Lua, LuaSerdeExt};
-use ratatui::Frame;
+use crate::util::{
+    plugin::{list_plugins, run_plugin, Plugin},
+    toml::read_toml_config,
+};
 
 #[derive(Debug)]
 pub struct GenerateWidget {
@@ -46,19 +45,6 @@ impl AppWidget for GenerateWidget {
     }
 
     fn draw(&mut self, frame: &mut Frame) -> AppStatus {
-        let items: Vec<ratatui::widgets::ListItem> = self
-            .plugins
-            .iter()
-            .map(|plugin| ratatui::widgets::ListItem::new(plugin.details.id.clone()))
-            .collect();
-        let plugin_list = ratatui::widgets::List::new(items)
-            .block(
-                ratatui::widgets::Block::default()
-                    .borders(ratatui::widgets::Borders::ALL)
-                    .title("Plugins"),
-            )
-            .highlight_style(ratatui::style::Style::default().fg(ratatui::style::Color::Yellow));
-        // frame.render_widget(plugin_list, frame.area());
         AppStatus::Ok
     }
 }

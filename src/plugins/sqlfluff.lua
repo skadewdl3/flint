@@ -3,7 +3,8 @@ function Details()
         id = "sqlfluff",
         author = "Soham Karandikar",
         version = "0.0.1",
-        languages = { "sql" }
+        extensions = { "sql" },
+        category = "linter"
     }
     return details
 end

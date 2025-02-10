@@ -1,31 +1,47 @@
-use std::{collections::BTreeSet, path::PathBuf};
-
+use super::{toml::Config, PLUGINS, PLUGIN_MAP};
+use directories::ProjectDirs;
 use mlua::{Function, Lua, LuaSerdeExt};
 use serde::{Deserialize, Serialize};
+use std::{
+    collections::{BTreeSet, HashMap},
+    path::PathBuf,
+};
 
-use crate::widgets::AppStatus;
-
-use super::toml::Config;
-
-#[derive(Serialize, Deserialize, Debug, Ord, PartialOrd, Eq, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Ord, PartialOrd, Eq, PartialEq, Clone)]
 pub struct PluginDetails {
     pub id: String,
-    pub languages: Vec<String>,
+    pub extensions: Vec<String>,
     pub version: String,
     pub author: String,
+    pub category: String,
 }
 
-#[derive(Serialize, Deserialize, Debug, Ord, PartialOrd, Eq, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Ord, PartialOrd, Eq, PartialEq, Clone)]
 pub struct Plugin {
     pub details: PluginDetails,
     pub path: PathBuf,
+}
+
+pub fn get_plugins_dir() -> PathBuf {
+    if cfg!(debug_assertions) {
+        return PathBuf::from("./src/plugins");
+    } else if let Some(proj_dirs) = ProjectDirs::from("com", "Flint", "flint") {
+        let plugins_path = proj_dirs.data_dir().to_path_buf().join("plugins");
+        if !plugins_path.exists() {
+            std::fs::create_dir_all(&plugins_path).expect("Failed to create plugins directory");
+        }
+        plugins_path
+    } else {
+        panic!("Unable to determine project directories");
+    }
 }
 
 pub fn list_plugins() -> BTreeSet<Plugin> {
     let lua = Lua::new();
 
     let mut plugins = BTreeSet::new();
-    if let Ok(entries) = std::fs::read_dir("src/plugins") {
+    let plugins_dir = get_plugins_dir();
+    if let Ok(entries) = std::fs::read_dir(plugins_dir) {
         for entry in entries {
             if let Ok(entry) = entry {
                 let file_path = entry.path();
@@ -56,6 +72,21 @@ pub fn list_plugins() -> BTreeSet<Plugin> {
         }
     }
     plugins
+}
+
+pub fn get_plugin_map() -> &'static HashMap<String, BTreeSet<Plugin>> {
+    PLUGIN_MAP.get_or_init(|| {
+        let plugins = PLUGINS.get_or_init(|| list_plugins());
+        let mut m = HashMap::new();
+        for plugin in plugins {
+            for extension in &plugin.details.extensions {
+                m.entry(extension.clone())
+                    .or_insert_with(BTreeSet::new)
+                    .insert(plugin.clone());
+            }
+        }
+        m
+    })
 }
 
 pub fn run_plugin<'a>(toml: &Config, plugin: &Plugin) -> Result<String, &'a str> {

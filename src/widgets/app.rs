@@ -4,7 +4,6 @@ use crate::widgets::help::HelpWidget;
 use crate::widgets::init::InitWidget;
 use crate::widgets::test::TestWidget;
 use crate::widgets::AppWidget;
-use color_eyre::owo_colors::OwoColorize;
 use crossterm::event;
 use crossterm::event::{Event, KeyCode};
 use ratatui::DefaultTerminal;
