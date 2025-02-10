@@ -11,10 +11,10 @@ end
 
 function Validate(config)
     log("Validating sqlfluff config")
-    -- print(config)
     return true
 end
 
 function Generate()
+    log("Generating sqlfluff linter file")
     return ""
 end

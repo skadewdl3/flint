@@ -3,7 +3,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use mlua::{Function, Lua};
+use mlua::{Function, Lua, Value};
 use ratatui::{
     layout::{Constraint, Direction, Layout},
     text::Text,
@@ -45,19 +45,6 @@ impl AppWidget for GenerateWidget {
         let toml = Arc::new(read_toml_config("./flint.toml").unwrap());
         let plugin_ids = toml.linters.keys().collect::<Vec<&String>>();
 
-        let globals = self.lua.globals();
-
-        let logs = self.logs.clone();
-        let log = self
-            .lua
-            .create_function(move |_, message: String| {
-                let _ = logs;
-                logs.lock().unwrap().push(message);
-                Ok(())
-            })
-            .unwrap();
-        globals.set("log", log).unwrap();
-
         self.plugins = get_plugin_map()
             .values()
             .flat_map(|plugin_set| plugin_set.iter())
@@ -68,11 +55,12 @@ impl AppWidget for GenerateWidget {
             .collect();
 
         for plugin in &self.plugins {
-            println!("Running plugin: {}", plugin.details.id);
             let plugin_clone = plugin.clone();
             let toml_clone = toml.clone();
-            let lua = self.lua.clone();
-            let handle = std::thread::spawn(move || run_plugin(lua, toml_clone, &plugin_clone));
+            let logs_clone = self.logs.clone();
+
+            let handle =
+                std::thread::spawn(move || run_plugin(logs_clone, toml_clone, &plugin_clone));
             if let Some(thread_manager) = &self.thread_manager {
                 thread_manager.add_thread(handle);
             }

@@ -1,3 +1,4 @@
+
 function Details()
     local details = {
         id = "eslint",
@@ -10,13 +11,12 @@ function Details()
 end
 
 function Validate(config)
+    sleep(2000)
     log("Validating eslint config")
-    -- for k, v in pairs(config) do
-    --     print(k .. " = " .. tostring(v))
-    -- end
     return true
 end
 
 function Generate(config)
+    log("Generating eslint linter file")
     return ""
 end

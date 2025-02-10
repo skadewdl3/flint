@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use std::{
     collections::{BTreeSet, HashMap},
     path::PathBuf,
-    sync::Arc,
+    sync::{Arc, Mutex},
 };
 
 #[derive(Serialize, Deserialize, Debug, Ord, PartialOrd, Eq, PartialEq, Clone)]
@@ -90,7 +90,13 @@ pub fn get_plugin_map() -> &'static HashMap<String, BTreeSet<Plugin>> {
     })
 }
 
-pub fn run_plugin<'a>(lua: Lua, toml: Arc<Config>, plugin: &Plugin) -> Result<String, &'a str> {
+pub fn run_plugin<'a>(
+    logs: Arc<Mutex<Vec<String>>>,
+    toml: Arc<Config>,
+    plugin: &Plugin,
+) -> Result<String, &'a str> {
+    let lua = Lua::new();
+    add_helper_globals(&lua, logs);
     let plugin_config = toml
         .linters
         .get(&plugin.details.id)
@@ -145,4 +151,24 @@ pub fn run_plugin<'a>(lua: Lua, toml: Arc<Config>, plugin: &Plugin) -> Result<St
         .expect("unable to convert generation result to String");
 
     Ok(generate_results)
+}
+
+fn add_helper_globals(lua: &Lua, logs: Arc<Mutex<Vec<String>>>) {
+    let globals = lua.globals();
+    let log = lua
+        .create_function(move |_, message: String| {
+            let _ = logs;
+            logs.lock().unwrap().push(message);
+            Ok(())
+        })
+        .unwrap();
+    globals.set("log", log).unwrap();
+
+    let sleep = lua
+        .create_function(|_, seconds: u64| {
+            std::thread::sleep(std::time::Duration::from_millis(seconds));
+            Ok(())
+        })
+        .unwrap();
+    globals.set("sleep", sleep).unwrap();
 }
