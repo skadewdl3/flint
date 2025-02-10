@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use std::{
     collections::{BTreeSet, HashMap},
     path::PathBuf,
+    sync::Arc,
 };
 
 #[derive(Serialize, Deserialize, Debug, Ord, PartialOrd, Eq, PartialEq, Clone)]
@@ -89,7 +90,7 @@ pub fn get_plugin_map() -> &'static HashMap<String, BTreeSet<Plugin>> {
     })
 }
 
-pub fn run_plugin<'a>(toml: &Config, plugin: &Plugin) -> Result<String, &'a str> {
+pub fn run_plugin<'a>(toml: Arc<Config>, plugin: &Plugin) -> Result<String, &'a str> {
     let lua = Lua::new();
     let plugin_config = toml
         .linters

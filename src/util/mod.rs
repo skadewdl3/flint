@@ -8,6 +8,7 @@ use std::{
 
 pub mod lang;
 pub mod plugin;
+pub mod thread_manager;
 pub mod toml;
 
 pub static LANGUAGE_MAP: OnceLock<HashMap<String, String>> = OnceLock::new();

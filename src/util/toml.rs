@@ -1,22 +1,22 @@
-use std::{any::Any, collections::HashMap};
+use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 use toml;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct FlintConfig {
     // pub langs: Vec<String>,
     pub version: u8,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Config {
     pub flint: FlintConfig,
     pub common: CommonConfig,
     pub linters: HashMap<String, toml::Value>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct CommonConfig {
     pub indent_style: String,
     pub indent_size: u8,

@@ -1,43 +1,54 @@
+use std::{collections::BTreeSet, sync::Arc};
+
 use ratatui::Frame;
 
 use super::{AppStatus, AppWidget};
 use crate::util::{
-    plugin::{list_plugins, run_plugin, Plugin},
+    get_plugin_map,
+    plugin::{run_plugin, Plugin},
+    thread_manager::ThreadManager,
     toml::read_toml_config,
 };
 
-#[derive(Debug)]
 pub struct GenerateWidget {
     plugins: Vec<Plugin>,
+    thread_manager: Option<ThreadManager>,
 }
 
 impl Default for GenerateWidget {
     fn default() -> Self {
         Self {
             plugins: Vec::new(),
+            thread_manager: None,
         }
     }
 }
 
 impl AppWidget for GenerateWidget {
+    fn register_thread_manager(&mut self, thread_manager: ThreadManager) {
+        self.thread_manager = Some(thread_manager)
+    }
+
     fn setup(&mut self) -> AppStatus {
-        let toml = read_toml_config("./flint.toml").unwrap();
+        let toml = Arc::new(read_toml_config("./flint.toml").unwrap());
         let plugin_ids = toml.linters.keys().collect::<Vec<&String>>();
-        let plugin_details = list_plugins();
-        self.plugins = plugin_details
+
+        self.plugins = get_plugin_map()
+            .values()
+            .flat_map(|plugin_set| plugin_set.iter())
+            .collect::<BTreeSet<&Plugin>>()
             .into_iter()
             .filter(|plugin| plugin_ids.contains(&&plugin.details.id))
+            .cloned()
             .collect();
 
         for plugin in &self.plugins {
             println!("Running plugin: {}", plugin.details.id);
-            match run_plugin(&toml, plugin) {
-                Ok(res) => {
-                    println!("Res: {}", res)
-                }
-                Err(err) => {
-                    return AppStatus::Error(err);
-                }
+            let plugin_clone = plugin.clone();
+            let toml_clone = toml.clone();
+            let handle = std::thread::spawn(move || run_plugin(toml_clone, &plugin_clone));
+            if let Some(thread_manager) = &self.thread_manager {
+                thread_manager.add_thread(handle);
             }
         }
 

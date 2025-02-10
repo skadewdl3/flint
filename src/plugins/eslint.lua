@@ -10,11 +10,11 @@ function Details()
 end
 
 function Validate(config)
-    print("Validating config")
-    for k, v in pairs(config) do
-        print(k .. " = " .. tostring(v))
-    end
-    return false
+    print("Validating eslint config")
+    -- for k, v in pairs(config) do
+    --     print(k .. " = " .. tostring(v))
+    -- end
+    return true
 end
 
 function Generate(config)

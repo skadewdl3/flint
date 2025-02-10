@@ -8,5 +8,5 @@ indent_size = 4
 [linters.eslint]
 semi = false
 
-# [linters.sqlfluff]
-# capitalization = true
+[linters.sqlfluff]
+capitalization = true
