@@ -10,7 +10,7 @@ function Details()
 end
 
 function Validate(config)
-    print("Validating sqlfluff config")
+    log("Validating sqlfluff config")
     -- print(config)
     return true
 end

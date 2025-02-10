@@ -10,7 +10,7 @@ function Details()
 end
 
 function Validate(config)
-    print("Validating eslint config")
+    log("Validating eslint config")
     -- for k, v in pairs(config) do
     --     print(k .. " = " .. tostring(v))
     -- end

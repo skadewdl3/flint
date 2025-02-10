@@ -90,8 +90,7 @@ pub fn get_plugin_map() -> &'static HashMap<String, BTreeSet<Plugin>> {
     })
 }
 
-pub fn run_plugin<'a>(toml: Arc<Config>, plugin: &Plugin) -> Result<String, &'a str> {
-    let lua = Lua::new();
+pub fn run_plugin<'a>(lua: Lua, toml: Arc<Config>, plugin: &Plugin) -> Result<String, &'a str> {
     let plugin_config = toml
         .linters
         .get(&plugin.details.id)
