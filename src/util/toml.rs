@@ -12,14 +12,8 @@ pub struct FlintConfig {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Config {
     pub flint: FlintConfig,
-    pub common: CommonConfig,
+    pub common: HashMap<String, toml::Value>,
     pub linters: HashMap<String, toml::Value>,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct CommonConfig {
-    pub indent_style: String,
-    pub indent_size: u8,
 }
 
 pub fn create_toml_config(path: &str, config: Config) -> Result<(), Box<dyn std::error::Error>> {

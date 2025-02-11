@@ -99,6 +99,9 @@ pub fn run_plugin<'a>(
 ) -> Result<HashMap<String, String>, String> {
     let lua = Lua::new();
     add_helper_globals(&lua);
+    let common_config = lua
+        .to_value(&toml.common)
+        .expect("unable to convert common config to lua value");
     let plugin_config = toml
         .linters
         .get(&plugin.details.id)
@@ -109,6 +112,10 @@ pub fn run_plugin<'a>(
     let plugin_config = plugin_config
         .as_table()
         .expect("unable to convert plugin config lua value to table");
+
+    plugin_config
+        .set("common", common_config)
+        .expect("unable to set common table to config table");
 
     let contents = match std::fs::read_to_string(&plugin.path) {
         Ok(contents) => contents,

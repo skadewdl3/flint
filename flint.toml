@@ -2,8 +2,50 @@
 version = 1
 
 [common]
-indent_style = "spaces"
+# Syntax & Formatting
+indentation = "spaces"      # Options: "spaces", "tabs"
 indent_size = 4
+max_line_length = 120
+trailing_whitespace = false
+require_semicolons = true
+bracket_style = "kr"        # Options: "kr", "allman"
+quote_style = "double"      # Options: "single", "double"
+
+# Naming Conventions
+variable_case = "snake_case"
+function_case = "camelCase"
+class_case = "PascalCase"
+constant_case = "UPPER_CASE"
+interface_prefix = "I"
+
+# Code Structure & Organization
+max_file_length = 1000       # Max lines per file
+max_function_length = 50     # Max lines per function
+max_function_parameters = 5
+max_nesting_depth = 3
+sort_imports = true
+allow_unused_imports = false
+
+# Commenting & Documentation
+docstrings_required = true
+todo_comments_allowed = false
+require_function_comments = true
+
+# Error Handling & Exception Management
+require_try_catch = true
+catch_specific_exceptions = true
+require_logging_in_exceptions = true
+
+# Variable & Function Scope
+allow_global_variables = false
+require_const_for_immutable = true
+detect_unused_variables = true
+
+# Loop & Conditional Style
+max_nesting_depth_loops = 3
+require_early_return = true
+require_switch_default = true
+ban_empty_loops = true
 
 [linters.eslint]
 semi = false

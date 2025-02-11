@@ -1,7 +1,7 @@
 use super::{AppStatus, AppWidget};
 use crate::util::{
     handle_key_events,
-    toml::{create_toml_config, CommonConfig, Config, FlintConfig},
+    toml::{create_toml_config, Config, FlintConfig},
 };
 use crossterm::event::{Event, KeyCode};
 use ratatui::{
@@ -116,12 +116,8 @@ impl<'a> AppWidget for InitWidget<'a> {
                         "y" => {
                             let config = Config {
                                 flint: FlintConfig { version: 1 },
-                                common: CommonConfig {
-                                    indent_style: String::from("spaces"),
-                                    indent_size: 4,
-                                },
-
                                 linters: HashMap::new(),
+                                common: HashMap::new(),
                             };
 
                             create_toml_config("./flint.toml", config).unwrap();
