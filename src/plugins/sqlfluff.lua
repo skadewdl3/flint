@@ -16,5 +16,6 @@ end
 
 function Generate()
     log("Generating sqlfluff linter file")
-    return ""
+    return {
+    }
 end

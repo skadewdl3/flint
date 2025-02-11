@@ -94,7 +94,7 @@ pub fn run_plugin<'a>(
     plugin: &Plugin,
     toml: &Arc<Config>,
     logs: Arc<Mutex<Vec<String>>>,
-) -> Result<String, String> {
+) -> Result<HashMap<String, String>, String> {
     let lua = Lua::new();
     add_helper_globals(&lua, logs);
     let plugin_config = toml
@@ -146,7 +146,7 @@ pub fn run_plugin<'a>(
     let generate_results = generate
         .call::<mlua::Value>(plugin_config)
         .expect("error running generate function");
-    let generate_results: String = lua
+    let generate_results: HashMap<String, String> = lua
         .from_value(generate_results)
         .expect("unable to convert generation result to String");
 

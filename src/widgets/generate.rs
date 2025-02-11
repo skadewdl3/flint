@@ -3,7 +3,6 @@ use std::{
     sync::{mpsc, Arc, Mutex},
 };
 
-use mlua::{Function, Lua, Value};
 use ratatui::{
     layout::{Constraint, Direction, Layout},
     text::Text,
@@ -57,10 +56,16 @@ impl AppWidget for GenerateWidget {
                 let result = run_plugin(&plugin, &toml_clone, logs_clone.clone());
                 if let Ok(mut logs) = logs_clone.lock() {
                     match result {
-                        Ok(_) => logs.push(format!(
-                            "Generated {} config successfully",
-                            plugin.details.id
-                        )),
+                        Ok(res) => {
+                            for (file_name, contents) in res {
+                                std::fs::write(file_name, contents).unwrap();
+                            }
+
+                            logs.push(format!(
+                                "Generated {} config successfully",
+                                plugin.details.id
+                            ))
+                        }
                         Err(err) => {
                             logs.push(format!("Error in {}: {}", plugin.details.id, err));
                         }
