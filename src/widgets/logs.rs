@@ -1,4 +1,4 @@
-use std::sync::{Arc, OnceLock, RwLock, RwLockReadGuard};
+use std::sync::{OnceLock, RwLock, RwLockReadGuard};
 
 use ratatui::{
     layout::{Constraint, Direction, Layout},
@@ -16,6 +16,7 @@ pub enum LogKind {
     Success,
     Error,
     Warn,
+    Debug,
 }
 
 pub static LOGS: OnceLock<RwLock<Vec<(LogKind, String)>>> = OnceLock::new();
@@ -46,10 +47,17 @@ pub fn add_log(kind: LogKind, message: String) {
 impl AppWidget for LogsWidget {
     fn draw(&mut self, frame: &mut Frame) -> AppStatus {
         if let Ok(logs) = get_logs() {
-            let length = logs.len();
+            let log_lines: Vec<u16> = logs
+                .iter()
+                .map(|(kind, log)| match kind {
+                    LogKind::Debug => log.lines().count() as u16 + 1,
+                    _ => log.lines().count() as u16,
+                })
+                .collect();
+
             let layout = Layout::default()
                 .direction(Direction::Vertical)
-                .constraints(Constraint::from_lengths(vec![1; length]))
+                .constraints(Constraint::from_lengths(log_lines))
                 .split(frame.area());
 
             for i in 0..logs.len() {
@@ -59,6 +67,7 @@ impl AppWidget for LogsWidget {
                     LogKind::Success => "[success]:",
                     LogKind::Error => "[error]:",
                     LogKind::Warn => "[warn]:",
+                    LogKind::Debug => "[debug]:\n",
                 };
 
                 let message = format!("{} {}", prefix, log);
@@ -68,6 +77,7 @@ impl AppWidget for LogsWidget {
                     LogKind::Success => Style::default().fg(Color::Green),
                     LogKind::Error => Style::default().fg(Color::Red),
                     LogKind::Warn => Style::default().fg(Color::Yellow),
+                    _ => Style::default(),
                 };
 
                 let text = Text::styled(message, style);

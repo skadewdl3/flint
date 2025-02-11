@@ -1,12 +1,14 @@
 use super::{toml::Config, PLUGINS, PLUGIN_MAP};
 use crate::widgets::logs::{add_log, LogKind};
+use serde_json::to_string_pretty;
+
 use directories::ProjectDirs;
-use mlua::{Function, Lua, LuaSerdeExt};
+use mlua::{Function, Lua, LuaSerdeExt, Value};
 use serde::{Deserialize, Serialize};
 use std::{
     collections::{BTreeSet, HashMap},
     path::PathBuf,
-    sync::{Arc, Mutex},
+    sync::Arc,
 };
 
 #[derive(Serialize, Deserialize, Debug, Ord, PartialOrd, Eq, PartialEq, Clone)]
@@ -158,22 +160,27 @@ fn add_helper_globals(lua: &Lua) {
 
     let log = lua.create_table().unwrap();
     let create_log_fn = |kind: LogKind| {
-        lua.create_function(move |_, message: String| Ok(add_log(kind, message)))
-            .unwrap()
+        lua.create_function(move |_, message: String| {
+            add_log(kind, message);
+            Ok(())
+        })
+        .unwrap()
     };
+
+    let debug_print = lua
+        .create_function(|_, value: Value| match to_string_pretty(&value) {
+            Ok(json) => {
+                add_log(LogKind::Debug, json);
+                Ok(())
+            }
+            Err(err) => Err(mlua::Error::external(err)),
+        })
+        .unwrap();
 
     log.set("info", create_log_fn(LogKind::Info)).unwrap();
     log.set("error", create_log_fn(LogKind::Error)).unwrap();
     log.set("warn", create_log_fn(LogKind::Warn)).unwrap();
     log.set("success", create_log_fn(LogKind::Success)).unwrap();
-
+    log.set("debug", debug_print);
     lua.globals().set("log", log).unwrap();
-
-    let sleep = lua
-        .create_function(|_, seconds: u64| {
-            std::thread::sleep(std::time::Duration::from_millis(seconds));
-            Ok(())
-        })
-        .unwrap();
-    globals.set("sleep", sleep).unwrap();
 }

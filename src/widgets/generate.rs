@@ -1,16 +1,3 @@
-use std::{
-    collections::{BTreeSet, HashMap},
-    sync::{mpsc, Arc, Mutex, RwLock},
-};
-
-use color_eyre::owo_colors::OwoColorize;
-use ratatui::{
-    layout::{Constraint, Direction, Layout},
-    text::Text,
-    Frame,
-};
-use threadpool::ThreadPool;
-
 use super::{
     logs::{add_log, LogKind, LogsWidget},
     AppStatus, AppWidget,
@@ -20,6 +7,9 @@ use crate::util::{
     plugin::{run_plugin, Plugin},
     toml::read_toml_config,
 };
+use ratatui::Frame;
+use std::{collections::BTreeSet, sync::Arc};
+use threadpool::ThreadPool;
 
 pub struct GenerateWidget {
     plugins: Vec<Plugin>,
@@ -62,10 +52,13 @@ impl AppWidget for GenerateWidget {
                         for (file_name, contents) in res {
                             std::fs::write(file_name, contents).unwrap();
                         }
-                        add_log(LogKind::Success, "".to_string());
+                        add_log(
+                            LogKind::Success,
+                            format!("Generated {} config successfully", plugin.details.id),
+                        );
                     }
                     Err(err) => {
-                        add_log(LogKind::Error, format!("{}", err).to_string());
+                        add_log(LogKind::Error, err.to_string());
                     }
                 }
             });

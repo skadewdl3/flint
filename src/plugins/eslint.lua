@@ -11,7 +11,8 @@ end
 
 function Validate(config)
     -- sleep(2000)
-    log.info("Validating eslint config")
+    temp = { foo = 'bar', baz = 123, qux = { nested = true } }
+    log.debug(temp);
     return true
 end
 
