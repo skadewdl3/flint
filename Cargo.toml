@@ -13,6 +13,7 @@ ignore = "0.4.23"
 mlua = { version = "0.10.3", features = ["luau", "serialize", "send"] }
 ratatui = "0.29.0"
 serde = { version = "1.0.217", features = ["derive"] }
+threadpool = "1.8.1"
 throbber-widgets-tui = "0.8.0"
 toml = "0.8.19"
 tui-popup = "0.6.0"

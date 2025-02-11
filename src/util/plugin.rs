@@ -91,10 +91,10 @@ pub fn get_plugin_map() -> &'static HashMap<String, BTreeSet<Plugin>> {
 }
 
 pub fn run_plugin<'a>(
-    logs: Arc<Mutex<Vec<String>>>,
-    toml: Arc<Config>,
     plugin: &Plugin,
-) -> Result<String, &'a str> {
+    toml: &Arc<Config>,
+    logs: Arc<Mutex<Vec<String>>>,
+) -> Result<String, String> {
     let lua = Lua::new();
     add_helper_globals(&lua, logs);
     let plugin_config = toml
@@ -111,7 +111,7 @@ pub fn run_plugin<'a>(
     let contents = match std::fs::read_to_string(&plugin.path) {
         Ok(contents) => contents,
         Err(_) => {
-            return Err("Error reading plugin code");
+            return Err("Error reading plugin code".into());
         }
     };
 
@@ -128,7 +128,7 @@ pub fn run_plugin<'a>(
             (validate, generate)
         }
         Err(_) => {
-            return Err("Error loading lua file");
+            return Err("Error loading lua file".into());
         }
     };
 
@@ -140,7 +140,7 @@ pub fn run_plugin<'a>(
         .from_value(validate_success)
         .expect("unable to convert validation result to boolean");
     if !validate_success {
-        return Err("Plugin config validation failed");
+        return Err("Plugin config validation failed".into());
     }
 
     let generate_results = generate

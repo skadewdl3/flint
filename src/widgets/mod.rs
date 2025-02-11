@@ -6,7 +6,6 @@ pub mod generate;
 pub mod help;
 pub mod init;
 pub mod test;
-use crate::util::thread_manager::ThreadManager;
 pub use app::*;
 
 pub trait AppWidget {
@@ -17,7 +16,6 @@ pub trait AppWidget {
     fn handle_events(&mut self, _event: Event) -> AppStatus {
         return AppStatus::Ok;
     }
-    fn register_thread_manager(&mut self, _thread_manager: ThreadManager) {}
 }
 
 #[derive(Copy, Clone)]

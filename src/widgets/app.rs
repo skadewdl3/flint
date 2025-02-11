@@ -1,5 +1,4 @@
 use crate::util::handle_key_events;
-use crate::util::thread_manager::ThreadManager;
 use crate::widgets::generate::GenerateWidget;
 use crate::widgets::help::HelpWidget;
 use crate::widgets::init::InitWidget;
@@ -19,7 +18,6 @@ pub struct App {
     exit: bool,
     active_widget: Box<dyn AppWidget>,
     error: Option<String>,
-    thread_manager: ThreadManager,
 }
 
 impl App {
@@ -28,12 +26,7 @@ impl App {
             exit: false,
             active_widget: Box::new(HelpWidget::default()),
             error: None,
-            thread_manager: ThreadManager::new(),
         }
-    }
-
-    pub fn thread_manager(&self) -> ThreadManager {
-        self.thread_manager.clone()
     }
 
     pub fn run(&mut self, terminal: &mut DefaultTerminal) -> io::Result<()> {
@@ -46,8 +39,6 @@ impl App {
                 "test" => Box::new(TestWidget::default()),
                 _ => Box::new(HelpWidget::default()),
             };
-            self.active_widget
-                .register_thread_manager(self.thread_manager());
         }
 
         match self.active_widget.setup() {
@@ -77,8 +68,6 @@ impl App {
                 _ => (),
             }
         }
-
-        self.thread_manager.join_all();
 
         Ok(())
     }

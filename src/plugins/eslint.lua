@@ -1,4 +1,3 @@
-
 function Details()
     local details = {
         id = "eslint",
@@ -11,9 +10,9 @@ function Details()
 end
 
 function Validate(config)
-    sleep(2000)
+    -- sleep(2000)
     log("Validating eslint config")
-    return true
+    return false
 end
 
 function Generate(config)

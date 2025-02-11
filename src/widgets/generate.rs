@@ -1,6 +1,6 @@
 use std::{
     collections::{BTreeSet, HashMap},
-    sync::{Arc, Mutex},
+    sync::{mpsc, Arc, Mutex},
 };
 
 use mlua::{Function, Lua, Value};
@@ -9,19 +9,18 @@ use ratatui::{
     text::Text,
     Frame,
 };
+use threadpool::ThreadPool;
 
 use super::{AppStatus, AppWidget};
 use crate::util::{
     get_plugin_map,
     plugin::{run_plugin, Plugin},
-    thread_manager::ThreadManager,
     toml::read_toml_config,
 };
 
 pub struct GenerateWidget {
     plugins: Vec<Plugin>,
-    thread_manager: Option<ThreadManager>,
-    lua: Lua,
+    thread_pool: ThreadPool,
     logs: Arc<Mutex<Vec<String>>>,
 }
 
@@ -29,18 +28,13 @@ impl Default for GenerateWidget {
     fn default() -> Self {
         Self {
             plugins: Vec::new(),
-            thread_manager: None,
-            lua: Lua::new(),
+            thread_pool: ThreadPool::new(16),
             logs: Arc::new(Mutex::new(vec![])),
         }
     }
 }
 
 impl AppWidget for GenerateWidget {
-    fn register_thread_manager(&mut self, thread_manager: ThreadManager) {
-        self.thread_manager = Some(thread_manager)
-    }
-
     fn setup(&mut self) -> AppStatus {
         let toml = Arc::new(read_toml_config("./flint.toml").unwrap());
         let plugin_ids = toml.linters.keys().collect::<Vec<&String>>();
@@ -55,15 +49,24 @@ impl AppWidget for GenerateWidget {
             .collect();
 
         for plugin in &self.plugins {
-            let plugin_clone = plugin.clone();
+            let plugin = plugin.clone();
             let toml_clone = toml.clone();
             let logs_clone = self.logs.clone();
 
-            let handle =
-                std::thread::spawn(move || run_plugin(logs_clone, toml_clone, &plugin_clone));
-            if let Some(thread_manager) = &self.thread_manager {
-                thread_manager.add_thread(handle);
-            }
+            self.thread_pool.execute(move || {
+                let result = run_plugin(&plugin, &toml_clone, logs_clone.clone());
+                if let Ok(mut logs) = logs_clone.lock() {
+                    match result {
+                        Ok(_) => logs.push(format!(
+                            "Generated {} config successfully",
+                            plugin.details.id
+                        )),
+                        Err(err) => {
+                            logs.push(format!("Error in {}: {}", plugin.details.id, err));
+                        }
+                    }
+                }
+            });
         }
 
         AppStatus::Ok
