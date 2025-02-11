@@ -7,6 +7,7 @@ pub mod help;
 pub mod init;
 pub mod test;
 pub use app::*;
+pub mod logs;
 
 pub trait AppWidget {
     fn setup(&mut self) -> AppStatus {

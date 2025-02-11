@@ -1,8 +1,9 @@
 use std::{
     collections::{BTreeSet, HashMap},
-    sync::{mpsc, Arc, Mutex},
+    sync::{mpsc, Arc, Mutex, RwLock},
 };
 
+use color_eyre::owo_colors::OwoColorize;
 use ratatui::{
     layout::{Constraint, Direction, Layout},
     text::Text,
@@ -10,7 +11,10 @@ use ratatui::{
 };
 use threadpool::ThreadPool;
 
-use super::{AppStatus, AppWidget};
+use super::{
+    logs::{add_log, LogKind, LogsWidget},
+    AppStatus, AppWidget,
+};
 use crate::util::{
     get_plugin_map,
     plugin::{run_plugin, Plugin},
@@ -20,7 +24,7 @@ use crate::util::{
 pub struct GenerateWidget {
     plugins: Vec<Plugin>,
     thread_pool: ThreadPool,
-    logs: Arc<Mutex<Vec<String>>>,
+    logs_widget: LogsWidget,
 }
 
 impl Default for GenerateWidget {
@@ -28,7 +32,7 @@ impl Default for GenerateWidget {
         Self {
             plugins: Vec::new(),
             thread_pool: ThreadPool::new(16),
-            logs: Arc::new(Mutex::new(vec![])),
+            logs_widget: LogsWidget::default(),
         }
     }
 }
@@ -50,25 +54,18 @@ impl AppWidget for GenerateWidget {
         for plugin in &self.plugins {
             let plugin = plugin.clone();
             let toml_clone = toml.clone();
-            let logs_clone = self.logs.clone();
 
             self.thread_pool.execute(move || {
-                let result = run_plugin(&plugin, &toml_clone, logs_clone.clone());
-                if let Ok(mut logs) = logs_clone.lock() {
-                    match result {
-                        Ok(res) => {
-                            for (file_name, contents) in res {
-                                std::fs::write(file_name, contents).unwrap();
-                            }
-
-                            logs.push(format!(
-                                "Generated {} config successfully",
-                                plugin.details.id
-                            ))
+                let result = run_plugin(&plugin, &toml_clone);
+                match result {
+                    Ok(res) => {
+                        for (file_name, contents) in res {
+                            std::fs::write(file_name, contents).unwrap();
                         }
-                        Err(err) => {
-                            logs.push(format!("Error in {}: {}", plugin.details.id, err));
-                        }
+                        add_log(LogKind::Success, "".to_string());
+                    }
+                    Err(err) => {
+                        add_log(LogKind::Error, format!("{}", err).to_string());
                     }
                 }
             });
@@ -78,18 +75,7 @@ impl AppWidget for GenerateWidget {
     }
 
     fn draw(&mut self, frame: &mut Frame) -> AppStatus {
-        if let Ok(logs) = self.logs.lock() {
-            let length = logs.len();
-            let layout = Layout::default()
-                .direction(Direction::Vertical)
-                .constraints(Constraint::from_lengths(vec![1; length]))
-                .split(frame.area());
-
-            for i in 0..logs.len() {
-                frame.render_widget(Text::raw(logs[i].clone()), layout[i]);
-            }
-        }
-
+        self.logs_widget.draw(frame);
         AppStatus::Ok
     }
 }

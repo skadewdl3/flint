@@ -1,4 +1,5 @@
 use super::{toml::Config, PLUGINS, PLUGIN_MAP};
+use crate::widgets::logs::{add_log, LogKind};
 use directories::ProjectDirs;
 use mlua::{Function, Lua, LuaSerdeExt};
 use serde::{Deserialize, Serialize};
@@ -21,14 +22,6 @@ pub struct PluginDetails {
 pub struct Plugin {
     pub details: PluginDetails,
     pub path: PathBuf,
-}
-
-#[derive(Copy, Clone)]
-enum LogKind {
-    Info,
-    Success,
-    Error,
-    Warn,
 }
 
 pub fn get_plugins_dir() -> PathBuf {
@@ -101,10 +94,9 @@ pub fn get_plugin_map() -> &'static HashMap<String, BTreeSet<Plugin>> {
 pub fn run_plugin<'a>(
     plugin: &Plugin,
     toml: &Arc<Config>,
-    logs: Arc<Mutex<Vec<String>>>,
 ) -> Result<HashMap<String, String>, String> {
     let lua = Lua::new();
-    add_helper_globals(&lua, logs);
+    add_helper_globals(&lua);
     let plugin_config = toml
         .linters
         .get(&plugin.details.id)
@@ -161,25 +153,12 @@ pub fn run_plugin<'a>(
     Ok(generate_results)
 }
 
-fn log_fn(message: String, kind: LogKind, logs: Arc<Mutex<Vec<String>>>) -> mlua::Result<()> {
-    let _ = logs;
-    if let Ok(mut logs) = logs.lock() {
-        match kind {
-            LogKind::Info => logs.push(format!("[INFO]: {}", message)),
-            LogKind::Success => logs.push(format!("[SUCCESS]: {}", message)),
-            LogKind::Error => logs.push(format!("[ERROR]: {}", message)),
-            LogKind::Warn => logs.push(format!("[WARN]: {}", message)),
-        };
-    }
-    Ok(())
-}
-fn add_helper_globals(lua: &Lua, logs: Arc<Mutex<Vec<String>>>) {
+fn add_helper_globals(lua: &Lua) {
     let globals = lua.globals();
 
     let log = lua.create_table().unwrap();
     let create_log_fn = |kind: LogKind| {
-        let logs = logs.clone();
-        lua.create_function(move |_, message: String| log_fn(message, kind, logs.clone()))
+        lua.create_function(move |_, message: String| Ok(add_log(kind, message)))
             .unwrap()
     };
 
