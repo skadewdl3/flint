@@ -10,12 +10,12 @@ function Details()
 end
 
 function Validate(config)
-    log("Validating sqlfluff config")
+    log.info("Validating sqlfluff config")
     return true
 end
 
 function Generate()
-    log("Generating sqlfluff linter file")
+    log.info("Generating sqlfluff linter file")
     return {
     }
 end

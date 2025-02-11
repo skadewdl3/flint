@@ -11,11 +11,12 @@ end
 
 function Validate(config)
     -- sleep(2000)
-    log("Validating eslint config")
+    log.info("Validating eslint config")
     return true
 end
 
 function Generate(config)
+    log.info("Generating sqlfluff linter file")
     local output = "module.exports = {\n"
 
     if config.semi ~= nil then

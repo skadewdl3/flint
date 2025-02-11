@@ -23,6 +23,14 @@ pub struct Plugin {
     pub path: PathBuf,
 }
 
+#[derive(Copy, Clone)]
+enum LogKind {
+    Info,
+    Success,
+    Error,
+    Warn,
+}
+
 pub fn get_plugins_dir() -> PathBuf {
     if cfg!(debug_assertions) {
         return PathBuf::from("./src/plugins");
@@ -153,16 +161,34 @@ pub fn run_plugin<'a>(
     Ok(generate_results)
 }
 
+fn log_fn(message: String, kind: LogKind, logs: Arc<Mutex<Vec<String>>>) -> mlua::Result<()> {
+    let _ = logs;
+    if let Ok(mut logs) = logs.lock() {
+        match kind {
+            LogKind::Info => logs.push(format!("[INFO]: {}", message)),
+            LogKind::Success => logs.push(format!("[SUCCESS]: {}", message)),
+            LogKind::Error => logs.push(format!("[ERROR]: {}", message)),
+            LogKind::Warn => logs.push(format!("[WARN]: {}", message)),
+        };
+    }
+    Ok(())
+}
 fn add_helper_globals(lua: &Lua, logs: Arc<Mutex<Vec<String>>>) {
     let globals = lua.globals();
-    let log = lua
-        .create_function(move |_, message: String| {
-            let _ = logs;
-            logs.lock().unwrap().push(message);
-            Ok(())
-        })
-        .unwrap();
-    globals.set("log", log).unwrap();
+
+    let log = lua.create_table().unwrap();
+    let create_log_fn = |kind: LogKind| {
+        let logs = logs.clone();
+        lua.create_function(move |_, message: String| log_fn(message, kind, logs.clone()))
+            .unwrap()
+    };
+
+    log.set("info", create_log_fn(LogKind::Info)).unwrap();
+    log.set("error", create_log_fn(LogKind::Error)).unwrap();
+    log.set("warn", create_log_fn(LogKind::Warn)).unwrap();
+    log.set("success", create_log_fn(LogKind::Success)).unwrap();
+
+    lua.globals().set("log", log).unwrap();
 
     let sleep = lua
         .create_function(|_, seconds: u64| {
