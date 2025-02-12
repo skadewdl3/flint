@@ -5,6 +5,8 @@ version = 1
 # Syntax & Formatting
 indentation = "spaces"      # Options: "spaces", "tabs"
 indent_size = 4
+switch_case = 5
+function_declaration = { body = 2, parameters = 3}
 max_line_length = 120
 trailing_whitespace = false
 require_semicolons = true

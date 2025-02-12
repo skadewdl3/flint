@@ -5,28 +5,13 @@ export default [
         "error",
         4,
         {
-          "SwitchCase": 1
+          "SwitchCase": 5,
+          "FunctionDeclaration": {
+            "parameters": 3,
+            "body": 2
+          }
         }
-      ],
-      "quotes": [
-        "error",
-        "double"
-      ],
-      "semi": [
-        "error",
-        "always"
-      ],
-      "max-len": [
-        "error",
-        {
-          "code": 120
-        }
-      ],
-      "brace-style": [
-        "error",
-        "1tbs"
-      ],
-      "no-trailing-spaces": "error"
+      ]
     }
   }
 ];
