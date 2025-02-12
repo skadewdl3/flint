@@ -163,8 +163,6 @@ pub fn run_plugin<'a>(
 }
 
 fn add_helper_globals(lua: &Lua) {
-    let globals = lua.globals();
-
     let log = lua.create_table().unwrap();
     let create_log_fn = |kind: LogKind| {
         lua.create_function(move |_, message: String| {
@@ -184,10 +182,18 @@ fn add_helper_globals(lua: &Lua) {
         })
         .unwrap();
 
+    let to_json = lua
+        .create_function(|_, value: Value| match to_string_pretty(&value) {
+            Ok(json) => Ok(json),
+            Err(err) => Err(mlua::Error::external(err)),
+        })
+        .unwrap();
+
     log.set("info", create_log_fn(LogKind::Info)).unwrap();
     log.set("error", create_log_fn(LogKind::Error)).unwrap();
     log.set("warn", create_log_fn(LogKind::Warn)).unwrap();
     log.set("success", create_log_fn(LogKind::Success)).unwrap();
-    log.set("debug", debug_print);
+    log.set("debug", debug_print).unwrap();
+    lua.globals().set("to_json", to_json).unwrap();
     lua.globals().set("log", log).unwrap();
 }
