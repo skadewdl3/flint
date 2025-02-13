@@ -4,7 +4,7 @@ function Details()
         author = "Soham Karandikar",
         version = "0.0.1",
         extensions = { "sql" },
-        category = "linter"
+        category = "lint"
     }
     return details
 end

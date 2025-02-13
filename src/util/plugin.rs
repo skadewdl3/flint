@@ -33,6 +33,10 @@ pub fn get_plugins_dir() -> PathBuf {
         let plugins_path = proj_dirs.data_dir().to_path_buf().join("plugins");
         if !plugins_path.exists() {
             std::fs::create_dir_all(&plugins_path).expect("Failed to create plugins directory");
+            std::fs::create_dir_all(&plugins_path.join("test"))
+                .expect("Failed to create test directory");
+            std::fs::create_dir_all(&plugins_path.join("lint"))
+                .expect("Failed to create lint directory");
         }
         plugins_path
     } else {
@@ -44,7 +48,7 @@ pub fn list_plugins() -> BTreeSet<Plugin> {
     let lua = Lua::new();
 
     let mut plugins = BTreeSet::new();
-    let plugins_dir = get_plugins_dir();
+    let plugins_dir = get_plugins_dir().join("lint");
     if let Ok(entries) = std::fs::read_dir(plugins_dir) {
         for entry in entries {
             if let Ok(entry) = entry {
