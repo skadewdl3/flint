@@ -7,6 +7,8 @@ use std::{
 };
 
 pub mod lang;
+#[macro_use]
+pub mod macros;
 pub mod plugin;
 pub mod toml;
 
