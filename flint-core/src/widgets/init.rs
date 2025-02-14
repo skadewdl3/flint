@@ -73,13 +73,13 @@ impl<'a> AppWidget for InitWidget<'a> {
                     direction: Direction::Vertical,
                     constraints: Constraint::from_lengths([1])
                 ) {
-                    Text(cons: "Bruh")
+                    Text::raw("Bruh")
                 },
                 Layout(
                     direction: Direction::Vertical,
                     constraints: Constraint::from_lengths([1])
                 ) {
-                    Text(cons: "Bruh")
+                    Text::raw("Bruh")
                 }
             }
         );

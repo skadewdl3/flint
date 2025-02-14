@@ -7,9 +7,15 @@ use syn::{
     token, Expr, Ident, Result, Token,
 };
 
+#[derive(Debug)]
+struct UiMacroInput {
+    frame: Ident,
+    widget: Widget,
+}
+
 #[derive(Debug, Clone)]
 enum WidgetKind {
-    Constructor(Ident),
+    Constructor(Ident, Ident),
     Layout(Ident, Vec<Widget>),
 }
 
@@ -20,15 +26,15 @@ struct Widget {
 }
 
 #[derive(Debug, Clone)]
-struct Arg {
-    name: Ident,
-    value: Expr,
+enum ArgKind {
+    Positional,
+    Named(Ident),
 }
 
-#[derive(Debug)]
-struct UiMacroInput {
-    frame: Ident,
-    widget: Widget,
+#[derive(Debug, Clone)]
+struct Arg {
+    value: Expr,
+    kind: ArgKind,
 }
 
 impl Parse for UiMacroInput {
@@ -46,6 +52,13 @@ impl Parse for Widget {
         // Parse widget name
         let widget_name = input.parse::<Ident>()?;
 
+        let constructor_fn = if input.peek(Token![::]) {
+            input.parse::<Token![::]>()?;
+            input.parse::<Ident>()?
+        } else {
+            Ident::new("default", widget_name.span())
+        };
+
         // Parse arguments in parentheses
         let args = if input.peek(token::Paren) {
             let content;
@@ -61,10 +74,10 @@ impl Parse for Widget {
         let mut kind = if is_layout_widget(&widget_name) {
             WidgetKind::Layout(widget_name, vec![])
         } else {
-            WidgetKind::Constructor(widget_name)
+            WidgetKind::Constructor(widget_name, constructor_fn)
         };
 
-        if let WidgetKind::Constructor(_) = kind {
+        if let WidgetKind::Constructor(_, _) = kind {
             return Ok(Widget { kind, args });
         }
 
@@ -88,11 +101,28 @@ impl Parse for Widget {
 
 impl Parse for Arg {
     fn parse(input: ParseStream) -> Result<Self> {
-        let name = input.parse::<Ident>()?;
-        input.parse::<Token![:]>()?;
-        let value = input.parse::<Expr>()?;
+        // Check if we have a named parameter (identified by an identifier followed by a colon)
+        let lookahead = input.lookahead1();
 
-        Ok(Arg { name, value })
+        if lookahead.peek(Ident) && input.peek2(Token![:]) {
+            // Parse named parameter
+            let name = input.parse::<Ident>()?;
+            input.parse::<Token![:]>()?;
+            let value = input.parse::<Expr>()?;
+
+            Ok(Arg {
+                value,
+                kind: ArgKind::Named(name),
+            })
+        } else {
+            // Parse positional parameter
+            let value = input.parse::<Expr>()?;
+
+            Ok(Arg {
+                value,
+                kind: ArgKind::Positional,
+            })
+        }
     }
 }
 
@@ -108,37 +138,29 @@ fn generate_widget_code(
     frame: &Ident,
 ) -> proc_macro2::TokenStream {
     match &widget.kind {
-        WidgetKind::Constructor(name) => {
+        WidgetKind::Constructor(name, constructor) => {
             let args = &widget.args;
-            let constructor_arg = get_constructor_arg(args);
-            let constructor_name = get_constructor_name(name.clone());
 
-            let mut widget = match constructor_arg {
-                Some((_, Arg { value, .. })) => {
-                    quote! {
-                        #name #constructor_name(#value)
-                    }
-                }
-                None => {
-                    quote! {
-                        #name #constructor_name()
-                    }
-                }
+            let positional_args: Vec<_> = args
+                .iter()
+                .filter_map(|arg| match &arg.kind {
+                    ArgKind::Positional => Some(&arg.value),
+                    _ => None,
+                })
+                .collect();
+
+            // Start with constructor call including all positional arguments
+            let mut widget = quote! {
+                #name :: #constructor(#(#positional_args),*)
             };
 
-            for (i, arg) in args.iter().enumerate() {
-                if let Some((index, _)) = constructor_arg {
-                    if i == index {
-                        continue;
-                    }
+            for arg in args {
+                if let ArgKind::Named(name) = &arg.kind {
+                    let value = &arg.value;
+                    widget.extend(quote! {
+                        .#name(#value)
+                    });
                 }
-
-                let name = &arg.name;
-                let value = &arg.value;
-
-                widget.extend(quote! {
-                    .#name(#value)
-                });
             }
 
             if is_top_level {
@@ -157,17 +179,26 @@ fn generate_widget_code(
             let parent_ident =
                 proc_macro2::Ident::new(&format!("chunks_{}", parent_index), name.span());
 
+            let positional_args: Vec<_> = args
+                .iter()
+                .filter_map(|arg| match &arg.kind {
+                    ArgKind::Positional => Some(&arg.value),
+                    _ => None,
+                })
+                .collect();
+
             let mut layout_code = quote! {
-                let mut #layout_ident = #name::default()
+                let mut #layout_ident = #name::default(#(#positional_args),*)
             };
 
-            // Add all the layout arguments
+            // Add named arguments as method calls
             for arg in args {
-                let name = &arg.name;
-                let value = &arg.value;
-                layout_code.extend(quote! {
-                    .#name(#value)
-                });
+                if let ArgKind::Named(name) = &arg.kind {
+                    let value = &arg.value;
+                    layout_code.extend(quote! {
+                        .#name(#value)
+                    });
+                }
             }
 
             // Always end with semicolon after configuration
@@ -213,10 +244,6 @@ fn generate_widget_code(
             }
         }
     }
-}
-
-fn get_constructor_arg(args: &Vec<Arg>) -> Option<(usize, &Arg)> {
-    args.iter().enumerate().find(|(_, arg)| arg.name == "cons")
 }
 
 fn get_constructor_name(name: Ident) -> proc_macro2::TokenStream {
