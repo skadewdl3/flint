@@ -64,18 +64,22 @@ impl<'a> AppWidget for InitWidget<'a> {
                     </Layout>
         */
 
-        let res = ui!(
+        ui!(frame =>
             Layout (
-                direction: Direction::Vertical,
-                constraints: vec![Constraint::Length(1), Constraint::Length(1)]
+                direction: Direction::Horizontal,
+                constraints: Constraint::from_percentages([50, 50])
             ) {
-
-                Text(cons: "bruh2"),
-                Layout (
+                Layout(
                     direction: Direction::Vertical,
-                    constraints: vec![Constraint::Length(1)]
+                    constraints: Constraint::from_lengths([1])
                 ) {
-                    Text(cons: "bruh3")
+                    Text(cons: "Bruh")
+                },
+                Layout(
+                    direction: Direction::Vertical,
+                    constraints: Constraint::from_lengths([1])
+                ) {
+                    Text(cons: "Bruh")
                 }
             }
         );

@@ -25,6 +25,22 @@ struct Arg {
     value: Expr,
 }
 
+#[derive(Debug)]
+struct UiMacroInput {
+    frame: Ident,
+    widget: Widget,
+}
+
+impl Parse for UiMacroInput {
+    fn parse(input: ParseStream) -> Result<Self> {
+        let frame = input.parse()?;
+        input.parse::<Token![=>]>()?;
+        let widget = input.parse()?;
+
+        Ok(UiMacroInput { frame, widget })
+    }
+}
+
 impl Parse for Widget {
     fn parse(input: ParseStream) -> Result<Self> {
         // Parse widget name
@@ -89,6 +105,7 @@ fn generate_widget_code(
     is_top_level: bool,
     parent_index: usize,
     child_index: usize,
+    frame: &Ident,
 ) -> proc_macro2::TokenStream {
     match &widget.kind {
         WidgetKind::Constructor(name) => {
@@ -124,7 +141,13 @@ fn generate_widget_code(
                 });
             }
 
-            widget
+            if is_top_level {
+                quote! {
+                    frame.render_widget(#widget, frame.area());
+                }
+            } else {
+                widget
+            }
         }
         WidgetKind::Layout(name, children) => {
             let args = &widget.args;
@@ -157,7 +180,7 @@ fn generate_widget_code(
             // Split the area - for top level use frame.area(), for nested use the parent's chunk
             let split_code = if is_top_level {
                 quote! {
-                    let #chunks_ident = #layout_ident.split(frame.area());
+                    let #chunks_ident = #layout_ident.split(#frame .area());
                 }
             } else {
                 quote! {
@@ -167,7 +190,7 @@ fn generate_widget_code(
 
             let mut render_statements = quote! {};
             for (idx, child) in children.iter().enumerate() {
-                let child_widget = generate_widget_code(child, false, layout_index, idx);
+                let child_widget = generate_widget_code(child, false, layout_index, idx, frame);
 
                 if let WidgetKind::Layout(_, _) = child.kind {
                     render_statements.extend(quote! {
@@ -175,7 +198,7 @@ fn generate_widget_code(
                     });
                 } else {
                     render_statements.extend(quote! {
-                        frame.render_widget(#child_widget, #chunks_ident[#idx]);
+                        #frame .render_widget(#child_widget, #chunks_ident[#idx]);
                     });
                 }
             }
@@ -211,7 +234,7 @@ fn generate_unique_id() -> u32 {
 
 #[proc_macro]
 pub fn ui(input: TokenStream) -> TokenStream {
-    let widget = parse_macro_input!(input as Widget);
-    let output = generate_widget_code(&widget, true, 0, 0);
+    let UiMacroInput { frame, widget, .. } = parse_macro_input!(input as UiMacroInput);
+    let output = generate_widget_code(&widget, true, 0, 0, &frame);
     output.into()
 }
