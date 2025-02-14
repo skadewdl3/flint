@@ -4,9 +4,9 @@ use crate::util::{
     toml::{create_toml_config, Config, FlintConfig},
 };
 use crossterm::event::{Event, KeyCode};
+use flint_macros::ui;
 use ratatui::{
     layout::{Constraint, Direction, Flex, Layout},
-    style::{Color, Stylize},
     text::Text,
     widgets::{Block, List},
     Frame,
@@ -49,15 +49,18 @@ impl<'a> AppWidget for InitWidget<'a> {
     }
 
     fn draw(&mut self, frame: &mut Frame) -> AppStatus {
+        let text = Text::raw("Hi");
+        let res = ui!({ text });
+
         let layout0 = Layout::default()
             .direction(Direction::Vertical)
             .constraints([Constraint::Length(1), Constraint::Fill(1)])
             .split(frame.area());
 
-        frame.render_widget(
-            Text::raw("We found the following languages in this directory."),
-            layout0[0],
-        );
+        // frame.render_widget(
+        //     Text::raw("We found the following languages in this directory."),
+        //     layout0[0],
+        // );
 
         let layout1 = Layout::default()
             .direction(Direction::Vertical)
@@ -71,13 +74,13 @@ impl<'a> AppWidget for InitWidget<'a> {
         let list_widget = List::new(self.detected_langs.clone())
             .block(Block::bordered().title("Detected Languages"))
             .repeat_highlight_symbol(true);
-        frame.render_widget(list_widget, layout1[0]);
+        // frame.render_widget(list_widget, layout1[0]);
 
         if self.unsupported_langs.len() > 0 {
             let unsupported_list_widget = List::new(self.unsupported_langs.clone())
                 .block(Block::bordered().title("Unsupported Languages"))
                 .repeat_highlight_symbol(true);
-            frame.render_widget(unsupported_list_widget, layout1[1]);
+            // frame.render_widget(unsupported_list_widget, layout1[1]);
         }
 
         let confirm_message = if self.config_exists {
@@ -96,12 +99,14 @@ impl<'a> AppWidget for InitWidget<'a> {
             .flex(Flex::Center)
             .split(layout1[2]);
 
-        frame.render_widget(
-            Block::default().title(confirm_message).fg(Color::Yellow),
-            layout2[0],
-        );
+        // frame.render_widget(
+        //     Block::default().title(confirm_message).fg(Color::Yellow),
+        //     layout2[0],
+        // );
 
-        frame.render_widget(&self.textarea, layout2[2]);
+        // frame.render_widget(&self.textarea, layout2[2]);
+
+        println!("{:?}", res);
         AppStatus::Ok
     }
 
