@@ -1,6 +1,7 @@
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{
+    braced,
     parse::{Parse, ParseStream},
     parse_macro_input,
     punctuated::Punctuated,
@@ -15,8 +16,9 @@ struct UiMacroInput {
 
 #[derive(Debug, Clone)]
 enum WidgetKind {
-    Constructor(Ident, Ident),
-    Layout(Ident, Vec<Widget>),
+    Constructor { name: Ident, constructor: Ident },
+    Layout { name: Ident, children: Vec<Widget> },
+    Variable { expr: Expr },
 }
 
 #[derive(Debug, Clone)]
@@ -49,6 +51,24 @@ impl Parse for UiMacroInput {
 
 impl Parse for Widget {
     fn parse(input: ParseStream) -> Result<Self> {
+        if input.peek(token::Brace) {
+            let content;
+            syn::braced!(content in input);
+
+            // Check if the content starts with another left brace
+            if content.peek(token::Brace) {
+                let inner_content;
+                syn::braced!(inner_content in content);
+                let expr: Expr = inner_content.parse()?;
+
+                return Ok(Widget {
+                    kind: WidgetKind::Variable { expr },
+                    args: vec![],
+                });
+            }
+        }
+
+        //
         // Parse widget name
         let widget_name = input.parse::<Ident>()?;
 
@@ -72,12 +92,18 @@ impl Parse for Widget {
 
         // Check if this is a layout widget
         let mut kind = if is_layout_widget(&widget_name) {
-            WidgetKind::Layout(widget_name, vec![])
+            WidgetKind::Layout {
+                name: widget_name,
+                children: vec![],
+            }
         } else {
-            WidgetKind::Constructor(widget_name, constructor_fn)
+            WidgetKind::Constructor {
+                name: widget_name,
+                constructor: constructor_fn,
+            }
         };
 
-        if let WidgetKind::Constructor(_, _) = kind {
+        if let WidgetKind::Constructor { .. } = kind {
             return Ok(Widget { kind, args });
         }
 
@@ -86,7 +112,10 @@ impl Parse for Widget {
             let content;
             syn::braced!(content in input);
 
-            if let WidgetKind::Layout(_, ref mut children) = kind {
+            if let WidgetKind::Layout {
+                ref mut children, ..
+            } = kind
+            {
                 // Parse children as a punctuated sequence
                 let child_widgets = Punctuated::<Widget, Token![,]>::parse_terminated(&content)?;
                 children.extend(child_widgets);
@@ -138,7 +167,17 @@ fn generate_widget_code(
     frame: &Ident,
 ) -> proc_macro2::TokenStream {
     match &widget.kind {
-        WidgetKind::Constructor(name, constructor) => {
+        WidgetKind::Variable { expr } => {
+            if is_top_level {
+                quote! {
+                    frame.render_widget(&#expr, frame.area());
+                }
+            } else {
+                quote! { #expr }
+            }
+        }
+
+        WidgetKind::Constructor { name, constructor } => {
             let args = &widget.args;
 
             let positional_args: Vec<_> = args
@@ -171,7 +210,7 @@ fn generate_widget_code(
                 widget
             }
         }
-        WidgetKind::Layout(name, children) => {
+        WidgetKind::Layout { name, children } => {
             let args = &widget.args;
             let layout_index = generate_unique_id() as usize;
             let layout_ident =
@@ -223,7 +262,7 @@ fn generate_widget_code(
             for (idx, child) in children.iter().enumerate() {
                 let child_widget = generate_widget_code(child, false, layout_index, idx, frame);
 
-                if let WidgetKind::Layout(_, _) = child.kind {
+                if let WidgetKind::Layout { .. } = child.kind {
                     render_statements.extend(quote! {
                         #child_widget
                     });
@@ -243,13 +282,6 @@ fn generate_widget_code(
                 }
             }
         }
-    }
-}
-
-fn get_constructor_name(name: Ident) -> proc_macro2::TokenStream {
-    match name.to_string().as_str() {
-        "Text" => quote! { ::raw },
-        _ => quote! { ::default },
     }
 }
 

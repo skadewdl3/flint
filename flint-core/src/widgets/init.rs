@@ -24,6 +24,12 @@ pub struct InitWidget<'a> {
     cwd: String,
 }
 
+impl<'a> InitWidget<'a> {
+    pub fn hello_world(&self) -> &'a str {
+        "Hello World"
+    }
+}
+
 impl<'a> AppWidget for InitWidget<'a> {
     fn setup(&mut self) -> AppStatus {
         let file_path = match std::env::current_dir() {
@@ -50,37 +56,13 @@ impl<'a> AppWidget for InitWidget<'a> {
 
     fn draw(&mut self, frame: &mut Frame) -> AppStatus {
         let text = Text::raw("Hi");
-        let text2 = text.clone();
-        let x = Layout::default();
-
-        /*
-
-        <Layout
-                        direction={Direction::Vertical}
-                        constraints={vec![Constraint::Length(2), Constraint::Length(1)]}
-                    >
-                    <Text cons={"Line 3"} />
-                    {text2}
-                    </Layout>
-        */
 
         ui!(frame =>
             Layout (
                 direction: Direction::Horizontal,
                 constraints: Constraint::from_percentages([50, 50])
             ) {
-                Layout(
-                    direction: Direction::Vertical,
-                    constraints: Constraint::from_lengths([1])
-                ) {
-                    Text::raw("Bruh")
-                },
-                Layout(
-                    direction: Direction::Vertical,
-                    constraints: Constraint::from_lengths([1])
-                ) {
-                    Text::raw("Bruh")
-                }
+                {{ self.hello_world() }}
             }
         );
 
