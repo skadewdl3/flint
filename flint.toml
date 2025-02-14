@@ -5,7 +5,6 @@ version = 1
 indent_style = "spaces"                             # Options: "spaces", "tabs"
 indent_size = 4
 switch_case = 5
-function_declaration = { body = 2, parameters = 3 }
 
 [common]
 # Code structure

@@ -21,7 +21,20 @@ function Generate(config)
     log.info("Generating ESLint configuration")
     -- log.debug(common)
 
-    local function getIndentRule(indentation, indent_size)
+    local imports = {}
+    local plugins = {}
+
+    local function getIndentRule(indent_config)
+
+        if not indent_config then
+            return nil
+        end
+
+        imports["stylisticJs"] = '@stylistic/eslint-plugin-js'
+        plugins["@stylistic/js"] = "stylisticJs"   
+
+        indentation = common.indent.indent_style
+        indent_size = common.indent.indent_size
         -- Base indentation configuration
         local indentOptions = {
             "error",
@@ -105,7 +118,7 @@ function Generate(config)
 
     local rules = {
         --Indentation rules
-        indent = getIndentRule(common.indent.indent_style, common.indent.indent_size),
+        indent = getIndentRule(common.indent),
     }
     -- Prepare the ESLint config as a Lua table
     local eslintConfig = {

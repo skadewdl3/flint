@@ -5,11 +5,7 @@ export default [
         "error",
         4,
         {
-          "SwitchCase": 5,
-          "FunctionDeclaration": {
-            "parameters": 3,
-            "body": 2
-          }
+          "SwitchCase": 5
         }
       ]
     }
