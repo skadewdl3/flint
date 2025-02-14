@@ -5,12 +5,11 @@ use crate::util::{
 };
 use crossterm::event::{Event, KeyCode};
 use flint_macros::ui;
-use ratatui::prelude::Stylize;
 use ratatui::{
-    layout::{Constraint, Direction, Flex, Layout},
-    style::Color,
+    layout::{Constraint, Direction, Layout},
+    style::{Color, Stylize},
     text::Text,
-    widgets::{Block, Borders, List, Paragraph},
+    widgets::{Block, List},
     Frame,
 };
 use std::collections::{BTreeSet, HashMap};
