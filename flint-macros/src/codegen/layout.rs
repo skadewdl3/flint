@@ -8,6 +8,21 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::Ident;
 
+/// Handles the code generation for a layout widget. This widget is responsible for
+/// arranging its child widgets within a specified layout. It reduces the complexity of layout
+/// management by automatically rendering the children in the correct area of the layout
+/// according to their order.
+///
+/// # Arguments
+///
+/// * `widget` - The layout widget to handle
+/// * `name` - The identifier for this layout
+/// * `children` - Vector of child widgets contained in this layout
+/// * `options` - Configuration options for widget handling
+///
+/// # Returns
+///
+/// A TokenStream containing the generated code for this layout widget and its children
 pub fn handle_layout_widget(
     widget: &Widget,
     name: &Ident,
@@ -71,18 +86,22 @@ pub fn handle_layout_widget(
 
         let child_widget = generate_widget_code(child, &new_options);
 
-        if let WidgetKind::Layout { .. } = child.kind {
-            render_statements.extend(quote! {
-                #child_widget
-            });
-        } else if let WidgetKind::Conditional { .. } = child.kind {
-            render_statements.extend(quote! {
-                #child_widget
-            });
-        } else {
-            render_statements.extend(quote! {
-                #frame .render_widget(#child_widget, #chunks_ident[#idx]);
-            });
+        match child.kind {
+            // Layout widgets don't return an actual widget, so we don't call frame.render_widget on them
+            // Instead, their children are rendered recursively
+            WidgetKind::Layout { .. } | WidgetKind::Conditional { .. } => {
+                render_statements.extend(quote! {
+                    #child_widget
+                });
+            }
+
+            // For other widgets (Variable and Constructor), we call frame.render_widget on them
+            // since they actually retturn something that implements ratatui::Widget
+            _ => {
+                render_statements.extend(quote! {
+                    #frame .render_widget(#child_widget, #chunks_ident[#idx]);
+                });
+            }
         }
     }
 

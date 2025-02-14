@@ -6,7 +6,7 @@ use crate::util::{
 use crossterm::event::{Event, KeyCode};
 use flint_macros::ui;
 use ratatui::{
-    layout::{Constraint, Direction, Layout},
+    layout::{Constraint, Direction, Flex, Layout},
     style::{Color, Stylize},
     text::Text,
     widgets::{Block, List},
