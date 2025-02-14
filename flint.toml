@@ -2,8 +2,8 @@
 version = 1
 
 [common.indent]
-indent_style = "spaces"                             # Options: "spaces", "tabs"
-indent_size = 4
+indent_style = "tabs"                             # Options: "spaces", "tabs"
+indent_size = 2
 switch_case = 5
 
 [common]
@@ -13,6 +13,11 @@ trailing_whitespace = false
 require_semicolons = true
 bracket_style = "kr"        # Options: "kr", "allman"
 quote_style = "double"      # Options: "single", "double"
+
+#for stylistic-plugins
+array_bracket_newline = "never"
+array_element_newline = { minItems = 3}
+
 
 variable_case = "snake_case"
 function_case = "camelCase"

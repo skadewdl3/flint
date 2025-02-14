@@ -33,8 +33,8 @@ function Generate(config)
         imports["stylisticJs"] = '@stylistic/eslint-plugin-js'
         plugins["@stylistic/js"] = "stylisticJs"   
 
-        indentation = common.indent.indent_style
-        indent_size = common.indent.indent_size
+        local indentation = common.indent.indent_style
+        local indent_size = common.indent.indent_size
         -- Base indentation configuration
         local indentOptions = {
             "error",
@@ -124,6 +124,7 @@ function Generate(config)
     local eslintConfig = {
         {
             rules = rules,
+            plugins = plugins
         }
     }
 
