@@ -5,7 +5,7 @@ use syn::{
     parse::{Parse, ParseStream},
     parse_macro_input,
     punctuated::Punctuated,
-    token, Expr, Ident, Result, Token,
+    token, Constraint, Expr, Ident, Result, Token,
 };
 
 #[derive(Debug)]
@@ -16,9 +16,22 @@ struct UiMacroInput {
 
 #[derive(Debug, Clone)]
 enum WidgetKind {
-    Constructor { name: Ident, constructor: Ident },
-    Layout { name: Ident, children: Vec<Widget> },
-    Variable { expr: Expr },
+    Constructor {
+        name: Ident,
+        constructor: Ident,
+    },
+    Layout {
+        name: Ident,
+        children: Vec<Widget>,
+    },
+    Variable {
+        expr: Expr,
+    },
+    Conditional {
+        condition: Expr,
+        child: Box<Widget>,
+        else_child: Option<Box<Widget>>, // Add this field
+    },
 }
 
 #[derive(Debug, Clone)]
@@ -68,9 +81,41 @@ impl Parse for Widget {
             }
         }
 
-        //
         // Parse widget name
         let widget_name = input.parse::<Ident>()?;
+
+        if widget_name == "If" {
+            let content;
+            syn::parenthesized!(content in input);
+            let condition = content.parse::<Expr>()?;
+
+            let brace_content;
+            braced!(brace_content in input);
+            let child = brace_content.parse::<Widget>()?;
+
+            // Check for Else keyword
+            let else_child = if input.peek(Ident) {
+                let else_kw: Ident = input.parse()?;
+                if else_kw == "Else" {
+                    let else_content;
+                    braced!(else_content in input);
+                    Some(Box::new(else_content.parse::<Widget>()?))
+                } else {
+                    return Err(input.error("Expected 'Else' keyword"));
+                }
+            } else {
+                None
+            };
+
+            return Ok(Widget {
+                kind: WidgetKind::Conditional {
+                    condition,
+                    child: Box::new(child),
+                    else_child,
+                },
+                args: vec![],
+            });
+        }
 
         let constructor_fn = if input.peek(Token![::]) {
             input.parse::<Token![::]>()?;
@@ -167,6 +212,69 @@ fn generate_widget_code(
     frame: &Ident,
 ) -> proc_macro2::TokenStream {
     match &widget.kind {
+        WidgetKind::Conditional {
+            condition,
+            child,
+            else_child,
+        } => {
+            let layout = Widget {
+                args: vec![Arg {
+                    value: syn::parse2(quote! {
+                        if #condition {
+                            [Constraint::Min(0)]
+                        } else {
+                            [Constraint::Length(0)]
+                        }
+                    })
+                    .expect("Failed to parse constraints expression"),
+                    kind: ArgKind::Named(Ident::new("constraints", proc_macro2::Span::call_site())),
+                }],
+                kind: WidgetKind::Layout {
+                    name: Ident::new("Layout", proc_macro2::Span::call_site()),
+                    children: vec![*child.clone()],
+                },
+            };
+
+            let else_layout = else_child.as_ref().map(|else_child| Widget {
+                args: vec![Arg {
+                    value: syn::parse2(quote! {
+                        if #condition {
+                            [Constraint::Length(0)]
+                        } else {
+                            [Constraint::Min(0)]
+                        }
+                    })
+                    .expect("Failed to parse constraints expression"),
+                    kind: ArgKind::Named(Ident::new("constraints", proc_macro2::Span::call_site())),
+                }],
+                kind: WidgetKind::Layout {
+                    name: Ident::new("Layout", proc_macro2::Span::call_site()),
+                    children: vec![(**else_child).clone()],
+                },
+            });
+
+            let if_layout =
+                generate_widget_code(&layout, is_top_level, parent_index, child_index, frame);
+
+            if let Some(else_layout) = else_layout {
+                let else_code = generate_widget_code(
+                    &else_layout,
+                    is_top_level,
+                    parent_index,
+                    child_index,
+                    frame,
+                );
+                quote! {
+                    {
+                        #if_layout
+                        #else_code
+                    }
+                }
+            } else {
+                if_layout
+            }
+        }
+
         WidgetKind::Variable { expr } => {
             if is_top_level {
                 quote! {
@@ -263,6 +371,10 @@ fn generate_widget_code(
                 let child_widget = generate_widget_code(child, false, layout_index, idx, frame);
 
                 if let WidgetKind::Layout { .. } = child.kind {
+                    render_statements.extend(quote! {
+                        #child_widget
+                    });
+                } else if let WidgetKind::Conditional { .. } = child.kind {
                     render_statements.extend(quote! {
                         #child_widget
                     });

@@ -94,8 +94,9 @@ impl<'a> AppWidget for InitWidget<'a> {
                             Constraint::Fill(1)
                         ]
                     ) {
+
                        Block(title: confirm_message, fg: if self.config_exists { Color::Yellow } else { Color::Blue }),
-                       Text::raw(""),
+                       {{ "" }},
                        {{ &self.textarea }}
                     }
                 }
