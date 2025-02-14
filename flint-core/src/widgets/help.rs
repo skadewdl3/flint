@@ -12,7 +12,7 @@ impl Default for HelpWidget {
 }
 
 impl AppWidget for HelpWidget {
-    fn draw(&mut self, frame: &mut Frame) -> AppStatus {
+    fn draw(&mut self, _frame: &mut Frame) -> AppStatus {
         AppStatus::Ok
     }
 }

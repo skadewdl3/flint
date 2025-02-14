@@ -1,5 +1,5 @@
 use ratatui::Frame;
-use throbber_widgets_tui::{Throbber, ThrobberState};
+use throbber_widgets_tui::ThrobberState;
 
 use super::{AppStatus, AppWidget};
 
@@ -17,7 +17,7 @@ impl Default for TestWidget {
 }
 
 impl AppWidget for TestWidget {
-    fn draw(&mut self, frame: &mut Frame) -> AppStatus {
+    fn draw(&mut self, _frame: &mut Frame) -> AppStatus {
         AppStatus::Ok
     }
 }
