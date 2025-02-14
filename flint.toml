@@ -2,9 +2,10 @@
 version = 1
 
 [common.indent]
-indent_style = "tabs"                             # Options: "spaces", "tabs"
-indent_size = 2
+indent_style = "spaces"                             # Options: "spaces", "tabs"
+indent_size = 4
 switch_case = 5
+function_declaration = { body = 2, parameters = 3 }
 
 [common]
 # Code structure
@@ -13,11 +14,7 @@ trailing_whitespace = false
 require_semicolons = true
 bracket_style = "kr"        # Options: "kr", "allman"
 quote_style = "double"      # Options: "single", "double"
-
-#for stylistic-plugins
-array_bracket_newline = "never"
-array_element_newline = { minItems = 3}
-
+array_bracket_newline_js = "always"
 
 variable_case = "snake_case"
 function_case = "camelCase"
