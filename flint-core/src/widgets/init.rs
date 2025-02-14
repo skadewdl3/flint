@@ -50,63 +50,91 @@ impl<'a> AppWidget for InitWidget<'a> {
 
     fn draw(&mut self, frame: &mut Frame) -> AppStatus {
         let text = Text::raw("Hi");
-        let res = ui!({ text });
+        let text2 = text.clone();
+        let x = Layout::default();
 
-        let layout0 = Layout::default()
-            .direction(Direction::Vertical)
-            .constraints([Constraint::Length(1), Constraint::Fill(1)])
-            .split(frame.area());
+        /*
+
+        <Layout
+                        direction={Direction::Vertical}
+                        constraints={vec![Constraint::Length(2), Constraint::Length(1)]}
+                    >
+                    <Text cons={"Line 3"} />
+                    {text2}
+                    </Layout>
+        */
+
+        let res = ui!(
+            Layout (
+                direction: Direction::Vertical,
+                constraints: vec![Constraint::Length(1), Constraint::Length(1)]
+            ) {
+
+                Text(cons: "bruh2"),
+                Layout (
+                    direction: Direction::Vertical,
+                    constraints: vec![Constraint::Length(1)]
+                ) {
+                    Text(cons: "bruh3")
+                }
+            }
+        );
+
+        // let layout0 = Layout::default()
+        //     .direction(Direction::Vertical)
+        //     .constraints([Constraint::Length(1), Constraint::Fill(1)])
+        //     .split(frame.area());
 
         // frame.render_widget(
         //     Text::raw("We found the following languages in this directory."),
         //     layout0[0],
         // );
 
-        let layout1 = Layout::default()
-            .direction(Direction::Vertical)
-            .constraints([
-                Constraint::Length((self.detected_langs.len() + 2) as u16),
-                Constraint::Length((self.unsupported_langs.len() + 2) as u16),
-                Constraint::Length(1),
-            ])
-            .split(layout0[1]);
+        // let layout1 = Layout::default()
+        //     .direction(Direction::Vertical)
+        //     .constraints([
+        //         Constraint::Length((self.detected_langs.len() + 2) as u16),
+        //         Constraint::Length((self.unsupported_langs.len() + 2) as u16),
+        //         Constraint::Length(1),
+        //     ])
+        //     .split(layout0[1]);
 
-        let list_widget = List::new(self.detected_langs.clone())
-            .block(Block::bordered().title("Detected Languages"))
-            .repeat_highlight_symbol(true);
-        // frame.render_widget(list_widget, layout1[0]);
+        // let list_widget = List::new(self.detected_langs.clone())
+        //     .block(Block::bordered().title("Detected Languages"))
+        //     .repeat_highlight_symbol(true);
+        // // frame.render_widget(list_widget, layout1[0]);
 
-        if self.unsupported_langs.len() > 0 {
-            let unsupported_list_widget = List::new(self.unsupported_langs.clone())
-                .block(Block::bordered().title("Unsupported Languages"))
-                .repeat_highlight_symbol(true);
-            // frame.render_widget(unsupported_list_widget, layout1[1]);
-        }
+        // if self.unsupported_langs.len() > 0 {
+        //     let unsupported_list_widget = List::new(self.unsupported_langs.clone())
+        //         .block(Block::bordered().title("Unsupported Languages"))
+        //         .repeat_highlight_symbol(true);
+        //     // frame.render_widget(unsupported_list_widget, layout1[1]);
+        // }
 
-        let confirm_message = if self.config_exists {
-            "flint.toml already exists in this directory. Would you like to overwrite it? (y/n)"
-        } else {
-            "Would you like to continue with creating flint.toml? (y/n)"
-        };
+        // let confirm_message = if self.config_exists {
+        //     "flint.toml already exists in this directory. Would you like to overwrite it? (y/n)"
+        // } else {
+        //     "Would you like to continue with creating flint.toml? (y/n)"
+        // };
 
-        let layout2 = Layout::default()
-            .direction(Direction::Horizontal)
-            .constraints([
-                Constraint::Length(confirm_message.len() as u16),
-                Constraint::Length(2),
-                Constraint::Fill(1),
-            ])
-            .flex(Flex::Center)
-            .split(layout1[2]);
+        // let layout2 = Layout::default()
+        //     .direction(Direction::Horizontal)
+        //     .constraints([
+        //         Constraint::Length(confirm_message.len() as u16),
+        //         Constraint::Length(2),
+        //         Constraint::Fill(1),
+        //     ])
+        //     .flex(Flex::Center)
+        //     .split(layout1[2]);
 
-        // frame.render_widget(
-        //     Block::default().title(confirm_message).fg(Color::Yellow),
-        //     layout2[0],
-        // );
+        // // frame.render_widget(
+        // //     Block::default().title(confirm_message).fg(Color::Yellow),
+        // //     layout2[0],
+        // // );
 
-        // frame.render_widget(&self.textarea, layout2[2]);
+        // // frame.render_widget(&self.textarea, layout2[2]);
 
-        println!("{:?}", res);
+        // println!("{:?}", res);
         AppStatus::Ok
     }
 

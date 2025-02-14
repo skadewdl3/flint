@@ -1,9 +1,6 @@
 use proc_macro::TokenStream;
-use proc_macro2::TokenTree;
 use quote::quote;
-use ratatui::text::Text;
 use syn::{
-    braced,
     parse::{Parse, ParseStream},
     parse_macro_input,
     punctuated::Punctuated,
@@ -13,7 +10,6 @@ use syn::{
 #[derive(Debug, Clone)]
 enum WidgetKind {
     Constructor(Ident),
-    Variable(Ident),
     Layout(Ident, Vec<Widget>),
 }
 
@@ -31,132 +27,74 @@ struct Arg {
 
 impl Parse for Widget {
     fn parse(input: ParseStream) -> Result<Self> {
-        // Parse variable based widget
-        if input.peek(token::Brace) {
-            let content;
-            braced!(content in input);
-            let var_name = content.parse::<Ident>()?;
-            return Ok(Widget {
-                kind: WidgetKind::Variable(var_name),
-                args: vec![],
-            });
-        }
-
-        // Parse constructor based widget
-        // Parse opening angle bracket
-        input.parse::<Token![<]>()?;
-
-        // Parse widget name/type
+        // Parse widget name
         let widget_name = input.parse::<Ident>()?;
-        let kind = if is_layout_widget(&widget_name) {
+
+        // Parse arguments in parentheses
+        let args = if input.peek(token::Paren) {
+            let content;
+            syn::parenthesized!(content in input);
+
+            let args_punctuated = Punctuated::<Arg, Token![,]>::parse_terminated(&content)?;
+            args_punctuated.into_iter().collect()
+        } else {
+            vec![]
+        };
+
+        // Check if this is a layout widget
+        let mut kind = if is_layout_widget(&widget_name) {
             WidgetKind::Layout(widget_name, vec![])
         } else {
             WidgetKind::Constructor(widget_name)
         };
 
-        // Parse arguments
-        let mut args = Vec::new();
-        while !input.peek(Token![>]) && !input.peek(Token![/]) {
-            let name = input.parse::<Ident>()?;
-            input.parse::<Token![=]>()?;
-
-            // Require curly braces around the value
-            let content;
-            braced!(content in input);
-            let value = content.parse::<Expr>()?;
-
-            args.push(Arg { name, value });
-        }
-
-        let mut children = Vec::new();
-
-        // Handle self-closing tags - only allow for non-layout widgets
-        if input.peek(Token![/]) {
-            input.parse::<Token![/]>()?;
-            input.parse::<Token![>]>()?;
-
-            if matches!(kind, WidgetKind::Layout(_, _)) {
-                return Err(input.error("Layout widgets cannot be self closing"));
-            }
-
+        if let WidgetKind::Constructor(_) = kind {
             return Ok(Widget { kind, args });
         }
 
-        // Parse regular closing bracket
-        input.parse::<Token![>]>()?;
+        // Parse child widgets in braces if present
+        if input.peek(token::Brace) {
+            let content;
+            syn::braced!(content in input);
 
-        // Parse children until we hit the closing tag
-        while !input.is_empty() && !input.peek(Token![<]) {
-            if let Ok(child) = input.parse::<Widget>() {
-                children.push(child);
+            if let WidgetKind::Layout(_, ref mut children) = kind {
+                // Parse children as a punctuated sequence
+                let child_widgets = Punctuated::<Widget, Token![,]>::parse_terminated(&content)?;
+                children.extend(child_widgets);
+            } else {
+                return Err(input.error("Only Layout widgets can have child elements"));
             }
         }
 
-        // Parse closing tag
-        input.parse::<Token![<]>()?;
-        input.parse::<Token![/]>()?;
-        let closing_name = input.parse::<Ident>()?;
-
-        // Verify matching tags
-        match &kind {
-            WidgetKind::Constructor(name) | WidgetKind::Layout(name, _) => {
-                if name != &closing_name {
-                    return Err(input.error("Mismatched opening and closing tags"));
-                }
-            }
-            _ => {}
-        }
-
-        input.parse::<Token![>]>()?;
-
-        match kind {
-            WidgetKind::Layout(name, _) => Ok(Widget {
-                kind: WidgetKind::Layout(name, children),
-                args,
-            }),
-            _ => Ok(Widget { kind, args }),
-        }
+        Ok(Widget { kind, args })
     }
 }
 
-#[proc_macro]
-pub fn ui(input: TokenStream) -> TokenStream {
-    let widget = parse_macro_input!(input as Widget);
+impl Parse for Arg {
+    fn parse(input: ParseStream) -> Result<Self> {
+        let name = input.parse::<Ident>()?;
+        input.parse::<Token![:]>()?;
+        let value = input.parse::<Expr>()?;
 
-    // Convert the parsed Widget into actual Rust code
-    let output = generate_widget_code(&widget);
-
-    output.into()
+        Ok(Arg { name, value })
+    }
 }
 
-// Helper function to determine if a widget is a layout widget
 fn is_layout_widget(name: &Ident) -> bool {
-    let name_str = name.to_string();
-    matches!(name_str.as_str(), "Layout") // Add other layout widget names here if needed
+    name.to_string() == "Layout"
 }
 
-fn get_constructor_name(name: &Ident) -> proc_macro2::TokenStream {
-    match name {
-        Text => quote! { ::raw },
-        _ => quote! { ::default },
-    }
-}
-
-fn get_constructor_arg(args: &Vec<Arg>) -> Option<(usize, &Arg)> {
-    args.iter().enumerate().find(|(_, arg)| arg.name == "cons")
-}
-
-fn generate_widget_code(widget: &Widget) -> proc_macro2::TokenStream {
+fn generate_widget_code(
+    widget: &Widget,
+    is_top_level: bool,
+    parent_index: usize,
+    child_index: usize,
+) -> proc_macro2::TokenStream {
     match &widget.kind {
-        WidgetKind::Layout(name, children) => {
-            quote! {}
-        }
         WidgetKind::Constructor(name) => {
             let args = &widget.args;
-
-            // let children = widget.children.iter().map(generate_widget_code);
-            let constructor_name = get_constructor_name(name);
             let constructor_arg = get_constructor_arg(args);
+            let constructor_name = get_constructor_name(name.clone());
 
             let mut widget = match constructor_arg {
                 Some((_, Arg { value, .. })) => {
@@ -188,6 +126,92 @@ fn generate_widget_code(widget: &Widget) -> proc_macro2::TokenStream {
 
             widget
         }
-        WidgetKind::Variable(name) => quote! { #name },
+        WidgetKind::Layout(name, children) => {
+            let args = &widget.args;
+            let layout_index = generate_unique_id() as usize;
+            let layout_ident =
+                proc_macro2::Ident::new(&format!("layout_{}", layout_index), name.span());
+            let parent_ident =
+                proc_macro2::Ident::new(&format!("chunks_{}", parent_index), name.span());
+
+            let mut layout_code = quote! {
+                let mut #layout_ident = #name::default()
+            };
+
+            // Add all the layout arguments
+            for arg in args {
+                let name = &arg.name;
+                let value = &arg.value;
+                layout_code.extend(quote! {
+                    .#name(#value)
+                });
+            }
+
+            // Always end with semicolon after configuration
+            layout_code.extend(quote! { ; });
+
+            // Create chunks vector
+            let chunks_ident =
+                proc_macro2::Ident::new(&format!("chunks_{}", layout_index), name.span());
+
+            // Split the area - for top level use frame.area(), for nested use the parent's chunk
+            let split_code = if is_top_level {
+                quote! {
+                    let #chunks_ident = #layout_ident.split(frame.area());
+                }
+            } else {
+                quote! {
+                    let #chunks_ident = #layout_ident.split(#parent_ident[#child_index]);
+                }
+            };
+
+            let mut render_statements = quote! {};
+            for (idx, child) in children.iter().enumerate() {
+                let child_widget = generate_widget_code(child, false, layout_index, idx);
+
+                if let WidgetKind::Layout(_, _) = child.kind {
+                    render_statements.extend(quote! {
+                        #child_widget
+                    });
+                } else {
+                    render_statements.extend(quote! {
+                        frame.render_widget(#child_widget, #chunks_ident[#idx]);
+                    });
+                }
+            }
+
+            // Combine everything into a block
+            quote! {
+                {
+                    #layout_code
+                    #split_code
+                    #render_statements
+                }
+            }
+        }
     }
+}
+
+fn get_constructor_arg(args: &Vec<Arg>) -> Option<(usize, &Arg)> {
+    args.iter().enumerate().find(|(_, arg)| arg.name == "cons")
+}
+
+fn get_constructor_name(name: Ident) -> proc_macro2::TokenStream {
+    match name.to_string().as_str() {
+        "Text" => quote! { ::raw },
+        _ => quote! { ::default },
+    }
+}
+
+fn generate_unique_id() -> u32 {
+    use std::sync::atomic::{AtomicU32, Ordering};
+    static COUNTER: AtomicU32 = AtomicU32::new(0);
+    COUNTER.fetch_add(1, Ordering::Relaxed)
+}
+
+#[proc_macro]
+pub fn ui(input: TokenStream) -> TokenStream {
+    let widget = parse_macro_input!(input as Widget);
+    let output = generate_widget_code(&widget, true, 0, 0);
+    output.into()
 }
