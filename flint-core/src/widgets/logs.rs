@@ -59,16 +59,6 @@ impl Widget for LogsWidget {
             })
             .collect();
 
-        // let layout = Layout::default()
-        //     .direction(Direction::Vertical)
-        //     .constraints(Constraint::from_lengths(log_lines))
-        //     .split(frame.area());
-
-        // for i in 0..logs.len() {
-        //     frame.render_widget(text, layout[i]);
-        // }
-        //
-
         ui!((area, buffer) =>
             Layout(
                 direction: Direction::Vertical,
@@ -77,21 +67,12 @@ impl Widget for LogsWidget {
                 [[
                     logs.iter().map(|(kind, log)| {
 
-                        let prefix = match kind {
-                          LogKind::Info => "[info]:",
-                          LogKind::Success => "[success]:",
-                          LogKind::Error => "[error]:",
-                          LogKind::Warn => "[warn]:",
-                          LogKind::Debug => "[debug]:"
-                        };
-
-
-                        let style = match kind {
-                            LogKind::Info => Style::default().fg(Color::Blue),
-                            LogKind::Success => Style::default().fg(Color::Green),
-                            LogKind::Error => Style::default().fg(Color::Red),
-                            LogKind::Warn => Style::default().fg(Color::Yellow),
-                            LogKind::Debug => Style::default().fg(Color::White)
+                        let (prefix, style) = match kind {
+                          LogKind::Info => ("[info]:", Style::default().fg(Color::Blue)),
+                          LogKind::Success => ("[success]:", Style::default().fg(Color::Green)),
+                          LogKind::Error => ("[error]:", Style::default().fg(Color::Red)),
+                          LogKind::Warn => ("[warn]:", Style::default().fg(Color::Yellow)),
+                          LogKind::Debug => ("[debug]:", Style::default().fg(Color::White))
                         };
 
                         Paragraph::new(format!("{} {}", prefix, log)).wrap(Wrap{trim: true}).style(style)
