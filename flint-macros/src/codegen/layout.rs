@@ -2,7 +2,7 @@ use super::WidgetHandlerOptions;
 use crate::{
     arg::ArgKind,
     codegen::{generate_widget_code, util::generate_unique_id},
-    widget::{Widget, WidgetKind},
+    widget::{Widget, WidgetKind, WidgetRenderer},
 };
 use proc_macro2::TokenStream;
 use quote::quote;
@@ -33,7 +33,7 @@ pub fn handle_layout_widget(
         is_top_level,
         parent_id,
         child_index,
-        frame,
+        renderer,
     } = options;
 
     let args = &widget.args;
@@ -71,8 +71,18 @@ pub fn handle_layout_widget(
 
     // Split the area - for top level use frame.area(), for nested use the parent's chunk
     let split_code = if *is_top_level {
-        quote! {
-            let #chunks_ident = #layout_ident.split(#frame .area());
+        match renderer {
+            WidgetRenderer::Area { area, .. } => {
+                quote! {
+                    let #chunks_ident = #layout_ident.split(#area);
+                }
+            }
+
+            WidgetRenderer::Frame(frame) => {
+                quote! {
+                    let #chunks_ident = #layout_ident.split(#frame .area());
+                }
+            }
         }
     } else {
         quote! {
@@ -82,7 +92,7 @@ pub fn handle_layout_widget(
 
     let mut render_statements = quote! {};
     for (idx, child) in children.iter().enumerate() {
-        let new_options = WidgetHandlerOptions::new(false, layout_index, idx, frame);
+        let new_options = WidgetHandlerOptions::new(false, layout_index, idx, renderer);
 
         let child_widget = generate_widget_code(child, &new_options);
 
@@ -95,11 +105,41 @@ pub fn handle_layout_widget(
                 });
             }
 
+            WidgetKind::IterVariable { ref expr } => {
+                render_statements.extend(match renderer {
+                    WidgetRenderer::Area { buffer, .. } => {
+                        quote! {
+                            for (i, item) in #expr.enumerate() {
+                                item.render(#chunks_ident[#idx + i], #buffer)
+                            }
+                        }
+                    }
+
+                    WidgetRenderer::Frame(frame) => {
+                        quote! {
+                            for (i, item) in #expr.enumerate() {
+                                #frame.render_widget(item, #chunks_ident[#idx + i])
+                            }
+                        }
+                    }
+                });
+            }
+
             // For other widgets (Variable and Constructor), we call frame.render_widget on them
             // since they actually retturn something that implements ratatui::Widget
             _ => {
-                render_statements.extend(quote! {
-                    #frame .render_widget(#child_widget, #chunks_ident[#idx]);
+                render_statements.extend(match renderer {
+                    WidgetRenderer::Area { buffer, .. } => {
+                        quote! {
+                            #child_widget.render(#chunks_ident[#idx], #buffer)
+                        }
+                    }
+
+                    WidgetRenderer::Frame(frame) => {
+                        quote! {
+                            #frame .render_widget(#child_widget, #chunks_ident[#idx]);
+                        }
+                    }
                 });
             }
         }

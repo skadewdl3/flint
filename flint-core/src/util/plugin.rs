@@ -28,7 +28,7 @@ pub struct Plugin {
 
 pub fn get_plugins_dir() -> PathBuf {
     if cfg!(debug_assertions) {
-        return PathBuf::from("./src/plugins");
+        return PathBuf::from("./flint-core/src/plugins");
     } else if let Some(proj_dirs) = ProjectDirs::from("com", "Flint", "flint") {
         let plugins_path = proj_dirs.data_dir().to_path_buf().join("plugins");
         if !plugins_path.exists() {

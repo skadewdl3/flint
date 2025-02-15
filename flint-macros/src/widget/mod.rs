@@ -1,4 +1,4 @@
-mod util;
+pub mod util;
 
 use crate::arg::Arg;
 use syn::{
@@ -7,7 +7,6 @@ use syn::{
     punctuated::Punctuated,
     token, Expr, Ident, Result, Token,
 };
-use util::is_layout_widget;
 
 /// Represents the different kinds of widgets that can be parsed
 #[derive(Debug, Clone)]
@@ -31,6 +30,11 @@ pub enum WidgetKind {
         /// The expression representing the widget
         expr: Expr,
     },
+    /// A widget represented by a variable expression that is an iterator
+    IterVariable {
+        /// The expression representing the widget
+        expr: Expr,
+    },
     /// A conditional widget with if/else branches
     Conditional {
         /// The condition expression
@@ -40,6 +44,30 @@ pub enum WidgetKind {
         /// Optional widget to show if condition is false
         else_child: Option<Box<Widget>>,
     },
+}
+
+#[derive(Debug)]
+pub enum WidgetRenderer {
+    Area { area: Expr, buffer: Expr },
+    Frame(Expr),
+}
+
+impl Parse for WidgetRenderer {
+    fn parse(input: ParseStream) -> Result<Self> {
+        if input.peek(token::Paren) {
+            let content;
+            syn::parenthesized!(content in input);
+
+            let area = content.parse::<Expr>()?;
+            content.parse::<Token![,]>()?;
+            let buffer = content.parse::<Expr>()?;
+
+            Ok(WidgetRenderer::Area { area, buffer })
+        } else {
+            let ident = input.parse()?;
+            Ok(WidgetRenderer::Frame(ident))
+        }
+    }
 }
 
 /// Represents a widget with its kind and arguments
@@ -67,6 +95,23 @@ impl Parse for Widget {
 
                 return Ok(Widget {
                     kind: WidgetKind::Variable { expr },
+                    args: vec![],
+                });
+            }
+        }
+
+        if input.peek(token::Bracket) {
+            let content;
+            syn::bracketed!(content in input);
+
+            // Check if the content starts with another left bracket
+            if content.peek(token::Bracket) {
+                let inner_content;
+                syn::bracketed!(inner_content in content);
+                let expr: Expr = inner_content.parse()?;
+
+                return Ok(Widget {
+                    kind: WidgetKind::IterVariable { expr },
                     args: vec![],
                 });
             }
@@ -145,7 +190,7 @@ impl Parse for Widget {
         // If this is a layout widget, we'll need to parse child widgets in braces
         // so create a field for that. No widgets except Layout widgets can have children,
         // that's why no other widget needs to parse child widgets.
-        let mut kind = if is_layout_widget(&widget_name) {
+        let mut kind = if widget_name == "Layout" {
             WidgetKind::Layout {
                 name: widget_name,
                 children: vec![],

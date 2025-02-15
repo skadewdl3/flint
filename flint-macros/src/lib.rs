@@ -13,13 +13,13 @@ use syn::{
     parse::{Parse, ParseStream},
     parse_macro_input, Error, Ident, Result, Token,
 };
-use widget::Widget;
+use widget::{Widget, WidgetRenderer};
 
 /// Input structure for the UI macro representing a widget and its containing frame
 #[derive(Debug)]
 struct UiMacroInput {
-    /// The identifier of the frame containing the widget
-    frame: Ident,
+    /// The renderer used for widget code generation
+    renderer: WidgetRenderer,
     /// The widget definition
     widget: Widget,
 }
@@ -35,7 +35,7 @@ impl Parse for UiMacroInput {
     ///
     /// Result containing the parsed UiMacroInput if successful
     fn parse(input: ParseStream) -> Result<Self> {
-        let frame = match input.parse() {
+        let renderer = match input.parse::<WidgetRenderer>() {
             Ok(frame) => frame,
             Err(_) => return Err(input.error("Expected ratatui::Frame identifier")),
         };
@@ -48,7 +48,7 @@ impl Parse for UiMacroInput {
             Err(_) => return Err(input.error("Unable to parse widget")),
         };
 
-        Ok(UiMacroInput { frame, widget })
+        Ok(UiMacroInput { renderer, widget })
     }
 }
 
@@ -63,8 +63,10 @@ impl Parse for UiMacroInput {
 /// TokenStream containing the generated widget code
 #[proc_macro]
 pub fn ui(input: TokenStream) -> TokenStream {
-    let UiMacroInput { frame, widget, .. } = parse_macro_input!(input as UiMacroInput);
-    let options = WidgetHandlerOptions::new(true, 0, 0, &frame);
+    let UiMacroInput {
+        widget, renderer, ..
+    } = parse_macro_input!(input as UiMacroInput);
+    let options = WidgetHandlerOptions::new(true, 0, 0, &renderer);
     let output = codegen::generate_widget_code(&widget, &options);
     output.into()
 }
