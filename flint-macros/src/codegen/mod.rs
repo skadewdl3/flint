@@ -6,11 +6,10 @@ pub mod layout;
 pub mod util;
 pub mod variable;
 
-use crate::widget::{Widget, WidgetKind};
+use crate::widget::{Widget, WidgetKind, WidgetRenderer};
 use conditional::handle_conditional_widget;
 use constructor::handle_constructor_widget;
 use layout::handle_layout_widget;
-use syn::Ident;
 use variable::handle_variable_widget;
 
 /// Options for configuring widget code generation.
@@ -22,8 +21,8 @@ pub struct WidgetHandlerOptions<'a> {
     parent_id: usize,
     /// Index of this widget among its siblings.
     child_index: usize,
-    /// Identifier for the frame being rendered to.
-    frame: &'a Ident,
+    /// Identifier for the renderer being used (frame or area/buffer)
+    renderer: &'a WidgetRenderer,
 }
 
 impl<'a> WidgetHandlerOptions<'a> {
@@ -35,12 +34,17 @@ impl<'a> WidgetHandlerOptions<'a> {
     /// * `parent_id` - ID of the parent widget
     /// * `child_index` - Index among siblings
     /// * `frame` - Frame identifier
-    pub fn new(is_top_level: bool, parent_id: usize, child_index: usize, frame: &'a Ident) -> Self {
+    pub fn new(
+        is_top_level: bool,
+        parent_id: usize,
+        child_index: usize,
+        renderer: &'a WidgetRenderer,
+    ) -> Self {
         Self {
             is_top_level,
             parent_id,
             child_index,
-            frame,
+            renderer,
         }
     }
 }
@@ -66,7 +70,9 @@ pub fn generate_widget_code(
             else_child,
         } => handle_conditional_widget(condition, if_child, else_child, options),
 
-        WidgetKind::Variable { expr } => handle_variable_widget(expr, options),
+        WidgetKind::Variable { expr } | WidgetKind::IterVariable { expr } => {
+            handle_variable_widget(expr, options)
+        }
 
         WidgetKind::Constructor { name, constructor } => {
             handle_constructor_widget(&widget, name, constructor, options)

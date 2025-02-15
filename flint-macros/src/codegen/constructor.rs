@@ -1,4 +1,7 @@
-use crate::{arg::ArgKind, widget::Widget};
+use crate::{
+    arg::ArgKind,
+    widget::{Widget, WidgetRenderer},
+};
 use proc_macro2::TokenStream;
 use quote::quote;
 use syn::Ident;
@@ -31,7 +34,7 @@ pub fn handle_constructor_widget(
 ) -> TokenStream {
     let WidgetHandlerOptions {
         is_top_level,
-        frame,
+        renderer,
         ..
     } = options;
 
@@ -60,8 +63,14 @@ pub fn handle_constructor_widget(
     }
 
     if *is_top_level {
-        quote! {
-            #frame .render_widget(#widget, #frame.area());
+        match renderer {
+            WidgetRenderer::Area { area, buffer } => quote! {
+                #widget.render(#area, #buffer)
+            },
+
+            WidgetRenderer::Frame(frame) => quote! {
+                #frame .render_widget(#widget, #frame.area());
+            },
         }
     } else {
         widget

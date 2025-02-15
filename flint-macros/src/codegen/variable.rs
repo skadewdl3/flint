@@ -1,3 +1,5 @@
+use crate::widget::WidgetRenderer;
+
 use super::WidgetHandlerOptions;
 use proc_macro2::TokenStream;
 use quote::quote;
@@ -21,11 +23,21 @@ use syn::Expr;
 ///
 /// A TokenStream containing either a render_widget call (if top level) or just the variable reference
 pub fn handle_variable_widget(variable: &Expr, options: &WidgetHandlerOptions) -> TokenStream {
-    let WidgetHandlerOptions { is_top_level, .. } = options;
+    let WidgetHandlerOptions {
+        is_top_level,
+        renderer,
+        ..
+    } = options;
 
     if *is_top_level {
-        quote! {
-            frame.render_widget(&#variable, frame.area());
+        match renderer {
+            WidgetRenderer::Area { area, buffer } => quote! {
+                #variable.render(#area, #buffer);
+            },
+
+            WidgetRenderer::Frame(frame) => quote! {
+                #frame.render_widget(#variable, #frame.area());
+            },
         }
     } else {
         quote! { #variable }
