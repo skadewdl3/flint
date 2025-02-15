@@ -6,7 +6,6 @@ use crate::widgets::test::TestWidget;
 use crate::widgets::AppWidget;
 use crossterm::event;
 use crossterm::event::{Event, KeyCode};
-use ratatui::text::Text;
 use ratatui::DefaultTerminal;
 use ratatui::Frame;
 use std::io;

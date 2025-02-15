@@ -65,37 +65,37 @@ impl Widget for LogsWidget {
         //     .split(frame.area());
 
         // for i in 0..logs.len() {
-        //     let (kind, log) = logs.get(i).unwrap();
-        //     let prefix = match kind {
-        //         LogKind::Info => "[info]:",
-        //         LogKind::Success => "[success]:",
-        //         LogKind::Error => "[error]:",
-        //         LogKind::Warn => "[warn]:",
-        //         LogKind::Debug => "[debug]:\n",
-        //     };
-
-        //     let message = format!("{} {}", prefix, log);
-
-        //     let style = match kind {
-        //         LogKind::Info => Style::default().fg(Color::Blue),
-        //         LogKind::Success => Style::default().fg(Color::Green),
-        //         LogKind::Error => Style::default().fg(Color::Red),
-        //         LogKind::Warn => Style::default().fg(Color::Yellow),
-        //         _ => Style::default(),
-        //     };
-
-        //     let text = Text::styled(message, style);
         //     frame.render_widget(text, layout[i]);
         // }
         //
 
         ui!((area, buffer) =>
             Layout(
-                direction: Direction::Horizontal,
-                constraints: Constraint::from_lengths([1; 3]),
+                direction: Direction::Vertical,
+                constraints: Constraint::from_lengths(log_lines),
             ) {
                 [[
-                    (0..3).map(|_| Text::raw("bruh"))
+                    logs.iter().map(|(kind, log)| {
+
+                        let prefix = match kind {
+                          LogKind::Info => "[info]:",
+                          LogKind::Success => "[success]:",
+                          LogKind::Error => "[error]:",
+                          LogKind::Warn => "[warn]:",
+                          LogKind::Debug => "[debug]:"
+                        };
+
+
+                        let style = match kind {
+                            LogKind::Info => Style::default().fg(Color::Blue),
+                            LogKind::Success => Style::default().fg(Color::Green),
+                            LogKind::Error => Style::default().fg(Color::Red),
+                            LogKind::Warn => Style::default().fg(Color::Yellow),
+                            LogKind::Debug => Style::default().fg(Color::White)
+                        };
+
+                        Paragraph::new(format!("{} {}", prefix, log)).wrap(Wrap{trim: true}).style(style)
+                    })
                 ]]
             }
         );
