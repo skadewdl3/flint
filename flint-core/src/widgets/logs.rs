@@ -51,14 +51,13 @@ impl Widget for LogsWidget {
     fn render(self, area: Rect, buffer: &mut Buffer) {
         let logs = get_logs().unwrap();
 
-        let mut log_lines: Vec<u16> = logs
+        let log_lines: Vec<u16> = logs
             .iter()
             .map(|(kind, log)| match kind {
                 LogKind::Debug => log.lines().count() as u16 + 1,
                 _ => log.lines().count() as u16,
             })
             .collect();
-        log_lines.push(1);
 
         ui!((area, buffer) => {
             Layout(
