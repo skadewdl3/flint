@@ -1,5 +1,3 @@
-pub mod util;
-
 use crate::arg::Arg;
 use syn::{
     braced,

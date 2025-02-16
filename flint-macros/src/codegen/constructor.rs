@@ -1,6 +1,7 @@
 use crate::{
     arg::ArgKind,
     widget::{Widget, WidgetRenderer},
+    MacroInput,
 };
 use proc_macro2::TokenStream;
 use quote::quote;
@@ -34,7 +35,7 @@ pub fn handle_constructor_widget(
 ) -> TokenStream {
     let WidgetHandlerOptions {
         is_top_level,
-        renderer,
+        input,
         ..
     } = options;
 
@@ -62,15 +63,19 @@ pub fn handle_constructor_widget(
         }
     }
 
-    if *is_top_level {
-        match renderer {
-            WidgetRenderer::Area { area, buffer } => quote! {
-                #widget.render(#area, #buffer)
-            },
+    if let MacroInput::Ui { renderer, .. } = input {
+        if *is_top_level {
+            match renderer {
+                WidgetRenderer::Area { area, buffer } => quote! {
+                    #widget.render(#area, #buffer)
+                },
 
-            WidgetRenderer::Frame(frame) => quote! {
-                #frame .render_widget(#widget, #frame.area());
-            },
+                WidgetRenderer::Frame(frame) => quote! {
+                    #frame .render_widget(#widget, #frame.area());
+                },
+            }
+        } else {
+            widget
         }
     } else {
         widget

@@ -6,7 +6,7 @@ use crate::util::{
 use crossterm::event::{Event, KeyCode};
 use flint_macros::ui;
 use ratatui::{
-    layout::{Constraint, Direction, Flex, Layout},
+    layout::{Constraint, Direction, Layout},
     style::{Color, Stylize},
     text::Text,
     widgets::{Block, List},
@@ -62,7 +62,7 @@ impl<'a> AppWidget for InitWidget<'a> {
             "Would you like to continue with creating flint.toml? (y/n)"
         };
 
-        ui!(frame =>
+        ui!(frame => {
             Layout (
                 direction: Direction::Vertical,
                 constraints: [Constraint::Length(1), Constraint::Fill(1)]
@@ -100,6 +100,7 @@ impl<'a> AppWidget for InitWidget<'a> {
                     }
                 }
             }
+        }
         );
 
         AppStatus::Ok

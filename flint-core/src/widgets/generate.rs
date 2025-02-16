@@ -69,9 +69,9 @@ impl AppWidget for GenerateWidget {
     }
 
     fn draw(&mut self, frame: &mut Frame) -> AppStatus {
-        ui!(frame =>
+        ui!(frame => {
             {{ self.logs_widget }}
-        );
+        });
         AppStatus::Ok
     }
 }
