@@ -1,7 +1,4 @@
-use std::env::consts::OS;
-
 use super::WidgetHandlerOptions;
-use crate::widget::layout_wrapper::LayoutWrapper;
 use crate::{
     arg::ArgKind,
     codegen::{generate_widget_code, util::generate_unique_id},
@@ -10,7 +7,7 @@ use crate::{
 };
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::{parse_quote, Ident, Path};
+use syn::Ident;
 
 /// Handles the code generation for a layout widget. This widget is responsible for
 /// arranging its child widgets within a specified layout. It reduces the complexity of layout
@@ -164,6 +161,7 @@ pub fn handle_layout_widget(
     };
 
     let mut render_statements = quote! {};
+
     for (idx, child) in children.iter().enumerate() {
         let new_options = WidgetHandlerOptions::new(false, layout_index, idx, input, *allow_layout);
 

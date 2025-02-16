@@ -5,12 +5,8 @@ use ratatui::{
     buffer::Buffer,
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Style},
-    text::Text,
-    widgets::{Paragraph, Widget, Wrap},
-    Frame,
+    widgets::{Paragraph, Widget},
 };
-
-use super::{AppStatus, AppWidget};
 
 #[derive(Copy, Clone, Debug, Default)]
 pub enum LogKind {
@@ -60,6 +56,7 @@ impl Widget for LogsWidget {
             .collect();
 
         ui!((area, buffer) => {
+
             Layout(
                 direction: Direction::Vertical,
                 constraints: Constraint::from_lengths(log_lines),
@@ -68,11 +65,11 @@ impl Widget for LogsWidget {
                     logs.iter().map(|(kind, log)| {
 
                         let (prefix, style) = match kind {
-                          LogKind::Info => ("[info]:", Style::default().fg(Color::Blue)),
-                          LogKind::Success => ("[success]:", Style::default().fg(Color::Green)),
-                          LogKind::Error => ("[error]:", Style::default().fg(Color::Red)),
-                          LogKind::Warn => ("[warn]:", Style::default().fg(Color::Yellow)),
-                          LogKind::Debug => ("[debug]:", Style::default().fg(Color::White))
+                            LogKind::Info => ("[info]:", Style::default().fg(Color::Blue)),
+                            LogKind::Success => ("[success]:", Style::default().fg(Color::Green)),
+                            LogKind::Error => ("[error]:", Style::default().fg(Color::Red)),
+                            LogKind::Warn => ("[warn]:", Style::default().fg(Color::Yellow)),
+                            LogKind::Debug => ("[debug]:", Style::default().fg(Color::White))
                         };
 
                         widget!({
