@@ -11,7 +11,7 @@ use codegen::WidgetHandlerOptions;
 use proc_macro::TokenStream;
 use syn::{
     braced,
-    parse::{discouraged::Speculative, Parse, ParseStream},
+    parse::{Parse, ParseStream},
     parse_macro_input, token, Expr, Result, Token,
 };
 use widget::{Widget, WidgetRenderer};

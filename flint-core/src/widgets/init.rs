@@ -6,10 +6,11 @@ use crate::util::{
 use crossterm::event::{Event, KeyCode};
 use flint_macros::{ui, widget};
 use ratatui::{
-    layout::{Constraint, Direction, Layout},
+    buffer::Buffer,
+    layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Stylize},
     text::Text,
-    widgets::{Block, List},
+    widgets::{Block, List, Widget},
     Frame,
 };
 use std::collections::{BTreeSet, HashMap};
@@ -62,44 +63,67 @@ impl<'a> AppWidget for InitWidget<'a> {
             "Would you like to continue with creating flint.toml? (y/n)"
         };
 
-        ui!(frame => {
-            Layout (
-                direction: Direction::Vertical,
-                constraints: [Constraint::Length(1), Constraint::Fill(1)]
-            ) {
-                Text::raw("We found the following languages in this directory."),
-                Layout (
-                    direction: Direction::Vertical,
-                    constraints: Constraint::from_lengths([
-                        self.detected_langs.len() as u16 + 2,
-                        self.unsupported_langs.len() as u16 + 2,
-                        1
-                    ])
-                ) {
-                    List::new(
-                        self.detected_langs.clone(),
-                        block: widget!({ Block::bordered(title: "Detected Languages") }),
-                    ),
-                    List::new(
-                        self.unsupported_langs.clone(),
-                        block: widget!({ Block::bordered(title: "Unsupported Languages") }),
-                    ),
-                    Layout(
-                        direction: Direction::Horizontal,
-                        constraints: [
-                            Constraint::Length(confirm_message.len() as u16),
-                            Constraint::Length(1),
-                            Constraint::Fill(1)
-                        ]
-                    ) {
-                       Block(title: confirm_message, fg: if self.config_exists { Color::Yellow } else { Color::Blue }),
-                       {{ "" }},
-                       {{ &self.textarea }}
-                    }
-                }
+        // ui!(frame => {
+
+        //     Layout (
+        //         direction: Direction::Vertical,
+        //         constraints: [Constraint::Length(1), Constraint::Fill(1)]
+        //     ) {
+        //         Text::raw("We found the following languages in this directory."),
+        //         Layout (
+        //             direction: Direction::Vertical,
+        //             constraints: Constraint::from_lengths([
+        //                 self.detected_langs.len() as u16 + 2,
+        //                 self.unsupported_langs.len() as u16 + 2,
+        //                 1
+        //             ])
+        //         ) {
+        //             List::new(
+        //                 self.detected_langs.clone(),
+        //                 block: widget!({ Block::bordered(title: "Detected Languages") }),
+        //             ),
+        //             List::new(
+        //                 self.unsupported_langs.clone(),
+        //                 block: widget!({ Block::bordered(title: "Unsupported Languages") }),
+        //             ),
+        //             Layout(
+        //                 direction: Direction::Horizontal,
+        //                 constraints: [
+        //                     Constraint::Length(confirm_message.len() as u16),
+        //                     Constraint::Length(1),
+        //                     Constraint::Fill(1)
+        //                 ]
+        //             ) {
+        //                Block(title: confirm_message, fg: if self.config_exists { Color::Yellow } else { Color::Blue }),
+        //                {{ "" }},
+        //                {{ &self.textarea }}
+        //             }
+        //         }
+        //     }
+        // }
+        // );
+        //
+
+        let x = widget!({
+            Layout(
+                constraints: Constraint::from_lengths([1, 1]),
+                direction: Direction::Vertical
+            ){
+                Text::raw("Hello"),
+                Text::raw("World")
             }
-        }
-        );
+        });
+
+        ui!(frame => {
+            Layout(
+                constraints: Constraint::from_lengths([2, 1]),
+                direction: Direction::Vertical
+            ) {
+
+                {{ x }},
+                Text::raw("Line 3")
+            }
+        });
 
         AppStatus::Ok
     }

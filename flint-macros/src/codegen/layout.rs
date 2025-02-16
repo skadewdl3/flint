@@ -1,6 +1,7 @@
-use std::fs::rename;
+use std::env::consts::OS;
 
 use super::WidgetHandlerOptions;
+use crate::widget::layout_wrapper::LayoutWrapper;
 use crate::{
     arg::ArgKind,
     codegen::{generate_widget_code, util::generate_unique_id},
@@ -9,7 +10,7 @@ use crate::{
 };
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::Ident;
+use syn::{parse_quote, Ident, Path};
 
 /// Handles the code generation for a layout widget. This widget is responsible for
 /// arranging its child widgets within a specified layout. It reduces the complexity of layout
@@ -40,14 +41,6 @@ pub fn handle_layout_widget(
         allow_layout,
     } = options;
 
-    if !allow_layout {
-        panic!("Layout widgets are not allowed in the widget macro")
-    }
-    let renderer = match input {
-        MacroInput::Ui { renderer, .. } => renderer,
-        MacroInput::Raw { .. } => panic!("Renderer cannot be used in widget macro"),
-    };
-
     let args = &widget.args;
     let layout_index = generate_unique_id() as usize;
     let layout_ident = proc_macro2::Ident::new(&format!("layout_{}", layout_index), name.span());
@@ -75,8 +68,76 @@ pub fn handle_layout_widget(
         }
     }
 
-    // Always end with semicolon after configuration
     layout_code.extend(quote! { ; });
+
+    // Always end with semicolon after configuration
+
+    if !allow_layout {
+        layout_code.extend(quote! {
+            let mut children: Vec<Box<dyn Fn(Rect, &mut Buffer) + 'a>> = Vec::new();
+        });
+
+        layout_code.extend(quote! {
+
+            use ratatui::{
+                buffer::Buffer,
+                layout::{Layout, Rect},
+                widgets::Widget,
+            };
+
+            pub struct LayoutWrapper<'a> {
+                layout: Layout,
+                children: Vec<Box<dyn Fn(Rect, &mut Buffer) + 'a>>,
+            }
+
+            impl<'a> LayoutWrapper<'a> {
+                pub fn new(layout: Layout, children: Vec<Box<dyn Fn(Rect, &mut Buffer) + 'a>>) -> Self {
+                    Self {
+                        layout,
+                        children,
+                    }
+                }
+            }
+
+            impl<'a> Widget for LayoutWrapper<'a> {
+                fn render(self, area: Rect, buf: &mut Buffer) {
+                    let chunks = self.layout.split(area);
+                    for (idx, render_fn) in self.children.into_iter().enumerate() {
+                        render_fn(chunks[idx], buf);
+                    }
+                }
+            }
+        });
+
+        for (idx, child) in children.iter().enumerate() {
+            let new_options =
+                WidgetHandlerOptions::new(false, layout_index, idx, input, *allow_layout);
+
+            let child_widget = generate_widget_code(child, &new_options);
+
+            layout_code.extend(quote! {
+                children.push(Box::new(|area, buf| {
+                    #child_widget.render(area, buf);
+                }));
+            });
+        }
+
+        layout_code.extend(quote! {
+            LayoutWrapper::new(#layout_ident, children)
+        });
+
+        return quote! {
+            {
+                #layout_code
+            }
+        };
+        // panic!("Layout widgets are not allowed in the widget macro")
+    }
+
+    let renderer = match input {
+        MacroInput::Ui { renderer, .. } => renderer,
+        MacroInput::Raw { .. } => panic!("Renderer cannot be used in widget macro"),
+    };
 
     // Create chunks vector
     let chunks_ident = proc_macro2::Ident::new(&format!("chunks_{}", layout_index), name.span());
