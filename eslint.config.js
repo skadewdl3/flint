@@ -8,27 +8,26 @@ export default [
       "@stylistic": "stylistic"
     },
     "rules": {
-      "indent": [
-        "error",
-        4,
-        {
-          "SwitchCase": 5,
-          "FunctionDeclaration": {
-            "parameters": 3,
-            "body": 2
-          }
-        }
-      ],
+      "arrow-spacing": {},
       "quotes": {
         "@stylistic/quotes": [
           "error",
-          "double"
+          "double",
+          {
+            "allowTemplateLiterals": true,
+            "avoidEscape": true
+          }
         ],
         "quotes": [
           "error",
-          "double"
+          "double",
+          {
+            "allowTemplateLiterals": true,
+            "avoidEscape": true
+          }
         ]
       },
+      "key-spacing": {},
       "semi": {
         "@stylistic/semi": [
           "error",
@@ -39,27 +38,38 @@ export default [
           true
         ]
       },
-      "max-len": {
-        "max-len": [
+      "indent": {
+        "indent": [
           "error",
-          120
+          4,
+          {
+            "SwitchCase": 5,
+            "CallExpression": {},
+            "FunctionDeclaration": {
+              "parameters": 3,
+              "body": 2
+            },
+            "FunctionExpression": {}
+          }
         ],
-        "@stylistic/max-len": [
+        "@stylistic/indent": [
           "error",
-          120
+          4,
+          {
+            "SwitchCase": 5,
+            "CallExpression": {},
+            "FunctionDeclaration": {
+              "parameters": 3,
+              "body": 2
+            },
+            "FunctionExpression": {}
+          }
         ]
       },
-      "array-bracket-newline": {
-        "array-bracket-newline": [
-          "error",
-          "always"
-        ],
-        "@stylistic/js/array-bracket-newline": [
-          "error",
-          "always"
-        ]
-      },
-      "array-element-newline": {},
+      "linebreak-style": {},
+      "object-curly-spacing": {},
+      "space-before-function-paren": {},
+      "comma-dangle": {},
       "no-trailing-spaces": {
         "@stylistic/no-trailing-spaces": [
           "error",

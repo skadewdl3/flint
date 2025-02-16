@@ -22,11 +22,15 @@ function Generate(config)
     -- log.debug(common)
 
     --Import necessary plugins
-    local imports = {}
-    local plugins = {}
-    --Default Stylistic Plugin
-    imports["stylistic"] = '@stylistic/eslint-plugin'
-    plugins["@stylistic"] = "stylistic"
+    local imports = {
+        stylistic = '@stylistic/eslint-plugin',
+        stylisticJs = '@stylistic/eslint-plugin-js'
+    }
+    local plugins = {
+        ["@stylistic"] = "stylistic",
+        ["@stylistic/js"] = "stylisticJs"
+    }
+
     
     --Function to get correct stylistic plugin based on rule extension
     local function getplugin(rule_key)
@@ -46,88 +50,133 @@ function Generate(config)
         return "@stylistic"
     end
     
+    local function createRuleConfig(rule_name, value, options)
+        if value == nil then return {} end 
 
-    local function getIndentRule(indent_config)
-
-        if not indent_config then
-            return nil
+        local base_config = { "error", value }
+        if options then
+            table.insert(base_config, options)
         end
 
-        local indentation = indent_config.indent_style
-        local indent_size = indent_config.indent_size
-        -- Base indentation configuration
-        local indentOptions = {
-            "error",
-            indentation == "spaces" and indent_size or "tab"
+        return {
+            [rule_name] = base_config,
+            ['@stylistic/' .. rule_name] = base_config
         }
-
-        -- Create options table for the third parameter
-        local options = {}
-
-        -- Handle additional indent-specific options if they exist in config
-        if indent_config.switch_case then
-            options.SwitchCase = indent_config.switch_case
-        end
-        if indent_config.variable_declarator then
-            options.VariableDeclarator = indent_config.variable_declarator
-        end
-        if indent_config.outer_iife_body then
-            options.outerIIFEBody = indent_config.outer_iife_body
-        end
-        if indent_config.member_expression then
-            options.MemberExpression = indent_config.member_expression
-        end
-        if indent_config.function_declaration then
-            options.FunctionDeclaration = {
+    end
+    
+    local function getIndentRule(indent_config)
+        if not indent_config then return nil end
+        
+        local options = {
+            SwitchCase = indent_config.switch_case,
+            FunctionDeclaration = {
                 body = indent_config.function_declaration.body,
                 parameters = indent_config.function_declaration.parameters
-            }
+            },
+            ignoredNodes = indent_config.ignore_nodes,
+            ignoreComments = indent_config.ignore_comments,
+            VariableDeclarator = indent_config.variable_declarator,
+            MemberExpression = indent_config.member_expression,
+            FunctionExpression = {
+                body = indent_config.function_expression and indent_config.function_expression.body,
+                parameters = indent_config.function_expression and indent_config.function_expression.parameters
+            },
+            CallExpression = {
+                arguments = indent_config.call_expression and indent_config.call_expression.arguments
+            },
+            ArrayExpression = indent_config.array_expression,
+            ObjectExpression = indent_config.object_expression,
+            ImportDeclaration = indent_config.import_declaration,
+            flatTernaryExpressions = indent_config.flat_ternary_expressions,
+            offsetTernaryExpressions = indent_config.offset_ternary_expressions
+        }
+        
+        -- Clean nil values
+        for k, v in pairs(options) do
+            if v == nil then options[k] = nil end
         end
-        if indent_config.function_expression then
-            options.FunctionExpression = {
-                body = indent_config.function_expression.body,
-                parameters = indent_config.function_expression.parameters
-            }
-        end
-        if indent_config.static_block then
-            options.StaticBlock = indent_config.static_block
-        end
-        if indent_config.call_expression then
-            options.CallExpression = {
-                arguments = indent_config.call_expression.arguments,
-            }
-        end
-        if indent_config.array_expression then
-            options.ArrayExpression = indent_config.array_expression
-        end
-        if indent_config.object_expression then
-            options.ObjectExpression = indent_config.object_expression
-        end
-        if indent_config.import_declaration then
-            options.ImportDeclaration = indent_config.import_declaration
-        end
-        if indent_config.flat_ternary_expressions ~= nil then
-            options.flatTernaryExpressions = indent_config.flat_ternary_expressions
-        end
-        if indent_config.offset_ternary_expressions ~= nil then
-            options.offsetTernaryExpressions = indent_config.offset_ternary_expressions
-        end
-        if indent_config.ignore_nodes then
-            if type(indent_config.ignore_nodes) == "string" then
-                options.ignoredNodes = { indent_config.ignore_nodes }
-            else
-                options.ignoredNodes = indent_config.ignore_nodes
-            end
-        end
-        if indent_config.ignore_comments ~= nil then
-            options.ignoreComments = indent_config.ignore_comments
-        end
+        
+        return createRuleConfig(
+            "indent",
+            indent_config.indent_style == "spaces" and indent_config.indent_size or "tab",
+            options
+        )
+    end
 
-        -- Add the options table as third parameter if any options were set
-        if next(options) ~= nil then
-            table.insert(indentOptions, options)
-        end  
-        return indentOptions
+    local function getQuotesRule(quote_style)
+        return createRuleConfig(
+            "quotes",
+            quote_style,
+            {
+                avoidEscape = true,
+                allowTemplateLiterals = true
+            }
+        )
+    end
+
+    local function getSemiRule(require_semicolons)
+        return createRuleConfig("semi", require_semicolons)
+    end
+
+    local function getCommaDangleRule(comma_dangle)
+        return createRuleConfig(
+            "comma-dangle",
+            comma_dangle,
+            {
+                arrays = "always-multiline",
+                objects = "always-multiline",
+                imports = "always-multiline",
+                exports = "always-multiline",
+                functions = "never"
+            }
+        )
+    end
+
+    local function getSpaceBeforeFunctionParenRule(space_before_fn_paren)
+        local options = {
+            anonymous = "always",
+            named = "never",
+            asyncArrow = "always"
+        }
+        return createRuleConfig("space-before-function-paren", space_before_fn_paren, options)
+    end
+
+    local function getObjectCurlySpacingRule(object_curly_spacing)
+        return createRuleConfig(
+            "object-curly-spacing",
+            object_curly_spacing,
+            {
+                arraysInObjects = true,
+                objectsInObjects = true
+            }
+        )
+    end
+
+    local function getArrowSpacingRule(arrow_spacing)
+        return createRuleConfig(
+            "arrow-spacing",
+            arrow_spacing,
+            {
+                before = true,
+                after = true
+            }
+        )
+    end
+
+    local function getKeySpacingRule(key_spacing)
+        return createRuleConfig(
+            "key-spacing",
+            key_spacing,
+            {
+                beforeColon = false,
+                afterColon = true,
+                mode = "strict"
+            }
+        )
+    end
+
+    local function getLinebreakStyleRule(linebreak_style)
+        return createRuleConfig("linebreak-style", linebreak_style)
     end
 
     --Function to map Flint rules to ESLint rules
@@ -143,17 +192,20 @@ function Generate(config)
         return {}
     end
 
+
     --Define ESLint rules
     local rules = {
         indent = getIndentRule(common.indent),
-        semi = mapFlintToESLint("require_semicolons", "semi"),
-        quotes = mapFlintToESLint("quote_style", "quotes"),
-        ["max-len"] = mapFlintToESLint("max_line_length", "max-len"),
-        ["array-bracket-newline"] = mapFlintToESLint("array_bracket_newline_js", "array-bracket-newline"),
-        ["array-element-newline"] = mapFlintToESLint("array_element_newline_ts", "array-element-newline"),
-        ["no-trailing-spaces"] = mapFlintToESLint("trailing_whitespace", "no-trailing-spaces")
+        quotes = getQuotesRule(common.quote_style),
+        semi = getSemiRule(common.require_semicolons),
+        ["comma-dangle"] = getCommaDangleRule(common.comma_dangle),
+        ["no-trailing-spaces"] = createRuleConfig("no-trailing-spaces", common.trailing_whitespace),
+        ["space-before-function-paren"] = getSpaceBeforeFunctionParenRule(common.space_before_function_paren),
+        ["object-curly-spacing"] = getObjectCurlySpacingRule(common.object_curly_spacing),
+        ["arrow-spacing"] = getArrowSpacingRule(common.arrow_spacing),
+        ["key-spacing"] = getKeySpacingRule(common.key_spacing),
+        ["linebreak-style"] = getLinebreakStyleRule(common.linebreak_style)
     }
-
     -- Remove nil values
     for key, value in pairs(rules) do
         if value == nil then rules[key] = nil end
@@ -163,7 +215,7 @@ function Generate(config)
     local eslintConfig = {
         {
             plugins = plugins,
-            rules = rules,
+            rules = rules
         }
     }
 
