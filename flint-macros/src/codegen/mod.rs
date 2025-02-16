@@ -6,7 +6,10 @@ pub mod layout;
 pub mod util;
 pub mod variable;
 
-use crate::widget::{Widget, WidgetKind, WidgetRenderer};
+use crate::{
+    widget::{Widget, WidgetKind, WidgetRenderer},
+    MacroInput,
+};
 use conditional::handle_conditional_widget;
 use constructor::handle_constructor_widget;
 use layout::handle_layout_widget;
@@ -22,7 +25,9 @@ pub struct WidgetHandlerOptions<'a> {
     /// Index of this widget among its siblings.
     child_index: usize,
     /// Identifier for the renderer being used (frame or area/buffer)
-    renderer: &'a WidgetRenderer,
+    input: &'a MacroInput,
+    /// Whether layout is allowed for this widget.
+    allow_layout: bool,
 }
 
 impl<'a> WidgetHandlerOptions<'a> {
@@ -38,13 +43,15 @@ impl<'a> WidgetHandlerOptions<'a> {
         is_top_level: bool,
         parent_id: usize,
         child_index: usize,
-        renderer: &'a WidgetRenderer,
+        input: &'a MacroInput,
+        allow_layout: bool,
     ) -> Self {
         Self {
             is_top_level,
             parent_id,
             child_index,
-            renderer,
+            input,
+            allow_layout,
         }
     }
 }

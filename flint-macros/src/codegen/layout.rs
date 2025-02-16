@@ -1,8 +1,11 @@
+use std::fs::rename;
+
 use super::WidgetHandlerOptions;
 use crate::{
     arg::ArgKind,
     codegen::{generate_widget_code, util::generate_unique_id},
     widget::{Widget, WidgetKind, WidgetRenderer},
+    MacroInput,
 };
 use proc_macro2::TokenStream;
 use quote::quote;
@@ -33,8 +36,17 @@ pub fn handle_layout_widget(
         is_top_level,
         parent_id,
         child_index,
-        renderer,
+        input,
+        allow_layout,
     } = options;
+
+    if !allow_layout {
+        panic!("Layout widgets are not allowed in the widget macro")
+    }
+    let renderer = match input {
+        MacroInput::Ui { renderer, .. } => renderer,
+        MacroInput::Raw { .. } => panic!("Renderer cannot be used in widget macro"),
+    };
 
     let args = &widget.args;
     let layout_index = generate_unique_id() as usize;
@@ -92,7 +104,7 @@ pub fn handle_layout_widget(
 
     let mut render_statements = quote! {};
     for (idx, child) in children.iter().enumerate() {
-        let new_options = WidgetHandlerOptions::new(false, layout_index, idx, renderer);
+        let new_options = WidgetHandlerOptions::new(false, layout_index, idx, input, *allow_layout);
 
         let child_widget = generate_widget_code(child, &new_options);
 

@@ -1,5 +1,3 @@
-pub mod util;
-
 use crate::arg::Arg;
 use syn::{
     braced,
@@ -83,6 +81,7 @@ pub struct Widget {
 impl Parse for Widget {
     /// Parses a widget from a token stream
     fn parse(input: ParseStream) -> Result<Self> {
+        // If we find a "{", then try to parse for a variable widget
         if input.peek(token::Brace) {
             let content;
             syn::braced!(content in input);
@@ -100,6 +99,7 @@ impl Parse for Widget {
             }
         }
 
+        // If we find a "[", then try to parse for an IterVariable widget
         if input.peek(token::Bracket) {
             let content;
             syn::bracketed!(content in input);

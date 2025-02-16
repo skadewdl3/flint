@@ -4,9 +4,9 @@ use crate::util::{
     toml::{create_toml_config, Config, FlintConfig},
 };
 use crossterm::event::{Event, KeyCode};
-use flint_macros::ui;
+use flint_macros::{ui, widget};
 use ratatui::{
-    layout::{Constraint, Direction, Flex, Layout},
+    layout::{Constraint, Direction, Layout},
     style::{Color, Stylize},
     text::Text,
     widgets::{Block, List},
@@ -62,7 +62,7 @@ impl<'a> AppWidget for InitWidget<'a> {
             "Would you like to continue with creating flint.toml? (y/n)"
         };
 
-        ui!(frame =>
+        ui!(frame => {
             Layout (
                 direction: Direction::Vertical,
                 constraints: [Constraint::Length(1), Constraint::Fill(1)]
@@ -78,13 +78,12 @@ impl<'a> AppWidget for InitWidget<'a> {
                 ) {
                     List::new(
                         self.detected_langs.clone(),
-                        block: Block::bordered().title("Detected Languages"),
+                        block: widget!({ Block::bordered(title: "Detected Languages") }),
                     ),
                     List::new(
                         self.unsupported_langs.clone(),
-                        block: Block::bordered().title("Unsupported Languages"),
+                        block: widget!({ Block::bordered(title: "Unsupported Languages") }),
                     ),
-
                     Layout(
                         direction: Direction::Horizontal,
                         constraints: [
@@ -93,13 +92,13 @@ impl<'a> AppWidget for InitWidget<'a> {
                             Constraint::Fill(1)
                         ]
                     ) {
-
                        Block(title: confirm_message, fg: if self.config_exists { Color::Yellow } else { Color::Blue }),
                        {{ "" }},
                        {{ &self.textarea }}
                     }
                 }
             }
+        }
         );
 
         AppStatus::Ok

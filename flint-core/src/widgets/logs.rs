@@ -1,12 +1,12 @@
 use std::sync::{OnceLock, RwLock, RwLockReadGuard};
 
-use flint_macros::ui;
+use flint_macros::{ui, widget};
 use ratatui::{
     buffer::Buffer,
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Style},
     text::Text,
-    widgets::{List, Paragraph, Widget, Wrap},
+    widgets::{Paragraph, Widget, Wrap},
     Frame,
 };
 
@@ -51,15 +51,16 @@ impl Widget for LogsWidget {
     fn render(self, area: Rect, buffer: &mut Buffer) {
         let logs = get_logs().unwrap();
 
-        let log_lines: Vec<u16> = logs
+        let mut log_lines: Vec<u16> = logs
             .iter()
             .map(|(kind, log)| match kind {
                 LogKind::Debug => log.lines().count() as u16 + 1,
                 _ => log.lines().count() as u16,
             })
             .collect();
+        log_lines.push(1);
 
-        ui!((area, buffer) =>
+        ui!((area, buffer) => {
             Layout(
                 direction: Direction::Vertical,
                 constraints: Constraint::from_lengths(log_lines),
@@ -75,16 +76,15 @@ impl Widget for LogsWidget {
                           LogKind::Debug => ("[debug]:", Style::default().fg(Color::White))
                         };
 
-                        Paragraph::new(format!("{} {}", prefix, log)).wrap(Wrap{trim: true}).style(style)
+                        widget!({
+                            Paragraph::new(
+                                format!("{} {}", prefix, log),
+                                style
+                            )
+                        })
                     })
-                ]]
+                ]],
             }
-        );
-    }
-}
-
-impl AppWidget for LogsWidget {
-    fn draw(&mut self, frame: &mut Frame) -> AppStatus {
-        AppStatus::Ok
+        });
     }
 }
