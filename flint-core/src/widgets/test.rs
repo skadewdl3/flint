@@ -5,13 +5,13 @@ use super::{AppStatus, AppWidget};
 
 #[derive(Debug)]
 pub struct TestWidget {
-    throbber_state: ThrobberState,
+    _throbber_state: ThrobberState,
 }
 
 impl Default for TestWidget {
     fn default() -> Self {
         Self {
-            throbber_state: ThrobberState::default(),
+            _throbber_state: ThrobberState::default(),
         }
     }
 }

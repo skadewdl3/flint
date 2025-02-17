@@ -9,7 +9,6 @@ mod widget;
 
 use codegen::WidgetHandlerOptions;
 use proc_macro::TokenStream;
-use quote::quote;
 use syn::{
     braced,
     parse::{Parse, ParseStream},

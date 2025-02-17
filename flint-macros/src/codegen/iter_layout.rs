@@ -40,18 +40,10 @@ pub fn handle_iter_layout_widget(
     match input {
         MacroInput::Ui { widget, renderer } => {
             if *is_top_level {
+                let args = widget.args.clone();
                 let layout = Widget {
                     // Construct the constraints argument to be passed to the layout
-                    args: vec![Arg {
-                        value: syn::parse2(quote! {
-                            vec![Constraint::Fill(1); #iter.clone().len()] // Maximum length of 0 (to hide the element)
-                        })
-                        .expect("Failed to parse constraints expression"),
-                        kind: ArgKind::Named(Ident::new(
-                            "constraints",
-                            proc_macro2::Span::call_site(),
-                        )),
-                    }],
+                    args,
 
                     // We need this to be a Layout widget, since the Conditional widget is
                     // a convenience wrapper around a Layout widget.
@@ -81,8 +73,9 @@ pub fn handle_iter_layout_widget(
             }
         }
 
-        MacroInput::Raw { .. } => {
+        MacroInput::Raw { widget } => {
             if *is_top_level {
+                let args = widget.args.clone();
                 let layout_index = generate_unique_id() as usize;
                 let layout_ident = proc_macro2::Ident::new(
                     &format!("layout_{}", layout_index),
@@ -91,11 +84,30 @@ pub fn handle_iter_layout_widget(
                 let new_options =
                     WidgetHandlerOptions::new(false, layout_index, *child_index, input);
                 let widget_code = generate_widget_code(child, &new_options);
+
+                let positional_args: Vec<_> = args
+                    .iter()
+                    .filter_map(|arg| match &arg.kind {
+                        ArgKind::Positional => Some(&arg.value),
+                        _ => None,
+                    })
+                    .collect();
+
                 let mut layout_code = quote! {
-                    let mut #layout_ident = ratatui::layout::Layout::default().constraints(
-                        ratatui::layout::Constraint::from_mins(vec![0; #iter.len()])
-                    );
+                    let mut #layout_ident = ratatui::layout::Layout::default(#(#positional_args),*)
                 };
+
+                // Add named arguments as method calls
+                for arg in args {
+                    if let ArgKind::Named(name) = &arg.kind {
+                        let value = &arg.value;
+                        layout_code.extend(quote! {
+                            .#name(#value)
+                        });
+                    }
+                }
+
+                layout_code.extend(quote! { ; });
 
                 layout_code.extend(quote! {
 

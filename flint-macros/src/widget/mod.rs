@@ -103,11 +103,23 @@ impl Parse for Widget {
             content.parse::<Token![in]>()?;
             let iter = content.parse::<Expr>()?;
 
+            // Parse named argument if it exists (separated by comma)
+            let mut args = Vec::new();
+            if content.peek(Token![,]) {
+                content.parse::<Token![,]>()?;
+                let temp = Punctuated::<Arg, Token![,]>::parse_terminated(&content)?;
+                args = temp.into_iter().collect();
+                if args.is_empty() {
+                    return Err(input.error("For widgets must have at least 1 argument"));
+                }
+            }
+
             // The content in braces is rendered if the condition is true
             // The braces can contain only one single widget. So if multiple child elements
             // are required, they must be nested in a Layout widget.
             let brace_content;
             braced!(brace_content in input);
+
             let child = brace_content.parse::<Widget>()?;
 
             // If this was a conditional widget, we're done, since we've
@@ -118,7 +130,7 @@ impl Parse for Widget {
                     iter,
                     child: Box::new(child),
                 },
-                args: vec![],
+                args,
             });
         }
 

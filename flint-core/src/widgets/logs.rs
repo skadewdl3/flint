@@ -69,15 +69,19 @@ impl Widget for LogsWidget {
         let x = 0;
 
         ui!((area, buffer) => {
-            For ((i, (log, style)) in logs.clone().enumerate()) {
-                {{
-                    if i < 1 {
-                        None
-                    } else {
-                        Some(Text::raw(log))
-                    }
-                }}
-            }
+            Layout(
+                constraints: [Constraint::Fill(1)],
+                direction: Direction::Vertical
+                ) {
+
+                    For (
+                                    (log, style) in logs,
+                                    constraints: Constraint::from_lengths(log_lines),
+                                    direction: Direction::Vertical
+                                ) {
+                                    Text::raw(log, style: style)
+                                }
+                }
         });
     }
 }
