@@ -28,15 +28,6 @@ pub enum WidgetKind {
         /// The expression representing the widget
         expr: Expr,
     },
-    /// A conditional widget with if/else branches
-    Conditional {
-        /// The condition expression
-        condition: Expr,
-        /// The widget to show if condition is true
-        if_child: Box<Widget>,
-        /// Optional widget to show if condition is false
-        else_child: Option<Box<Widget>>,
-    },
     IterLayout {
         loop_var: Pat,
         iter: Expr,
@@ -102,49 +93,6 @@ impl Parse for Widget {
 
         // Parse widget name
         let widget_name = input.parse::<Ident>()?;
-
-        // If this widget name is "If", it's a conditional widget
-        if widget_name == "If" {
-            // Parse the condition (which evaluates to a boolean) given in
-            // the parantheses
-            let content;
-            syn::parenthesized!(content in input);
-            let condition = content.parse::<Expr>()?;
-
-            // The content in braces is rendered if the condition is true
-            // The braces can contain only one single widget. So if multiple child elements
-            // are required, they must be nested in a Layout widget.
-            let brace_content;
-            braced!(brace_content in input);
-            let child = brace_content.parse::<Widget>()?;
-
-            // Optionally, an Else clause may follow the If clause
-            let else_child = if input.peek(Ident) {
-                let else_kw: Ident = input.parse()?;
-                if else_kw == "Else" {
-                    // If it exists, we extract another single widget from the braces
-                    // which will be rendered if the condition provided to the If clause is false.
-                    let else_content;
-                    braced!(else_content in input);
-                    Some(Box::new(else_content.parse::<Widget>()?))
-                } else {
-                    return Err(input.error("Expected 'Else' keyword"));
-                }
-            } else {
-                None
-            };
-
-            // If this was a conditional widget, we're done, since we've
-            // extracted the condition and children for both branches.
-            return Ok(Widget {
-                kind: WidgetKind::Conditional {
-                    condition,
-                    if_child: Box::new(child),
-                    else_child,
-                },
-                args: vec![],
-            });
-        }
 
         if widget_name == "For" {
             // Parse the condition (which evaluates to a boolean) given in

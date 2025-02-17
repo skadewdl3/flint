@@ -1,6 +1,5 @@
 //! Module for handling widget code generation and related functionality.
 
-pub mod conditional;
 pub mod constructor;
 pub mod iter_layout;
 pub mod layout;
@@ -11,7 +10,6 @@ use crate::{
     widget::{Widget, WidgetKind},
     MacroInput,
 };
-use conditional::handle_conditional_widget;
 use constructor::handle_constructor_widget;
 use iter_layout::handle_iter_layout_widget;
 use layout::handle_layout_widget;
@@ -69,12 +67,6 @@ pub fn generate_widget_code(
     options: &WidgetHandlerOptions,
 ) -> proc_macro2::TokenStream {
     match &widget.kind {
-        WidgetKind::Conditional {
-            condition,
-            if_child,
-            else_child,
-        } => handle_conditional_widget(condition, if_child, else_child, options),
-
         WidgetKind::IterLayout {
             loop_var,
             iter,

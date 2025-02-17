@@ -5,7 +5,7 @@ use crate::{
     widget::{Widget, WidgetKind, WidgetRenderer},
     MacroInput,
 };
-use proc_macro2::TokenStream;
+use proc_macro2::{Span, TokenStream};
 use quote::quote;
 use syn::Ident;
 
@@ -166,7 +166,7 @@ pub fn handle_layout_widget(
                 match child.kind {
                     // Layout widgets don't return an actual widget, so we don't call frame.render_widget on them
                     // Instead, their children are rendered recursively
-                    WidgetKind::Layout { .. } | WidgetKind::Conditional { .. } => {
+                    WidgetKind::Layout { .. } => {
                         render_statements.extend(quote! {
                             #child_widget
                         });
@@ -177,19 +177,23 @@ pub fn handle_layout_widget(
                         ref iter,
                         ..
                     } => {
+                        let iter_index_ident = Ident::new(
+                            format!("i_{}", generate_unique_id()).as_str(),
+                            Span::call_site(),
+                        );
                         render_statements.extend(match renderer {
                             WidgetRenderer::Area { buffer, .. } => {
                                 quote! {
-                                    for (i, #loop_var) in #iter.enumerate() {
-                                        #child_widget.render(#chunks_ident[#idx + i], #buffer)
+                                    for (#iter_index_ident, #loop_var) in #iter.enumerate() {
+                                        #child_widget.render(#chunks_ident[#idx + #iter_index_ident], #buffer)
                                     }
                                 }
                             }
 
                             WidgetRenderer::Frame(frame) => {
                                 quote! {
-                                    for (i, #loop_var) in #iter.enumerate() {
-                                        #frame.render_widget(#child_widget, #chunks_ident[#idx + i])
+                                    for (#iter_index_ident, #loop_var) in #iter.enumerate() {
+                                        #frame.render_widget(#child_widget, #chunks_ident[#idx + #iter_index_ident])
                                     }
                                 }
                             }

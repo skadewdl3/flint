@@ -5,6 +5,7 @@ use ratatui::{
     buffer::Buffer,
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Style},
+    text::Text,
     widgets::{Paragraph, Widget},
 };
 
@@ -65,16 +66,18 @@ impl Widget for LogsWidget {
             };
             (format!("{} {}", prefix, log), style)
         });
-
-        let x = widget!({
-
-            For ((l, s) in logs) {
-                                Paragraph::new(l, style: s)
-                            }
-        });
+        let x = 0;
 
         ui!((area, buffer) => {
-            {{ x }}
+            For ((i, (log, style)) in logs.clone().enumerate()) {
+                {{
+                    if i < 1 {
+                        None
+                    } else {
+                        Some(Text::raw(log))
+                    }
+                }}
+            }
         });
     }
 }
