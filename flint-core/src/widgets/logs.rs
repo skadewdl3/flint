@@ -67,7 +67,6 @@ impl Widget for LogsWidget {
         });
 
         ui!((area, buffer) => {
-
             Layout(
                 direction: Direction::Vertical,
                 constraints: Constraint::from_lengths(log_lines),
