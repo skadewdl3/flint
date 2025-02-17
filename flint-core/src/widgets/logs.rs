@@ -68,8 +68,8 @@ impl Widget for LogsWidget {
             (format!("{} {}", prefix, log), style)
         });
 
-      
-        ui!((area, buffer) => {
+        let temp = widget!({
+
             Layout(
                 constraints: [Constraint::Fill(1), Constraint::Fill(1)],
                 direction: Direction::Horizontal
@@ -81,7 +81,19 @@ impl Widget for LogsWidget {
                 ) {
                     Text::raw(log, style: style)
                 },
+                For (
+                    (log, style) in logs.clone(),
+                    constraints: Constraint::from_lengths(log_lines.clone()),
+                    direction: Direction::Vertical
+                ) {
+                    Text::raw(log, style: style)
+                }
             }
+
+        });
+
+        ui!((area, buffer) => {
+            {{ temp }}
         });
     }
 }
