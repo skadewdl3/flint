@@ -1,17 +1,17 @@
 //! Module for handling widget code generation and related functionality.
 
-pub mod conditional;
 pub mod constructor;
+pub mod iter_layout;
 pub mod layout;
 pub mod util;
 pub mod variable;
 
 use crate::{
-    widget::{Widget, WidgetKind, WidgetRenderer},
+    widget::{Widget, WidgetKind},
     MacroInput,
 };
-use conditional::handle_conditional_widget;
 use constructor::handle_constructor_widget;
+use iter_layout::handle_iter_layout_widget;
 use layout::handle_layout_widget;
 use variable::handle_variable_widget;
 
@@ -26,8 +26,6 @@ pub struct WidgetHandlerOptions<'a> {
     child_index: usize,
     /// Identifier for the renderer being used (frame or area/buffer)
     input: &'a MacroInput,
-    /// Whether layout is allowed for this widget.
-    allow_layout: bool,
 }
 
 impl<'a> WidgetHandlerOptions<'a> {
@@ -44,14 +42,12 @@ impl<'a> WidgetHandlerOptions<'a> {
         parent_id: usize,
         child_index: usize,
         input: &'a MacroInput,
-        allow_layout: bool,
     ) -> Self {
         Self {
             is_top_level,
             parent_id,
             child_index,
             input,
-            allow_layout,
         }
     }
 }
@@ -71,15 +67,13 @@ pub fn generate_widget_code(
     options: &WidgetHandlerOptions,
 ) -> proc_macro2::TokenStream {
     match &widget.kind {
-        WidgetKind::Conditional {
-            condition,
-            if_child,
-            else_child,
-        } => handle_conditional_widget(condition, if_child, else_child, options),
+        WidgetKind::IterLayout {
+            loop_var,
+            iter,
+            child,
+        } => handle_iter_layout_widget(&widget, loop_var, iter, child, options),
 
-        WidgetKind::Variable { expr } | WidgetKind::IterVariable { expr } => {
-            handle_variable_widget(expr, options)
-        }
+        WidgetKind::Variable { expr } => handle_variable_widget(expr, options),
 
         WidgetKind::Constructor { name, constructor } => {
             handle_constructor_widget(&widget, name, constructor, options)

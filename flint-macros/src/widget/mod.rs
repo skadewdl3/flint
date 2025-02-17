@@ -3,7 +3,7 @@ use syn::{
     braced,
     parse::{Parse, ParseStream},
     punctuated::Punctuated,
-    token, Expr, Ident, Result, Token,
+    token, Expr, Ident, Pat, Result, Token,
 };
 
 /// Represents the different kinds of widgets that can be parsed
@@ -28,19 +28,11 @@ pub enum WidgetKind {
         /// The expression representing the widget
         expr: Expr,
     },
-    /// A widget represented by a variable expression that is an iterator
-    IterVariable {
-        /// The expression representing the widget
-        expr: Expr,
-    },
-    /// A conditional widget with if/else branches
-    Conditional {
-        /// The condition expression
-        condition: Expr,
-        /// The widget to show if condition is true
-        if_child: Box<Widget>,
-        /// Optional widget to show if condition is false
-        else_child: Option<Box<Widget>>,
+    IterLayout {
+        loop_var: Pat,
+        iter: Expr,
+        /// The child widgets contained in this layout
+        child: Box<Widget>,
     },
 }
 
@@ -81,6 +73,7 @@ pub struct Widget {
 impl Parse for Widget {
     /// Parses a widget from a token stream
     fn parse(input: ParseStream) -> Result<Self> {
+        // If we find a "{", then try to parse for a variable widget
         if input.peek(token::Brace) {
             let content;
             syn::braced!(content in input);
@@ -98,66 +91,46 @@ impl Parse for Widget {
             }
         }
 
-        if input.peek(token::Bracket) {
-            let content;
-            syn::bracketed!(content in input);
-
-            // Check if the content starts with another left bracket
-            if content.peek(token::Bracket) {
-                let inner_content;
-                syn::bracketed!(inner_content in content);
-                let expr: Expr = inner_content.parse()?;
-
-                return Ok(Widget {
-                    kind: WidgetKind::IterVariable { expr },
-                    args: vec![],
-                });
-            }
-        }
-
         // Parse widget name
         let widget_name = input.parse::<Ident>()?;
 
-        // If this widget name is "If", it's a conditional widget
-        if widget_name == "If" {
+        if widget_name == "For" {
             // Parse the condition (which evaluates to a boolean) given in
             // the parantheses
             let content;
             syn::parenthesized!(content in input);
-            let condition = content.parse::<Expr>()?;
+            let loop_var = Pat::parse_multi_with_leading_vert(&content)?;
+            content.parse::<Token![in]>()?;
+            let iter = content.parse::<Expr>()?;
+
+            // Parse named argument if it exists (separated by comma)
+            let mut args = Vec::new();
+            if content.peek(Token![,]) {
+                content.parse::<Token![,]>()?;
+                let temp = Punctuated::<Arg, Token![,]>::parse_terminated(&content)?;
+                args = temp.into_iter().collect();
+                if args.is_empty() {
+                    return Err(input.error("For widgets must have at least 1 argument"));
+                }
+            }
 
             // The content in braces is rendered if the condition is true
             // The braces can contain only one single widget. So if multiple child elements
             // are required, they must be nested in a Layout widget.
             let brace_content;
             braced!(brace_content in input);
-            let child = brace_content.parse::<Widget>()?;
 
-            // Optionally, an Else clause may follow the If clause
-            let else_child = if input.peek(Ident) {
-                let else_kw: Ident = input.parse()?;
-                if else_kw == "Else" {
-                    // If it exists, we extract another single widget from the braces
-                    // which will be rendered if the condition provided to the If clause is false.
-                    let else_content;
-                    braced!(else_content in input);
-                    Some(Box::new(else_content.parse::<Widget>()?))
-                } else {
-                    return Err(input.error("Expected 'Else' keyword"));
-                }
-            } else {
-                None
-            };
+            let child = brace_content.parse::<Widget>()?;
 
             // If this was a conditional widget, we're done, since we've
             // extracted the condition and children for both branches.
             return Ok(Widget {
-                kind: WidgetKind::Conditional {
-                    condition,
-                    if_child: Box::new(child),
-                    else_child,
+                kind: WidgetKind::IterLayout {
+                    loop_var,
+                    iter,
+                    child: Box::new(child),
                 },
-                args: vec![],
+                args,
             });
         }
 
