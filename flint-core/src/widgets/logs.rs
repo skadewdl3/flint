@@ -66,7 +66,7 @@ impl Widget for LogsWidget {
             (format!("{} {}", prefix, log), style)
         });
 
-        let x = widget!({
+        ui!((area, buffer) => {
             Layout(
                 direction: Direction::Vertical,
                 constraints: Constraint::from_lengths(log_lines),
@@ -76,7 +76,5 @@ impl Widget for LogsWidget {
                 }
             }
         });
-
-        ui!({ x });
     }
 }
