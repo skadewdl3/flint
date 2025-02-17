@@ -145,39 +145,8 @@ pub fn handle_iter_layout_widget(
             }
         }
 
-        MacroInput::Raw { widget } => {
-            let args = widget.args.clone();
-            let layout_index = generate_unique_id() as usize;
-            let layout_ident = proc_macro2::Ident::new(
-                &format!("layout_{}", layout_index),
-                proc_macro2::Span::call_site(),
-            );
-
-            let positional_args: Vec<_> = args
-                .iter()
-                .filter_map(|arg| match &arg.kind {
-                    ArgKind::Positional => Some(&arg.value),
-                    _ => None,
-                })
-                .collect();
-
-            let mut layout_code = quote! {
-                let mut #layout_ident = ratatui::layout::Layout::default(#(#positional_args),*)
-            };
-
-            // Add named arguments as method calls
-            for arg in args {
-                if let ArgKind::Named(name) = &arg.kind {
-                    let value = &arg.value;
-                    layout_code.extend(quote! {
-                        .#name(#value)
-                    });
-                }
-            }
-
-            layout_code.extend(quote! { ; });
-
-            layout_code.extend(quote! {
+        MacroInput::Raw { .. } => {
+            let wrapper_code = quote! {
 
                 use ratatui::{
                     buffer::Buffer,
@@ -225,9 +194,9 @@ pub fn handle_iter_layout_widget(
                         }
                     }
                 }
-            });
+            };
 
-            layout_code.extend(quote! {
+            let render_statements = quote! {
                 IterLayoutWrapper::new(
                     #layout_ident,
                     #iter,
@@ -237,10 +206,12 @@ pub fn handle_iter_layout_widget(
                         widget.render(*area, buf);
                     }
                 )
-            });
+            };
 
             return quote! {{
                 #layout_code
+                #wrapper_code
+                #render_statements
             }};
         }
     }

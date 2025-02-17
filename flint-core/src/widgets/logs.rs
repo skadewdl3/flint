@@ -70,13 +70,26 @@ impl Widget for LogsWidget {
 
         let temp = widget!({
 
-            For (
-                (log, style) in logs.clone(),
-                constraints: Constraint::from_lengths(log_lines.clone()),
-                direction: Direction::Vertical
+            Layout(
+                constraints: [Constraint::Fill(1), Constraint::Fill(1)],
+                direction: Direction::Horizontal
             ) {
-                Text::raw(log, style: style)
+                For (
+                    (log, style) in logs.clone(),
+                    constraints: Constraint::from_lengths(log_lines.clone()),
+                    direction: Direction::Vertical
+                ) {
+                    Text::raw(log, style: style)
+                },
+                For (
+                    (log, style) in logs.clone(),
+                    constraints: Constraint::from_lengths(log_lines.clone()),
+                    direction: Direction::Vertical
+                ) {
+                    Text::raw(log, style: style)
+                }
             }
+
         });
 
         ui!((area, buffer) => {
