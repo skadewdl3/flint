@@ -55,7 +55,6 @@ impl Widget for LogsWidget {
                 _ => log.lines().count() as u16,
             })
             .collect();
-        log_lines.push(1);
 
         let logs = logs.iter().map(|(kind, log)| {
             let (prefix, style) = match kind {
