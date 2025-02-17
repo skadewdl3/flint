@@ -41,56 +41,22 @@ impl Parse for Arg {
     /// - `Ok(Arg)` if parsing succeeds
     /// - `Err(Error)` if parsing fails
     fn parse(input: ParseStream) -> Result<Self> {
-        // Check for named parameter (identified by an identifier followed by a colon)
+        // First, check for named parameter pattern
         if input.peek(Ident) && input.peek2(Token![:]) {
             let name = input.parse::<Ident>()?;
             input.parse::<Token![:]>()?;
             let value = input.parse::<Expr>()?;
-
             return Ok(Arg {
                 value,
                 kind: ArgKind::Named(name),
             });
         }
 
-        // Try parsing as an expression
-        let fork = input.fork();
-        let expr_result = fork.parse::<Expr>();
-
-        match expr_result {
-            Ok(expr) => {
-                // If it parsed successfully as an expression, check if it's just an identifier
-                if let Expr::Path(expr_path) = &expr {
-                    if expr_path.path.segments.len() == 1
-                        && !expr_path.path.segments[0].arguments.is_empty()
-                    {
-                        // If it's a path with arguments (like a function call), treat as positional
-                        input.parse::<Expr>().map(|value| Arg {
-                            value,
-                            kind: ArgKind::Positional,
-                        })
-                    } else {
-                        // It's a simple identifier, treat as shorthand
-                        input.advance_to(&fork);
-                        let ident = expr_path.path.segments[0].ident.clone();
-                        Ok(Arg {
-                            value: expr,
-                            kind: ArgKind::Named(ident),
-                        })
-                    }
-                } else {
-                    // Not a path expression, treat as positional
-                    input.advance_to(&fork);
-                    Ok(Arg {
-                        value: expr,
-                        kind: ArgKind::Positional,
-                    })
-                }
-            }
-            Err(_) => {
-                // If we can't parse it as an expression at all, that's an error
-                Err(input.error("expected argument"))
-            }
-        }
+        // If not named, try parsing as a regular expression
+        let value = input.parse::<Expr>()?;
+        Ok(Arg {
+            value,
+            kind: ArgKind::Positional,
+        })
     }
 }

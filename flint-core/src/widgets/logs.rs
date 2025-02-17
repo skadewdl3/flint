@@ -73,7 +73,7 @@ impl Widget for LogsWidget {
                 constraints: Constraint::from_lengths(log_lines),
             ) {
                 For ((l, s) in logs) {
-                    Paragraph::new(format!("{}", l), style: s)
+                    Paragraph::new(l, style: s)
                 }
             }
         });

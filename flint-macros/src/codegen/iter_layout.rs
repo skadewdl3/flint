@@ -9,7 +9,7 @@ use crate::{
 use super::{generate_widget_code, WidgetHandlerOptions};
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::{Expr, Ident};
+use syn::{Expr, Ident, Pat};
 
 /// Handles generating code for an iteration-based layout widget.
 ///
@@ -24,7 +24,7 @@ use syn::{Expr, Ident};
 ///
 /// A TokenStream containing the generated widget code
 pub fn handle_iter_layout_widget(
-    _loop_var: &Expr,
+    _loop_var: &Pat,
     iter: &Expr,
     child: &Box<Widget>,
     options: &WidgetHandlerOptions,

@@ -3,7 +3,7 @@ use syn::{
     braced,
     parse::{Parse, ParseStream},
     punctuated::Punctuated,
-    token, Expr, Ident, Result, Token,
+    token, Expr, Ident, Pat, Result, Token,
 };
 
 /// Represents the different kinds of widgets that can be parsed
@@ -38,7 +38,7 @@ pub enum WidgetKind {
         else_child: Option<Box<Widget>>,
     },
     IterLayout {
-        loop_var: Expr,
+        loop_var: Pat,
         iter: Expr,
         /// The child widgets contained in this layout
         child: Box<Widget>,
@@ -151,7 +151,7 @@ impl Parse for Widget {
             // the parantheses
             let content;
             syn::parenthesized!(content in input);
-            let loop_var = content.parse::<Expr>()?;
+            let loop_var = Pat::parse_multi_with_leading_vert(&content)?;
             content.parse::<Token![in]>()?;
             let iter = content.parse::<Expr>()?;
 
