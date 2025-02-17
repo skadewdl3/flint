@@ -66,15 +66,15 @@ impl Widget for LogsWidget {
             (format!("{} {}", prefix, log), style)
         });
 
+        let x = widget!({
+
+            For ((l, s) in logs) {
+                                Paragraph::new(l, style: s)
+                            }
+        });
+
         ui!((area, buffer) => {
-            Layout(
-                direction: Direction::Vertical,
-                constraints: Constraint::from_lengths(log_lines),
-            ) {
-                For ((l, s) in logs) {
-                    Paragraph::new(l, style: s)
-                }
-            }
+            {{ x }}
         });
     }
 }

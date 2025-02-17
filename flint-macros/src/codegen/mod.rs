@@ -28,8 +28,6 @@ pub struct WidgetHandlerOptions<'a> {
     child_index: usize,
     /// Identifier for the renderer being used (frame or area/buffer)
     input: &'a MacroInput,
-    /// Whether layout is allowed for this widget.
-    allow_layout: bool,
 }
 
 impl<'a> WidgetHandlerOptions<'a> {
@@ -46,14 +44,12 @@ impl<'a> WidgetHandlerOptions<'a> {
         parent_id: usize,
         child_index: usize,
         input: &'a MacroInput,
-        allow_layout: bool,
     ) -> Self {
         Self {
             is_top_level,
             parent_id,
             child_index,
             input,
-            allow_layout,
         }
     }
 }

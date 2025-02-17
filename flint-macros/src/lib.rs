@@ -78,7 +78,7 @@ impl Parse for MacroInput {
 pub fn ui(input: TokenStream) -> TokenStream {
     let macro_input = parse_macro_input!(input as MacroInput);
     if let MacroInput::Ui { ref widget, .. } = macro_input {
-        let options = WidgetHandlerOptions::new(true, 0, 0, &macro_input, true);
+        let options = WidgetHandlerOptions::new(true, 0, 0, &macro_input);
         let output = codegen::generate_widget_code(widget, &options);
         output.into()
     } else {
@@ -90,7 +90,7 @@ pub fn ui(input: TokenStream) -> TokenStream {
 pub fn widget(input: TokenStream) -> TokenStream {
     let macro_input = parse_macro_input!(input as MacroInput);
     if let MacroInput::Raw { ref widget, .. } = macro_input {
-        let options = WidgetHandlerOptions::new(false, 0, 0, &macro_input, false);
+        let options = WidgetHandlerOptions::new(true, 0, 0, &macro_input);
         let output = codegen::generate_widget_code(widget, &options);
         output.into()
     } else {

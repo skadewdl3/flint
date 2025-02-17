@@ -1,6 +1,7 @@
 /// Crate imports for widget handling functionality.
 use crate::{
     arg::{Arg, ArgKind},
+    codegen::util::generate_unique_id,
     widget::{Widget, WidgetKind, WidgetRenderer},
     MacroInput,
 };
@@ -24,7 +25,7 @@ use syn::{Expr, Ident, Pat};
 ///
 /// A TokenStream containing the generated widget code
 pub fn handle_iter_layout_widget(
-    _loop_var: &Pat,
+    loop_var: &Pat,
     iter: &Expr,
     child: &Box<Widget>,
     options: &WidgetHandlerOptions,
@@ -32,48 +33,141 @@ pub fn handle_iter_layout_widget(
     let WidgetHandlerOptions {
         is_top_level,
         input,
+        child_index,
         ..
     } = options;
 
-    if let MacroInput::Ui { renderer, widget } = input {
-        if *is_top_level {
-            let layout = Widget {
-                // Construct the constraints argument to be passed to the layout
-                args: vec![Arg {
-                    value: syn::parse2(quote! {
-                        vec![Constraint::Fill(1); #iter.clone().len()] // Maximum length of 0 (to hide the element)
-                    })
-                    .expect("Failed to parse constraints expression"),
-                    kind: ArgKind::Named(Ident::new("constraints", proc_macro2::Span::call_site())),
-                }],
+    match input {
+        MacroInput::Ui { widget, renderer } => {
+            if *is_top_level {
+                let layout = Widget {
+                    // Construct the constraints argument to be passed to the layout
+                    args: vec![Arg {
+                        value: syn::parse2(quote! {
+                            vec![Constraint::Fill(1); #iter.clone().len()] // Maximum length of 0 (to hide the element)
+                        })
+                        .expect("Failed to parse constraints expression"),
+                        kind: ArgKind::Named(Ident::new(
+                            "constraints",
+                            proc_macro2::Span::call_site(),
+                        )),
+                    }],
 
-                // We need this to be a Layout widget, since the Conditional widget is
-                // a convenience wrapper around a Layout widget.
-                kind: WidgetKind::Layout {
-                    name: Ident::new("Layout", proc_macro2::Span::call_site()),
-                    children: vec![widget.clone()],
-                },
-            };
+                    // We need this to be a Layout widget, since the Conditional widget is
+                    // a convenience wrapper around a Layout widget.
+                    kind: WidgetKind::Layout {
+                        name: Ident::new("Layout", proc_macro2::Span::call_site()),
+                        children: vec![widget.clone()],
+                    },
+                };
 
-            let widget_code = generate_widget_code(&layout, options);
-            match renderer {
-                WidgetRenderer::Area { .. } | WidgetRenderer::Frame(_) => {
-                    quote! {
-                        {
-                            #widget_code
+                let widget_code = generate_widget_code(&layout, options);
+                match renderer {
+                    WidgetRenderer::Area { .. } | WidgetRenderer::Frame(_) => {
+                        quote! {
+                            {
+                                #widget_code
+                            }
                         }
                     }
                 }
-            }
-        } else {
-            let code = generate_widget_code(child, options);
-            quote! {
-                {
-                    #code
+            } else {
+                let code = generate_widget_code(child, options);
+                quote! {
+                    {
+                        #code
+                    }
                 }
             }
         }
-    } else {
-        panic!("You cannot use iterlayouts in the widget!() macro")
+
+        MacroInput::Raw { .. } => {
+            if *is_top_level {
+                let layout_index = generate_unique_id() as usize;
+                let layout_ident = proc_macro2::Ident::new(
+                    &format!("layout_{}", layout_index),
+                    proc_macro2::Span::call_site(),
+                );
+                let new_options =
+                    WidgetHandlerOptions::new(false, layout_index, *child_index, input);
+                let widget_code = generate_widget_code(child, &new_options);
+                let mut layout_code = quote! {
+                    let mut #layout_ident = ratatui::layout::Layout::default().constraints(
+                        ratatui::layout::Constraint::from_mins(vec![0; #iter.len()])
+                    );
+                };
+
+                layout_code.extend(quote! {
+
+                    use ratatui::{
+                        buffer::Buffer,
+                        layout::{Layout, Rect},
+                        widgets::Widget,
+                    };
+
+                    pub struct IterLayoutWrapper<'a, I>
+                    where
+                        I: Iterator
+                    {
+                        layout: Layout,
+                        iterator: I,
+                        render_fn: Box<dyn Fn(I::Item, &Rect, &mut Buffer) + 'a>,
+                    }
+
+                    impl<'a, I> IterLayoutWrapper<'a, I>
+                    where
+                        I: Iterator
+                    {
+                        pub fn new<F>(
+                            layout: Layout,
+                            iterator: I,
+                            render_fn: F
+                        ) -> Self
+                        where
+                            F: Fn(I::Item, &Rect, &mut Buffer) + 'a
+                        {
+                            Self {
+                                layout,
+                                iterator,
+                                render_fn: Box::new(render_fn),
+                            }
+                        }
+                    }
+
+                    impl<'a, I> Widget for IterLayoutWrapper<'a, I>
+                    where
+                        I: Iterator
+                    {
+                        fn render(self, area: Rect, buf: &mut Buffer) {
+                            let chunks = self.layout.split(area);
+                            for (chunk, item) in chunks.into_iter().zip(self.iterator) {
+                                (self.render_fn)(item, chunk, buf);
+                            }
+                        }
+                    }
+                });
+
+                layout_code.extend(quote! {
+                    IterLayoutWrapper::new(
+                        #layout_ident,
+                        #iter,
+                        |item, area, buf| {
+                            let #loop_var = item;
+                            let widget = #widget_code;
+                            widget.render(*area, buf);
+                        }
+                    )
+                });
+
+                return quote! {{
+                    #layout_code
+                }};
+            }
+            panic!("You cannot use iterlayouts in the widget!() macro")
+        }
     }
+
+    // if let MacroInput::Ui { renderer, widget } = input {
+    // } else {
+    // }
 }

@@ -35,7 +35,6 @@ pub fn handle_layout_widget(
         parent_id,
         child_index,
         input,
-        allow_layout,
     } = options;
 
     let args = &widget.args;
@@ -68,164 +67,163 @@ pub fn handle_layout_widget(
     layout_code.extend(quote! { ; });
 
     // Always end with semicolon after configuration
+    //
 
-    if !allow_layout {
-        layout_code.extend(quote! {
-            let mut children: Vec<Box<dyn Fn(Rect, &mut Buffer) + 'a>> = Vec::new();
-        });
-
-        layout_code.extend(quote! {
-
-            use ratatui::{
-                buffer::Buffer,
-                layout::{Layout, Rect},
-                widgets::Widget,
-            };
-
-            pub struct LayoutWrapper<'a> {
-                layout: Layout,
-                children: Vec<Box<dyn Fn(Rect, &mut Buffer) + 'a>>,
-            }
-
-            impl<'a> LayoutWrapper<'a> {
-                pub fn new(layout: Layout, children: Vec<Box<dyn Fn(Rect, &mut Buffer) + 'a>>) -> Self {
-                    Self {
-                        layout,
-                        children,
-                    }
-                }
-            }
-
-            impl<'a> Widget for LayoutWrapper<'a> {
-                fn render(self, area: Rect, buf: &mut Buffer) {
-                    let chunks = self.layout.split(area);
-                    for (idx, render_fn) in self.children.into_iter().enumerate() {
-                        render_fn(chunks[idx], buf);
-                    }
-                }
-            }
-        });
-
-        for (idx, child) in children.iter().enumerate() {
-            let new_options =
-                WidgetHandlerOptions::new(false, layout_index, idx, input, *allow_layout);
-
-            let child_widget = generate_widget_code(child, &new_options);
+    match input {
+        MacroInput::Raw { .. } => {
+            layout_code.extend(quote! {
+                let mut children: Vec<Box<dyn Fn(Rect, &mut Buffer)>> = Vec::new();
+            });
 
             layout_code.extend(quote! {
-                children.push(Box::new(|area, buf| {
-                    #child_widget.render(area, buf);
-                }));
+
+                        use ratatui::{
+                            buffer::Buffer,
+                            layout::{Layout, Rect},
+                            widgets::Widget,
+                        };
+
+                        pub struct LayoutWrapper {
+                            layout: Layout,
+                            children: Vec<Box<dyn Fn(Rect, &mut Buffer)>>,
+                        }
+
+                        impl LayoutWrapper {
+                            pub fn new(layout: Layout, children: Vec<Box<dyn Fn(Rect, &mut Buffer)>>) -> Self {
+                                Self {
+                                    layout,
+                                    children,
+                                }
+                            }
+                        }
+
+                        impl Widget for LayoutWrapper {
+                            fn render(self, area: Rect, buf: &mut Buffer) {
+                                let chunks = self.layout.split(area);
+                                for (idx, render_fn) in self.children.into_iter().enumerate() {
+                                    render_fn(chunks[idx], buf);
+                                }
+                            }
+                        }
+                    });
+
+            for (idx, child) in children.iter().enumerate() {
+                let new_options = WidgetHandlerOptions::new(false, layout_index, idx, input);
+
+                let child_widget = generate_widget_code(child, &new_options);
+
+                layout_code.extend(quote! {
+                    children.push(Box::new(|area, buf| {
+                        #child_widget.render(area, buf);
+                    }));
+                });
+            }
+
+            layout_code.extend(quote! {
+                LayoutWrapper::new(#layout_ident, children)
             });
-        }
 
-        layout_code.extend(quote! {
-            LayoutWrapper::new(#layout_ident, children)
-        });
-
-        return quote! {
-            {
-                #layout_code
-            }
-        };
-        // panic!("Layout widgets are not allowed in the widget macro")
-    }
-
-    let renderer = match input {
-        MacroInput::Ui { renderer, .. } => renderer,
-        MacroInput::Raw { .. } => panic!("Renderer cannot be used in widget macro"),
-    };
-
-    // Create chunks vector
-    let chunks_ident = proc_macro2::Ident::new(&format!("chunks_{}", layout_index), name.span());
-
-    // Split the area - for top level use frame.area(), for nested use the parent's chunk
-    let split_code = if *is_top_level {
-        match renderer {
-            WidgetRenderer::Area { area, .. } => {
-                quote! {
-                    let #chunks_ident = #layout_ident.split(#area);
-                }
-            }
-
-            WidgetRenderer::Frame(frame) => {
-                quote! {
-                    let #chunks_ident = #layout_ident.split(#frame .area());
+            quote! {
+                {
+                    #layout_code
                 }
             }
         }
-    } else {
-        quote! {
-            let #chunks_ident = #layout_ident.split(#parent_ident[#child_index]);
-        }
-    };
 
-    let mut render_statements = quote! {};
+        MacroInput::Ui { renderer, .. } => {
+            // Create chunks vector
+            let chunks_ident =
+                proc_macro2::Ident::new(&format!("chunks_{}", layout_index), name.span());
 
-    for (idx, child) in children.iter().enumerate() {
-        let new_options = WidgetHandlerOptions::new(false, layout_index, idx, input, *allow_layout);
-
-        let child_widget = generate_widget_code(child, &new_options);
-
-        match child.kind {
-            // Layout widgets don't return an actual widget, so we don't call frame.render_widget on them
-            // Instead, their children are rendered recursively
-            WidgetKind::Layout { .. } | WidgetKind::Conditional { .. } => {
-                render_statements.extend(quote! {
-                    #child_widget
-                });
-            }
-
-            WidgetKind::IterLayout {
-                ref loop_var,
-                ref iter,
-                ..
-            } => {
-                render_statements.extend(match renderer {
-                    WidgetRenderer::Area { buffer, .. } => {
+            // Split the area - for top level use frame.area(), for nested use the parent's chunk
+            let split_code = if *is_top_level {
+                match renderer {
+                    WidgetRenderer::Area { area, .. } => {
                         quote! {
-                            for (i, #loop_var) in #iter.enumerate() {
-                                #child_widget.render(#chunks_ident[#idx + i], #buffer)
-                            }
+                            let #chunks_ident = #layout_ident.split(#area);
                         }
                     }
 
                     WidgetRenderer::Frame(frame) => {
                         quote! {
-                            for (i, #loop_var) in #iter.enumerate() {
-                                #frame.render_widget(#child_widget, #chunks_ident[#idx + i])
+                            let #chunks_ident = #layout_ident.split(#frame .area());
+                        }
+                    }
+                }
+            } else {
+                quote! {
+                    let #chunks_ident = #layout_ident.split(#parent_ident[#child_index]);
+                }
+            };
+
+            let mut render_statements = quote! {};
+
+            for (idx, child) in children.iter().enumerate() {
+                let new_options = WidgetHandlerOptions::new(false, layout_index, idx, input);
+
+                let child_widget = generate_widget_code(child, &new_options);
+
+                match child.kind {
+                    // Layout widgets don't return an actual widget, so we don't call frame.render_widget on them
+                    // Instead, their children are rendered recursively
+                    WidgetKind::Layout { .. } | WidgetKind::Conditional { .. } => {
+                        render_statements.extend(quote! {
+                            #child_widget
+                        });
+                    }
+
+                    WidgetKind::IterLayout {
+                        ref loop_var,
+                        ref iter,
+                        ..
+                    } => {
+                        render_statements.extend(match renderer {
+                            WidgetRenderer::Area { buffer, .. } => {
+                                quote! {
+                                    for (i, #loop_var) in #iter.enumerate() {
+                                        #child_widget.render(#chunks_ident[#idx + i], #buffer)
+                                    }
+                                }
                             }
-                        }
+
+                            WidgetRenderer::Frame(frame) => {
+                                quote! {
+                                    for (i, #loop_var) in #iter.enumerate() {
+                                        #frame.render_widget(#child_widget, #chunks_ident[#idx + i])
+                                    }
+                                }
+                            }
+                        });
                     }
-                });
+
+                    // For other widgets (Variable and Constructor), we call frame.render_widget on them
+                    // since they actually retturn something that implements ratatui::Widget
+                    _ => {
+                        render_statements.extend(match renderer {
+                            WidgetRenderer::Area { buffer, .. } => {
+                                quote! {
+                                    #child_widget.render(#chunks_ident[#idx], #buffer)
+                                }
+                            }
+
+                            WidgetRenderer::Frame(frame) => {
+                                quote! {
+                                    #frame .render_widget(#child_widget, #chunks_ident[#idx]);
+                                }
+                            }
+                        });
+                    }
+                }
             }
 
-            // For other widgets (Variable and Constructor), we call frame.render_widget on them
-            // since they actually retturn something that implements ratatui::Widget
-            _ => {
-                render_statements.extend(match renderer {
-                    WidgetRenderer::Area { buffer, .. } => {
-                        quote! {
-                            #child_widget.render(#chunks_ident[#idx], #buffer)
-                        }
-                    }
-
-                    WidgetRenderer::Frame(frame) => {
-                        quote! {
-                            #frame .render_widget(#child_widget, #chunks_ident[#idx]);
-                        }
-                    }
-                });
+            // Combine everything into a block
+            quote! {
+                {
+                    #layout_code
+                    #split_code
+                    #render_statements
+                }
             }
-        }
-    }
-
-    // Combine everything into a block
-    quote! {
-        {
-            #layout_code
-            #split_code
-            #render_statements
         }
     }
 }
