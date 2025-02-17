@@ -67,21 +67,9 @@ pub fn handle_iter_layout_widget(
             }
         } else {
             let code = generate_widget_code(child, options);
-            match renderer {
-                WidgetRenderer::Area { .. } => {
-                    quote! {
-                        {
-                            #code
-                        }
-                    }
-                }
-
-                WidgetRenderer::Frame(_) => {
-                    quote! {
-                        {
-                            #code
-                        }
-                    }
+            quote! {
+                {
+                    #code
                 }
             }
         }
