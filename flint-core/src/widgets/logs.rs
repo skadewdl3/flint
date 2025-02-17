@@ -48,13 +48,14 @@ impl Widget for LogsWidget {
     fn render(self, area: Rect, buffer: &mut Buffer) {
         let logs = get_logs().unwrap();
 
-        let log_lines: Vec<u16> = logs
+        let mut log_lines: Vec<u16> = logs
             .iter()
             .map(|(kind, log)| match kind {
                 LogKind::Debug => log.lines().count() as u16 + 1,
                 _ => log.lines().count() as u16,
             })
             .collect();
+        log_lines.push(1);
 
         let logs = logs.iter().map(|(kind, log)| {
             let (prefix, style) = match kind {
@@ -66,8 +67,8 @@ impl Widget for LogsWidget {
             };
             (format!("{} {}", prefix, log), style)
         });
-        let x = 0;
 
+      
         ui!((area, buffer) => {
             Layout(
                 constraints: [Constraint::Fill(1), Constraint::Fill(1)],

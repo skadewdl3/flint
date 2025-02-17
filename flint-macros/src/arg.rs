@@ -1,5 +1,5 @@
 use syn::{
-    parse::{Parse, ParseStream},
+    parse::{discouraged::Speculative, Parse, ParseStream},
     Expr, Ident, Result, Token,
 };
 
@@ -42,10 +42,12 @@ impl Parse for Arg {
     /// - `Err(Error)` if parsing fails
     fn parse(input: ParseStream) -> Result<Self> {
         // First, check for named parameter pattern
+
         if input.peek(Ident) && input.peek2(Token![:]) {
             let name = input.parse::<Ident>()?;
             input.parse::<Token![:]>()?;
             let value = input.parse::<Expr>()?;
+
             return Ok(Arg {
                 value,
                 kind: ArgKind::Named(name),

@@ -1,3 +1,5 @@
+use std::fs::rename;
+
 use super::WidgetHandlerOptions;
 use crate::{
     arg::ArgKind,
@@ -36,6 +38,14 @@ pub fn handle_layout_widget(
         child_index,
         input,
     } = options;
+
+    if !allow_layout {
+        panic!("Layout widgets are not allowed in the widget macro")
+    }
+    let renderer = match input {
+        MacroInput::Ui { renderer, .. } => renderer,
+        MacroInput::Raw { .. } => panic!("Renderer cannot be used in widget macro"),
+    };
 
     let args = &widget.args;
     let layout_index = generate_unique_id() as usize;
@@ -76,6 +86,7 @@ pub fn handle_layout_widget(
             });
 
             layout_code.extend(quote! {
+
 
                         use ratatui::{
                             buffer::Buffer,
