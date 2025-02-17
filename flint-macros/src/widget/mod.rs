@@ -28,11 +28,6 @@ pub enum WidgetKind {
         /// The expression representing the widget
         expr: Expr,
     },
-    /// A widget represented by a variable expression that is an iterator
-    IterVariable {
-        /// The expression representing the widget
-        expr: Expr,
-    },
     /// A conditional widget with if/else branches
     Conditional {
         /// The condition expression
@@ -41,6 +36,12 @@ pub enum WidgetKind {
         if_child: Box<Widget>,
         /// Optional widget to show if condition is false
         else_child: Option<Box<Widget>>,
+    },
+    IterLayout {
+        loop_var: Expr,
+        iter: Expr,
+        /// The child widgets contained in this layout
+        child: Box<Widget>,
     },
 }
 
@@ -99,24 +100,6 @@ impl Parse for Widget {
             }
         }
 
-        // If we find a "[", then try to parse for an IterVariable widget
-        if input.peek(token::Bracket) {
-            let content;
-            syn::bracketed!(content in input);
-
-            // Check if the content starts with another left bracket
-            if content.peek(token::Bracket) {
-                let inner_content;
-                syn::bracketed!(inner_content in content);
-                let expr: Expr = inner_content.parse()?;
-
-                return Ok(Widget {
-                    kind: WidgetKind::IterVariable { expr },
-                    args: vec![],
-                });
-            }
-        }
-
         // Parse widget name
         let widget_name = input.parse::<Ident>()?;
 
@@ -158,6 +141,34 @@ impl Parse for Widget {
                     condition,
                     if_child: Box::new(child),
                     else_child,
+                },
+                args: vec![],
+            });
+        }
+
+        if widget_name == "For" {
+            // Parse the condition (which evaluates to a boolean) given in
+            // the parantheses
+            let content;
+            syn::parenthesized!(content in input);
+            let loop_var = content.parse::<Expr>()?;
+            content.parse::<Token![in]>()?;
+            let iter = content.parse::<Expr>()?;
+
+            // The content in braces is rendered if the condition is true
+            // The braces can contain only one single widget. So if multiple child elements
+            // are required, they must be nested in a Layout widget.
+            let brace_content;
+            braced!(brace_content in input);
+            let child = brace_content.parse::<Widget>()?;
+
+            // If this was a conditional widget, we're done, since we've
+            // extracted the condition and children for both branches.
+            return Ok(Widget {
+                kind: WidgetKind::IterLayout {
+                    loop_var,
+                    iter,
+                    child: Box::new(child),
                 },
                 args: vec![],
             });

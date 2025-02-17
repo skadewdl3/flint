@@ -55,31 +55,26 @@ impl Widget for LogsWidget {
             })
             .collect();
 
+        let logs = logs.iter().map(|(kind, log)| {
+            let (prefix, style) = match kind {
+                LogKind::Info => ("[info]:", Style::default().fg(Color::Blue)),
+                LogKind::Success => ("[success]:", Style::default().fg(Color::Green)),
+                LogKind::Error => ("[error]:", Style::default().fg(Color::Red)),
+                LogKind::Warn => ("[warn]:", Style::default().fg(Color::Yellow)),
+                LogKind::Debug => ("[debug]:", Style::default().fg(Color::White)),
+            };
+            (format!("{} {}", prefix, log), style)
+        });
+
         ui!((area, buffer) => {
 
             Layout(
                 direction: Direction::Vertical,
                 constraints: Constraint::from_lengths(log_lines),
             ) {
-                [[
-                    logs.iter().map(|(kind, log)| {
-
-                        let (prefix, style) = match kind {
-                            LogKind::Info => ("[info]:", Style::default().fg(Color::Blue)),
-                            LogKind::Success => ("[success]:", Style::default().fg(Color::Green)),
-                            LogKind::Error => ("[error]:", Style::default().fg(Color::Red)),
-                            LogKind::Warn => ("[warn]:", Style::default().fg(Color::Yellow)),
-                            LogKind::Debug => ("[debug]:", Style::default().fg(Color::White))
-                        };
-
-                        widget!({
-                            Paragraph::new(
-                                format!("{} {}", prefix, log),
-                                style
-                            )
-                        })
-                    })
-                ]],
+                For ((l, s) in logs) {
+                    Paragraph::new(format!("{}", l), style: s)
+                }
             }
         });
     }

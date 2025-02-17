@@ -176,20 +176,24 @@ pub fn handle_layout_widget(
                 });
             }
 
-            WidgetKind::IterVariable { ref expr } => {
+            WidgetKind::IterLayout {
+                ref loop_var,
+                ref iter,
+                ..
+            } => {
                 render_statements.extend(match renderer {
                     WidgetRenderer::Area { buffer, .. } => {
                         quote! {
-                            for (i, item) in #expr.enumerate() {
-                                item.render(#chunks_ident[#idx + i], #buffer)
+                            for (i, #loop_var) in #iter.enumerate() {
+                                #child_widget.render(#chunks_ident[#idx + i], #buffer)
                             }
                         }
                     }
 
                     WidgetRenderer::Frame(frame) => {
                         quote! {
-                            for (i, item) in #expr.enumerate() {
-                                #frame.render_widget(item, #chunks_ident[#idx + i])
+                            for (i, #loop_var) in #iter.enumerate() {
+                                #frame.render_widget(#child_widget, #chunks_ident[#idx + i])
                             }
                         }
                     }

@@ -2,16 +2,18 @@
 
 pub mod conditional;
 pub mod constructor;
+pub mod iter_layout;
 pub mod layout;
 pub mod util;
 pub mod variable;
 
 use crate::{
-    widget::{Widget, WidgetKind, WidgetRenderer},
+    widget::{Widget, WidgetKind},
     MacroInput,
 };
 use conditional::handle_conditional_widget;
 use constructor::handle_constructor_widget;
+use iter_layout::handle_iter_layout_widget;
 use layout::handle_layout_widget;
 use variable::handle_variable_widget;
 
@@ -77,9 +79,13 @@ pub fn generate_widget_code(
             else_child,
         } => handle_conditional_widget(condition, if_child, else_child, options),
 
-        WidgetKind::Variable { expr } | WidgetKind::IterVariable { expr } => {
-            handle_variable_widget(expr, options)
-        }
+        WidgetKind::IterLayout {
+            loop_var,
+            iter,
+            child,
+        } => handle_iter_layout_widget(loop_var, iter, child, options),
+
+        WidgetKind::Variable { expr } => handle_variable_widget(expr, options),
 
         WidgetKind::Constructor { name, constructor } => {
             handle_constructor_widget(&widget, name, constructor, options)
