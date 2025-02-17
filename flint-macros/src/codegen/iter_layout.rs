@@ -146,105 +146,102 @@ pub fn handle_iter_layout_widget(
         }
 
         MacroInput::Raw { widget } => {
-            if *is_top_level {
-                let args = widget.args.clone();
-                let layout_index = generate_unique_id() as usize;
-                let layout_ident = proc_macro2::Ident::new(
-                    &format!("layout_{}", layout_index),
-                    proc_macro2::Span::call_site(),
-                );
+            let args = widget.args.clone();
+            let layout_index = generate_unique_id() as usize;
+            let layout_ident = proc_macro2::Ident::new(
+                &format!("layout_{}", layout_index),
+                proc_macro2::Span::call_site(),
+            );
 
-                let positional_args: Vec<_> = args
-                    .iter()
-                    .filter_map(|arg| match &arg.kind {
-                        ArgKind::Positional => Some(&arg.value),
-                        _ => None,
-                    })
-                    .collect();
+            let positional_args: Vec<_> = args
+                .iter()
+                .filter_map(|arg| match &arg.kind {
+                    ArgKind::Positional => Some(&arg.value),
+                    _ => None,
+                })
+                .collect();
 
-                let mut layout_code = quote! {
-                    let mut #layout_ident = ratatui::layout::Layout::default(#(#positional_args),*)
+            let mut layout_code = quote! {
+                let mut #layout_ident = ratatui::layout::Layout::default(#(#positional_args),*)
+            };
+
+            // Add named arguments as method calls
+            for arg in args {
+                if let ArgKind::Named(name) = &arg.kind {
+                    let value = &arg.value;
+                    layout_code.extend(quote! {
+                        .#name(#value)
+                    });
+                }
+            }
+
+            layout_code.extend(quote! { ; });
+
+            layout_code.extend(quote! {
+
+                use ratatui::{
+                    buffer::Buffer,
+                    layout::{Layout, Rect},
+                    widgets::Widget,
                 };
 
-                // Add named arguments as method calls
-                for arg in args {
-                    if let ArgKind::Named(name) = &arg.kind {
-                        let value = &arg.value;
-                        layout_code.extend(quote! {
-                            .#name(#value)
-                        });
+                pub struct IterLayoutWrapper<'a, I>
+                where
+                    I: Iterator
+                {
+                    layout: Layout,
+                    iterator: I,
+                    render_fn: Box<dyn Fn(I::Item, &Rect, &mut Buffer) + 'a>,
+                }
+
+                impl<'a, I> IterLayoutWrapper<'a, I>
+                where
+                    I: Iterator
+                {
+                    pub fn new<F>(
+                        layout: Layout,
+                        iterator: I,
+                        render_fn: F
+                    ) -> Self
+                    where
+                        F: Fn(I::Item, &Rect, &mut Buffer) + 'a
+                    {
+                        Self {
+                            layout,
+                            iterator,
+                            render_fn: Box::new(render_fn),
+                        }
                     }
                 }
 
-                layout_code.extend(quote! { ; });
-
-                layout_code.extend(quote! {
-
-                    use ratatui::{
-                        buffer::Buffer,
-                        layout::{Layout, Rect},
-                        widgets::Widget,
-                    };
-
-                    pub struct IterLayoutWrapper<'a, I>
-                    where
-                        I: Iterator
-                    {
-                        layout: Layout,
-                        iterator: I,
-                        render_fn: Box<dyn Fn(I::Item, &Rect, &mut Buffer) + 'a>,
-                    }
-
-                    impl<'a, I> IterLayoutWrapper<'a, I>
-                    where
-                        I: Iterator
-                    {
-                        pub fn new<F>(
-                            layout: Layout,
-                            iterator: I,
-                            render_fn: F
-                        ) -> Self
-                        where
-                            F: Fn(I::Item, &Rect, &mut Buffer) + 'a
-                        {
-                            Self {
-                                layout,
-                                iterator,
-                                render_fn: Box::new(render_fn),
-                            }
+                impl<'a, I> Widget for IterLayoutWrapper<'a, I>
+                where
+                    I: Iterator
+                {
+                    fn render(self, area: Rect, buf: &mut Buffer) {
+                        let chunks = self.layout.split(area);
+                        for (chunk, item) in chunks.into_iter().zip(self.iterator) {
+                            (self.render_fn)(item, chunk, buf);
                         }
                     }
+                }
+            });
 
-                    impl<'a, I> Widget for IterLayoutWrapper<'a, I>
-                    where
-                        I: Iterator
-                    {
-                        fn render(self, area: Rect, buf: &mut Buffer) {
-                            let chunks = self.layout.split(area);
-                            for (chunk, item) in chunks.into_iter().zip(self.iterator) {
-                                (self.render_fn)(item, chunk, buf);
-                            }
-                        }
+            layout_code.extend(quote! {
+                IterLayoutWrapper::new(
+                    #layout_ident,
+                    #iter,
+                    |item, area, buf| {
+                        let #loop_var = item;
+                        let widget = #child_widget;
+                        widget.render(*area, buf);
                     }
-                });
+                )
+            });
 
-                layout_code.extend(quote! {
-                    IterLayoutWrapper::new(
-                        #layout_ident,
-                        #iter,
-                        |item, area, buf| {
-                            let #loop_var = item;
-                            let widget = #child_widget;
-                            widget.render(*area, buf);
-                        }
-                    )
-                });
-
-                return quote! {{
-                    #layout_code
-                }};
-            }
-            panic!("You cannot use iterlayouts in the widget!() macro")
+            return quote! {{
+                #layout_code
+            }};
         }
     }
 

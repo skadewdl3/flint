@@ -39,14 +39,6 @@ pub fn handle_layout_widget(
         input,
     } = options;
 
-    if !allow_layout {
-        panic!("Layout widgets are not allowed in the widget macro")
-    }
-    let renderer = match input {
-        MacroInput::Ui { renderer, .. } => renderer,
-        MacroInput::Raw { .. } => panic!("Renderer cannot be used in widget macro"),
-    };
-
     let args = &widget.args;
     let layout_index = generate_unique_id() as usize;
     let layout_ident = proc_macro2::Ident::new(&format!("layout_{}", layout_index), name.span());
@@ -94,13 +86,13 @@ pub fn handle_layout_widget(
                             widgets::Widget,
                         };
 
-                        pub struct LayoutWrapper {
+                        pub struct LayoutWrapper<'a> {
                             layout: Layout,
-                            children: Vec<Box<dyn Fn(Rect, &mut Buffer)>>,
+                            children: Vec<Box<dyn Fn(Rect, &mut Buffer) + 'a>>,
                         }
 
-                        impl LayoutWrapper {
-                            pub fn new(layout: Layout, children: Vec<Box<dyn Fn(Rect, &mut Buffer)>>) -> Self {
+                        impl<'a> LayoutWrapper<'a> {
+                            pub fn new(layout: Layout, children: Vec<Box<dyn Fn(Rect, &mut Buffer) + 'a>>) -> Self {
                                 Self {
                                     layout,
                                     children,
@@ -108,7 +100,7 @@ pub fn handle_layout_widget(
                             }
                         }
 
-                        impl Widget for LayoutWrapper {
+                        impl<'a> Widget for LayoutWrapper<'a> {
                             fn render(self, area: Rect, buf: &mut Buffer) {
                                 let chunks = self.layout.split(area);
                                 for (idx, render_fn) in self.children.into_iter().enumerate() {
