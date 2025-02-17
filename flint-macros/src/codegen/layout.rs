@@ -166,37 +166,9 @@ pub fn handle_layout_widget(
                 match child.kind {
                     // Layout widgets don't return an actual widget, so we don't call frame.render_widget on them
                     // Instead, their children are rendered recursively
-                    WidgetKind::Layout { .. } => {
+                    WidgetKind::Layout { .. } | WidgetKind::IterLayout { .. } => {
                         render_statements.extend(quote! {
                             #child_widget
-                        });
-                    }
-
-                    WidgetKind::IterLayout {
-                        ref loop_var,
-                        ref iter,
-                        ..
-                    } => {
-                        let iter_index_ident = Ident::new(
-                            format!("i_{}", generate_unique_id()).as_str(),
-                            Span::call_site(),
-                        );
-                        render_statements.extend(match renderer {
-                            WidgetRenderer::Area { buffer, .. } => {
-                                quote! {
-                                    for (#iter_index_ident, #loop_var) in #iter.enumerate() {
-                                        #child_widget.render(#chunks_ident[#idx + #iter_index_ident], #buffer)
-                                    }
-                                }
-                            }
-
-                            WidgetRenderer::Frame(frame) => {
-                                quote! {
-                                    for (#iter_index_ident, #loop_var) in #iter.enumerate() {
-                                        #frame.render_widget(#child_widget, #chunks_ident[#idx + #iter_index_ident])
-                                    }
-                                }
-                            }
                         });
                     }
 

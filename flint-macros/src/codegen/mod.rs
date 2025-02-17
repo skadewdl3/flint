@@ -71,7 +71,7 @@ pub fn generate_widget_code(
             loop_var,
             iter,
             child,
-        } => handle_iter_layout_widget(loop_var, iter, child, options),
+        } => handle_iter_layout_widget(&widget, loop_var, iter, child, options),
 
         WidgetKind::Variable { expr } => handle_variable_widget(expr, options),
 

@@ -70,18 +70,17 @@ impl Widget for LogsWidget {
 
         ui!((area, buffer) => {
             Layout(
-                constraints: [Constraint::Fill(1)],
-                direction: Direction::Vertical
+                constraints: [Constraint::Fill(1), Constraint::Fill(1)],
+                direction: Direction::Horizontal
+            ) {
+                For (
+                    (log, style) in logs.clone(),
+                    constraints: Constraint::from_lengths(log_lines.clone()),
+                    direction: Direction::Vertical
                 ) {
-
-                    For (
-                                    (log, style) in logs,
-                                    constraints: Constraint::from_lengths(log_lines),
-                                    direction: Direction::Vertical
-                                ) {
-                                    Text::raw(log, style: style)
-                                }
-                }
+                    Text::raw(log, style: style)
+                },
+            }
         });
     }
 }
