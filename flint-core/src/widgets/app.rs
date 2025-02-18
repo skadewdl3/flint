@@ -6,7 +6,7 @@ use crate::widgets::test::TestWidget;
 use crate::widgets::AppWidget;
 use crossterm::event;
 use crossterm::event::{Event, KeyCode};
-use flint_macros::ui;
+use flint_macros::{ui, widget};
 use ratatui::widgets::WidgetRef;
 use ratatui::{prelude::*, DefaultTerminal};
 use std::io;
@@ -90,6 +90,17 @@ impl App {
 impl WidgetRef for App {
     fn render_ref(&self, area: Rect, buf: &mut Buffer) {
         ui!((area, buf) => {
+            &{{
+                if let Some(err) = &self.error {
+                    let x = widget!({ Popup::new(err.as_str(), title: format!("Error occurred")) });
+                    Some(x)
+                } else {
+                    None
+                }
+            }}
+        });
+
+        ui!((area, buf) => {
             &{{ *self.active_widget }}
         });
     }
@@ -98,10 +109,6 @@ impl WidgetRef for App {
 impl AppWidget for App {
     // fn draw(&mut self, frame: &mut Frame) -> AppStatus {
     //     let status = self.active_widget.draw(frame);
-    //     if let Some(err) = &self.error {
-    //         let popup = Popup::new(err.as_str()).title(format!("Error - {}", err));
-    //         frame.render_widget(&popup, frame.area());
-    //     }
     //     status
     // }
 
