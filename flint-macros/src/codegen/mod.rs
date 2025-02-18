@@ -71,12 +71,12 @@ pub fn generate_widget_code(
             loop_var,
             iter,
             child,
-        } => handle_iter_layout_widget(&widget, loop_var, iter, child, options),
+        } => handle_iter_layout_widget(widget, loop_var, iter, child, options),
 
-        WidgetKind::Variable { expr } => handle_variable_widget(expr, options),
+        WidgetKind::Variable { expr } => handle_variable_widget(widget, expr, options),
 
         WidgetKind::Constructor { name, constructor } => {
-            handle_constructor_widget(&widget, name, constructor, options)
+            handle_constructor_widget(widget, name, constructor, options)
         }
 
         WidgetKind::Layout { name, children } => {

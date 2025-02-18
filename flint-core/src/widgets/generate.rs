@@ -8,7 +8,8 @@ use crate::util::{
     toml::read_toml_config,
 };
 use flint_macros::ui;
-use ratatui::Frame;
+use ratatui::prelude::*;
+use ratatui::widgets::WidgetRef;
 use std::{collections::BTreeSet, sync::Arc};
 use threadpool::ThreadPool;
 
@@ -67,11 +68,12 @@ impl AppWidget for GenerateWidget {
 
         AppStatus::Ok
     }
+}
 
-    fn draw(&mut self, frame: &mut Frame) -> AppStatus {
-        ui!(frame => {
-            {{ self.logs_widget }}
+impl WidgetRef for GenerateWidget {
+    fn render_ref(&self, area: Rect, buf: &mut Buffer) {
+        ui!((area, buf) => {
+            &LogsWidget()
         });
-        AppStatus::Ok
     }
 }

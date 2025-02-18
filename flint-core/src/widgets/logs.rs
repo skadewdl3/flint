@@ -6,7 +6,7 @@ use ratatui::{
     layout::{Constraint, Direction, Rect},
     style::{Color, Style},
     text::Text,
-    widgets::Widget,
+    widgets::{Widget, WidgetRef},
 };
 
 #[derive(Copy, Clone, Debug, Default)]
@@ -44,8 +44,8 @@ pub fn add_log(kind: LogKind, message: String) {
     }
 }
 
-impl Widget for LogsWidget {
-    fn render(self, area: Rect, buffer: &mut Buffer) {
+impl WidgetRef for LogsWidget {
+    fn render_ref(&self, area: Rect, buffer: &mut Buffer) {
         let logs = get_logs().unwrap();
 
         let log_lines: Vec<u16> = logs

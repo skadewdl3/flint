@@ -1,5 +1,5 @@
 use crossterm::event::Event;
-use ratatui::Frame;
+use ratatui::{widgets::WidgetRef, Frame};
 
 pub mod app;
 pub mod generate;
@@ -9,11 +9,10 @@ pub mod test;
 pub use app::*;
 pub mod logs;
 
-pub trait AppWidget {
+pub trait AppWidget: WidgetRef {
     fn setup(&mut self) -> AppStatus {
         return AppStatus::Ok;
     }
-    fn draw(&mut self, frame: &mut Frame) -> AppStatus;
     fn handle_events(&mut self, _event: Event) -> AppStatus {
         return AppStatus::Ok;
     }

@@ -67,12 +67,26 @@ pub struct Widget {
     pub kind: WidgetKind,
     /// Arguments passed to the widget
     pub args: Vec<Arg>,
+    /// Whether this widget should be rendered as a reference
+    pub render_ref: bool,
+    /// Whether this widget maintains internal state
+    pub stateful: bool,
 }
 
 /// Parser implementation for Widget
 impl Parse for Widget {
     /// Parses a widget from a token stream
     fn parse(input: ParseStream) -> Result<Self> {
+        // If we find an "&", this widget should be rendered as a reference
+        let render_ref = if input.peek(Token![&]) {
+            input.parse::<Token![&]>();
+            true
+        } else {
+            false
+        };
+
+        let stateful = false; // TODO: Implement stateful widgets
+
         // If we find a "{", then try to parse for a variable widget
         if input.peek(token::Brace) {
             let content;
@@ -87,6 +101,8 @@ impl Parse for Widget {
                 return Ok(Widget {
                     kind: WidgetKind::Variable { expr },
                     args: vec![],
+                    render_ref,
+                    stateful,
                 });
             }
         }
@@ -130,6 +146,8 @@ impl Parse for Widget {
                     iter,
                     child: Box::new(child),
                 },
+                render_ref: false,
+                stateful,
                 args,
             });
         }
@@ -175,7 +193,12 @@ impl Parse for Widget {
 
         // If this is a constructor widget, we're done since we don't need to parse child widgets
         if let WidgetKind::Constructor { .. } = kind {
-            return Ok(Widget { kind, args });
+            return Ok(Widget {
+                kind,
+                args,
+                render_ref,
+                stateful,
+            });
         }
 
         // Since this is a layout widget, we'll need to parse child widgets in braces
@@ -196,6 +219,11 @@ impl Parse for Widget {
             }
         }
 
-        Ok(Widget { kind, args })
+        Ok(Widget {
+            kind,
+            args,
+            render_ref: false,
+            stateful,
+        })
     }
 }

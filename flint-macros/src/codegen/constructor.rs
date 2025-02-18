@@ -7,7 +7,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::Ident;
 
-use super::WidgetHandlerOptions;
+use super::{util::get_render_function, WidgetHandlerOptions};
 
 /// Handles the generation of widget construction code. This is the simplest kind of widget.
 /// It's called a constructor widget since we can specify the constructor function to use
@@ -50,34 +50,41 @@ pub fn handle_constructor_widget(
         .collect();
 
     // Start with constructor call including all positional arguments
-    let mut widget = quote! {
+    let mut widget_code = quote! {
         #name :: #constructor(#(#positional_args),*)
     };
 
     for arg in args {
         if let ArgKind::Named(name) = &arg.kind {
             let value = &arg.value;
-            widget.extend(quote! {
+            widget_code.extend(quote! {
                 .#name(#value)
             });
         }
     }
 
+    let render_ref_code = match widget.render_ref {
+        true => quote! {&},
+        false => quote! {},
+    };
+
     if let MacroInput::Ui { renderer, .. } = input {
+        let (render_fn, frame_render_fn) = get_render_function(widget);
         if *is_top_level {
             match renderer {
+                // TODO: if widget is stateful, pass in the state
                 WidgetRenderer::Area { area, buffer } => quote! {
-                    #widget.render(#area, #buffer)
+                    #render_fn(#render_ref_code #widget_code, #area, #buffer);
                 },
 
                 WidgetRenderer::Frame(frame) => quote! {
-                    #frame .render_widget(#widget, #frame.area());
+                    #frame .#frame_render_fn(#render_ref_code #widget_code, #frame.area());
                 },
             }
         } else {
-            widget
+            widget_code
         }
     } else {
-        widget
+        widget_code
     }
 }

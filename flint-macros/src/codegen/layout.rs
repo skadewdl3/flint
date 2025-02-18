@@ -1,7 +1,10 @@
 use super::WidgetHandlerOptions;
 use crate::{
     arg::ArgKind,
-    codegen::{generate_widget_code, util::generate_unique_id},
+    codegen::{
+        generate_widget_code,
+        util::{generate_unique_id, get_render_function},
+    },
     widget::{Widget, WidgetKind, WidgetRenderer},
     MacroInput,
 };
@@ -161,8 +164,12 @@ pub fn handle_layout_widget(
 
             for (idx, child) in children.iter().enumerate() {
                 let new_options = WidgetHandlerOptions::new(false, layout_index, idx, input);
-
+                let (render_fn, frame_render_fn) = get_render_function(child);
                 let child_widget = generate_widget_code(child, &new_options);
+                let render_ref_code = match child.render_ref {
+                    true => quote! {&},
+                    false => quote! {},
+                };
 
                 match child.kind {
                     // Layout widgets don't return an actual widget, so we don't call frame.render_widget on them
@@ -177,17 +184,14 @@ pub fn handle_layout_widget(
                     // since they actually retturn something that implements ratatui::Widget
                     _ => {
                         render_statements.extend(match renderer {
-                            WidgetRenderer::Area { buffer, .. } => {
-                                quote! {
-                                    #child_widget.render(#chunks_ident[#idx], #buffer)
-                                }
-                            }
+                            // TODO: if widget is stateful, pass in the state
+                            WidgetRenderer::Area { area, buffer } => quote! {
+                                #render_fn(#render_ref_code #child_widget, #area, #buffer);
+                            },
 
-                            WidgetRenderer::Frame(frame) => {
-                                quote! {
-                                    #frame .render_widget(#child_widget, #chunks_ident[#idx]);
-                                }
-                            }
+                            WidgetRenderer::Frame(frame) => quote! {
+                                #frame .#frame_render_fn(#render_ref_code #child_widget, #frame.area());
+                            },
                         });
                     }
                 }

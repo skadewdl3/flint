@@ -1,6 +1,6 @@
-use ratatui::Frame;
-
 use super::{AppStatus, AppWidget};
+use ratatui::prelude::*;
+use ratatui::{widgets::WidgetRef, Frame};
 
 #[derive(Debug)]
 pub struct HelpWidget {}
@@ -11,8 +11,8 @@ impl Default for HelpWidget {
     }
 }
 
-impl AppWidget for HelpWidget {
-    fn draw(&mut self, _frame: &mut Frame) -> AppStatus {
-        AppStatus::Ok
-    }
+impl AppWidget for HelpWidget {}
+
+impl WidgetRef for HelpWidget {
+    fn render_ref(&self, area: Rect, buf: &mut Buffer) {}
 }

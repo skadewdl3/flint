@@ -12,6 +12,7 @@ use ratatui::{
     widgets::{Block, List},
     Frame,
 };
+use ratatui::{prelude::*, widgets::WidgetRef};
 use std::collections::{BTreeSet, HashMap};
 use tui_textarea::TextArea;
 
@@ -28,6 +29,55 @@ pub struct InitWidget<'a> {
 impl<'a> InitWidget<'a> {
     pub fn hello_world(&self) -> &'a str {
         "Hello World"
+    }
+}
+
+impl<'a> WidgetRef for InitWidget<'a> {
+    fn render_ref(&self, area: Rect, buf: &mut Buffer) {
+        let confirm_message = if self.config_exists {
+            "flint.toml already exists in this directory. Would you like to overwrite it? (y/n)"
+        } else {
+            "Would you like to continue with creating flint.toml? (y/n)"
+        };
+
+        // ui!((area, buf) => {
+        //     Layout (
+        //         direction: Direction::Vertical,
+        //         constraints: [Constraint::Length(1), Constraint::Fill(1)]
+        //     ) {
+        //         Text::raw("We found the following languages in this directory."),
+        //         Layout (
+        //             direction: Direction::Vertical,
+        //             constraints: Constraint::from_lengths([
+        //                 self.detected_langs.len() as u16 + 2,
+        //                 self.unsupported_langs.len() as u16 + 2,
+        //                 1
+        //             ])
+        //         ) {
+        //             List::new(
+        //                 self.detected_langs.clone(),
+        //                 block: widget!({ Block::bordered(title: "Detected Languages") }),
+        //             ),
+        //             List::new(
+        //                 self.unsupported_langs.clone(),
+        //                 block: widget!({ Block::bordered(title: "Unsupported Languages") }),
+        //             ),
+        //             Layout(
+        //                 direction: Direction::Horizontal,
+        //                 constraints: [
+        //                     Constraint::Length(confirm_message.len() as u16),
+        //                     Constraint::Length(1),
+        //                     Constraint::Fill(1)
+        //                 ]
+        //             ) {
+        //                Block(title: confirm_message, fg: if self.config_exists { Color::Yellow } else { Color::Blue }),
+        //                {{ "" }},
+        //                {{ &self.textarea }}
+        //             }
+        //         }
+        //     }
+        // }
+        // );
     }
 }
 
@@ -51,55 +101,6 @@ impl<'a> AppWidget for InitWidget<'a> {
         if config_path.exists() {
             self.config_exists = true;
         }
-
-        AppStatus::Ok
-    }
-
-    fn draw(&mut self, frame: &mut Frame) -> AppStatus {
-        let confirm_message = if self.config_exists {
-            "flint.toml already exists in this directory. Would you like to overwrite it? (y/n)"
-        } else {
-            "Would you like to continue with creating flint.toml? (y/n)"
-        };
-
-        ui!(frame => {
-            Layout (
-                direction: Direction::Vertical,
-                constraints: [Constraint::Length(1), Constraint::Fill(1)]
-            ) {
-                Text::raw("We found the following languages in this directory."),
-                Layout (
-                    direction: Direction::Vertical,
-                    constraints: Constraint::from_lengths([
-                        self.detected_langs.len() as u16 + 2,
-                        self.unsupported_langs.len() as u16 + 2,
-                        1
-                    ])
-                ) {
-                    List::new(
-                        self.detected_langs.clone(),
-                        block: widget!({ Block::bordered(title: "Detected Languages") }),
-                    ),
-                    List::new(
-                        self.unsupported_langs.clone(),
-                        block: widget!({ Block::bordered(title: "Unsupported Languages") }),
-                    ),
-                    Layout(
-                        direction: Direction::Horizontal,
-                        constraints: [
-                            Constraint::Length(confirm_message.len() as u16),
-                            Constraint::Length(1),
-                            Constraint::Fill(1)
-                        ]
-                    ) {
-                       Block(title: confirm_message, fg: if self.config_exists { Color::Yellow } else { Color::Blue }),
-                       {{ "" }},
-                       {{ &self.textarea }}
-                    }
-                }
-            }
-        }
-        );
 
         AppStatus::Ok
     }

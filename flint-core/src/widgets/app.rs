@@ -6,8 +6,9 @@ use crate::widgets::test::TestWidget;
 use crate::widgets::AppWidget;
 use crossterm::event;
 use crossterm::event::{Event, KeyCode};
-use ratatui::DefaultTerminal;
-use ratatui::Frame;
+use flint_macros::ui;
+use ratatui::widgets::WidgetRef;
+use ratatui::{prelude::*, DefaultTerminal};
 use std::io;
 use std::time::Duration;
 use tui_popup::Popup;
@@ -51,13 +52,7 @@ impl App {
             _ => (),
         }
         while !self.exit {
-            terminal.draw(|frame| match self.draw(frame) {
-                AppStatus::Exit => self.exit = true,
-                AppStatus::Error(err) => {
-                    self.error = Some(err.to_string());
-                }
-                _ => (),
-            })?;
+            terminal.draw(|frame| self.draw(frame))?;
 
             let status = self.handle_all_events();
             match status {
@@ -70,6 +65,13 @@ impl App {
         }
 
         Ok(())
+    }
+
+    fn draw(&self, frame: &mut Frame) {
+        ui!(frame => {
+            {{ self }}
+        });
+        // self.render_ref(frame.area(), frame.buffer_mut());
     }
 
     fn handle_all_events(&mut self) -> AppStatus {
@@ -85,15 +87,23 @@ impl App {
     }
 }
 
-impl AppWidget for App {
-    fn draw(&mut self, frame: &mut Frame) -> AppStatus {
-        let status = self.active_widget.draw(frame);
-        if let Some(err) = &self.error {
-            let popup = Popup::new(err.as_str()).title(format!("Error - {}", err));
-            frame.render_widget(&popup, frame.area());
-        }
-        status
+impl WidgetRef for App {
+    fn render_ref(&self, area: Rect, buf: &mut Buffer) {
+        ui!((area, buf) => {
+            &{{ *self.active_widget }}
+        });
     }
+}
+
+impl AppWidget for App {
+    // fn draw(&mut self, frame: &mut Frame) -> AppStatus {
+    //     let status = self.active_widget.draw(frame);
+    //     if let Some(err) = &self.error {
+    //         let popup = Popup::new(err.as_str()).title(format!("Error - {}", err));
+    //         frame.render_widget(&popup, frame.area());
+    //     }
+    //     status
+    // }
 
     fn handle_events(&mut self, event: Event) -> AppStatus {
         let status = handle_key_events(event.clone(), |_, key_code| {
