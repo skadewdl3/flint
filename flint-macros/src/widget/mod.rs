@@ -1,3 +1,5 @@
+pub mod util;
+
 use crate::arg::Arg;
 use syn::{
     braced,
@@ -67,6 +69,8 @@ pub struct Widget {
     pub kind: WidgetKind,
     /// Arguments passed to the widget
     pub args: Vec<Arg>,
+    /// Indicates whether the widget should be rendered using the render_ref function
+    pub render_ref: bool,
 }
 
 /// Parser implementation for Widget
@@ -74,6 +78,11 @@ impl Parse for Widget {
     /// Parses a widget from a token stream
     fn parse(input: ParseStream) -> Result<Self> {
         // If we find a "{", then try to parse for a variable widget
+        let mut render_ref = false;
+        if input.peek(Token![&]) {
+            render_ref = true;
+            let _ = input.parse::<Token![&]>();
+        }
         if input.peek(token::Brace) {
             let content;
             syn::braced!(content in input);
@@ -87,6 +96,7 @@ impl Parse for Widget {
                 return Ok(Widget {
                     kind: WidgetKind::Variable { expr },
                     args: vec![],
+                    render_ref,
                 });
             }
         }
@@ -130,6 +140,7 @@ impl Parse for Widget {
                     iter,
                     child: Box::new(child),
                 },
+                render_ref,
                 args,
             });
         }
@@ -175,7 +186,11 @@ impl Parse for Widget {
 
         // If this is a constructor widget, we're done since we don't need to parse child widgets
         if let WidgetKind::Constructor { .. } = kind {
-            return Ok(Widget { kind, args });
+            return Ok(Widget {
+                kind,
+                args,
+                render_ref,
+            });
         }
 
         // Since this is a layout widget, we'll need to parse child widgets in braces
@@ -196,6 +211,10 @@ impl Parse for Widget {
             }
         }
 
-        Ok(Widget { kind, args })
+        Ok(Widget {
+            kind,
+            args,
+            render_ref,
+        })
     }
 }
