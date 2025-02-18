@@ -56,6 +56,9 @@ pub fn handle_constructor_widget(
 
     for arg in args {
         if let ArgKind::Named(name) = &arg.kind {
+            if widget.stateful && name.to_string() == "state" {
+                continue;
+            }
             let value = &arg.value;
             widget_code.extend(quote! {
                 .#name(#value)
@@ -68,17 +71,38 @@ pub fn handle_constructor_widget(
         false => quote! {},
     };
 
+    let stateful_code = match widget.stateful {
+        true => {
+            let (_, value) = args
+                .iter()
+                .filter_map(|arg| {
+                    if let ArgKind::Named(ref ident) = arg.kind {
+                        Some((ident, &arg.value))
+                    } else {
+                        None
+                    }
+                })
+                .find(|(ident, _)| ident.to_string() == "state")
+                .unwrap();
+
+            quote! {
+                , &mut #value
+            }
+        }
+        false => quote! {},
+    };
+
     if let MacroInput::Ui { renderer, .. } = input {
         let (render_fn, frame_render_fn) = get_render_function(widget);
         if *is_top_level {
             match renderer {
                 // TODO: if widget is stateful, pass in the state
                 WidgetRenderer::Area { area, buffer } => quote! {
-                    #render_fn(#render_ref_code #widget_code, #area, #buffer);
+                    #render_fn(#render_ref_code #widget_code, #area, #buffer #stateful_code);
                 },
 
                 WidgetRenderer::Frame(frame) => quote! {
-                    #frame .#frame_render_fn(#render_ref_code #widget_code, #frame.area());
+                    #frame .#frame_render_fn(#render_ref_code #widget_code, #frame.area() #stateful_code);
                 },
             }
         } else {

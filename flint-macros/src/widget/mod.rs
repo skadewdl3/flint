@@ -1,4 +1,4 @@
-use crate::arg::Arg;
+use crate::arg::{Arg, ArgKind};
 use syn::{
     braced,
     parse::{Parse, ParseStream},
@@ -79,13 +79,18 @@ impl Parse for Widget {
     fn parse(input: ParseStream) -> Result<Self> {
         // If we find an "&", this widget should be rendered as a reference
         let render_ref = if input.peek(Token![&]) {
-            input.parse::<Token![&]>();
+            _ = input.parse::<Token![&]>().unwrap();
             true
         } else {
             false
         };
 
-        let stateful = false; // TODO: Implement stateful widgets
+        let stateful_variable = if input.peek(Token![+]) {
+            _ = input.parse::<Token![+]>().unwrap();
+            true
+        } else {
+            false
+        };
 
         // If we find a "{", then try to parse for a variable widget
         if input.peek(token::Brace) {
@@ -102,7 +107,7 @@ impl Parse for Widget {
                     kind: WidgetKind::Variable { expr },
                     args: vec![],
                     render_ref,
-                    stateful,
+                    stateful: stateful_variable,
                 });
             }
         }
@@ -147,7 +152,7 @@ impl Parse for Widget {
                     child: Box::new(child),
                 },
                 render_ref: false,
-                stateful,
+                stateful: false,
                 args,
             });
         }
@@ -175,6 +180,17 @@ impl Parse for Widget {
         } else {
             vec![]
         };
+
+        let stateful = args
+            .iter()
+            .filter_map(|arg| {
+                if let ArgKind::Named(ref ident) = arg.kind {
+                    Some(ident.to_string())
+                } else {
+                    None
+                }
+            })
+            .any(|name| name == "state");
 
         // If this is a layout widget, we'll need to parse child widgets in braces
         // so create a field for that. No widgets except Layout widgets can have children,
@@ -223,7 +239,7 @@ impl Parse for Widget {
             kind,
             args,
             render_ref: false,
-            stateful,
+            stateful: false,
         })
     }
 }
