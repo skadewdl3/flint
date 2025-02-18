@@ -2,7 +2,7 @@ use super::WidgetHandlerOptions;
 use crate::{
     arg::ArgKind,
     codegen::{generate_widget_code, util::generate_unique_id},
-    widget::{Widget, WidgetKind, WidgetRenderer},
+    widget::{util::get_render_method, Widget, WidgetKind, WidgetRenderer},
     MacroInput,
 };
 use proc_macro2::TokenStream;
@@ -111,11 +111,12 @@ pub fn handle_layout_widget(
             for (idx, child) in children.iter().enumerate() {
                 let new_options = WidgetHandlerOptions::new(false, layout_index, idx, input);
 
+                let (render_method, _) = get_render_method(child);
                 let child_widget = generate_widget_code(child, &new_options);
 
                 layout_code.extend(quote! {
                     children.push(Box::new(|area, buf| {
-                        #child_widget.render(area, buf);
+                        #child_widget.#render_method(area, buf);
                     }));
                 });
             }
@@ -161,6 +162,7 @@ pub fn handle_layout_widget(
 
             for (idx, child) in children.iter().enumerate() {
                 let new_options = WidgetHandlerOptions::new(false, layout_index, idx, input);
+                let (render_method, frame_render_method) = get_render_method(child);
 
                 let child_widget = generate_widget_code(child, &new_options);
 
@@ -179,13 +181,13 @@ pub fn handle_layout_widget(
                         render_statements.extend(match renderer {
                             WidgetRenderer::Area { buffer, .. } => {
                                 quote! {
-                                    #child_widget.render(#chunks_ident[#idx], #buffer)
+                                    #child_widget.#render_method(#chunks_ident[#idx], #buffer);
                                 }
                             }
 
                             WidgetRenderer::Frame(frame) => {
                                 quote! {
-                                    #frame .render_widget(#child_widget, #chunks_ident[#idx]);
+                                    #frame .#frame_render_method(#child_widget, #chunks_ident[#idx]);
                                 }
                             }
                         });

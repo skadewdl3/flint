@@ -1,6 +1,6 @@
 use crate::{
     arg::ArgKind,
-    widget::{Widget, WidgetRenderer},
+    widget::{util::get_render_method, Widget, WidgetRenderer},
     MacroInput,
 };
 use proc_macro2::TokenStream;
@@ -50,34 +50,35 @@ pub fn handle_constructor_widget(
         .collect();
 
     // Start with constructor call including all positional arguments
-    let mut widget = quote! {
+    let mut widget_code = quote! {
         #name :: #constructor(#(#positional_args),*)
     };
 
     for arg in args {
         if let ArgKind::Named(name) = &arg.kind {
             let value = &arg.value;
-            widget.extend(quote! {
+            widget_code.extend(quote! {
                 .#name(#value)
             });
         }
     }
 
     if let MacroInput::Ui { renderer, .. } = input {
+        let (render_method, frame_render_method) = get_render_method(widget);
         if *is_top_level {
             match renderer {
                 WidgetRenderer::Area { area, buffer } => quote! {
-                    #widget.render(#area, #buffer)
+                    #widget_code.#render_method(#area, #buffer)
                 },
 
                 WidgetRenderer::Frame(frame) => quote! {
-                    #frame .render_widget(#widget, #frame.area());
+                    #frame.#frame_render_method(#widget_code, #frame.area());
                 },
             }
         } else {
-            widget
+            widget_code
         }
     } else {
-        widget
+        widget_code
     }
 }

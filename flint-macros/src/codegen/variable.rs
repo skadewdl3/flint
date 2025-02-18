@@ -1,4 +1,7 @@
-use crate::{widget::WidgetRenderer, MacroInput};
+use crate::{
+    widget::{util::get_render_method, Widget, WidgetRenderer},
+    MacroInput,
+};
 
 use super::WidgetHandlerOptions;
 use proc_macro2::TokenStream;
@@ -22,7 +25,11 @@ use syn::Expr;
 /// # Returns
 ///
 /// A TokenStream containing either a render_widget call (if top level) or just the variable reference
-pub fn handle_variable_widget(variable: &Expr, options: &WidgetHandlerOptions) -> TokenStream {
+pub fn handle_variable_widget(
+    widget: &Widget,
+    variable: &Expr,
+    options: &WidgetHandlerOptions,
+) -> TokenStream {
     let WidgetHandlerOptions {
         is_top_level,
         input,
@@ -30,14 +37,16 @@ pub fn handle_variable_widget(variable: &Expr, options: &WidgetHandlerOptions) -
     } = options;
 
     if let MacroInput::Ui { renderer, .. } = input {
+        let (render_method, frame_render_method) = get_render_method(widget);
+
         if *is_top_level {
             match renderer {
                 WidgetRenderer::Area { area, buffer } => quote! {
-                    #variable.render(#area, #buffer);
+                    #variable.#render_method(#area, #buffer);
                 },
 
                 WidgetRenderer::Frame(frame) => quote! {
-                    #frame.render_widget(#variable, #frame.area());
+                    #frame.#frame_render_method(#variable, #frame.area());
                 },
             }
         } else {

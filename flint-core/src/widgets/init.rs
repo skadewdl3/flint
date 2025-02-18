@@ -6,11 +6,11 @@ use crate::util::{
 use crossterm::event::{Event, KeyCode};
 use flint_macros::{ui, widget};
 use ratatui::{
-    layout::{Constraint, Direction, Layout},
-    style::{Color, Stylize},
+    buffer::Buffer,
+    layout::{Constraint, Direction, Layout, Rect},
+    style::{Color, Style},
     text::Text,
-    widgets::{Block, List},
-    Frame,
+    widgets::{Block, List, Widget, WidgetRef},
 };
 use std::collections::{BTreeSet, HashMap};
 use tui_textarea::TextArea;
@@ -48,61 +48,17 @@ impl<'a> AppWidget for InitWidget<'a> {
         self.cwd = file_path.to_string();
 
         let config_path = std::path::Path::new(&self.cwd).join("flint.toml");
-        if config_path.exists() {
-            self.config_exists = true;
-        }
+        self.config_exists = config_path.exists();
 
         AppStatus::Ok
     }
 
-    fn draw(&mut self, frame: &mut Frame) -> AppStatus {
-        let confirm_message = if self.config_exists {
-            "flint.toml already exists in this directory. Would you like to overwrite it? (y/n)"
-        } else {
-            "Would you like to continue with creating flint.toml? (y/n)"
-        };
+    // fn draw(&mut self, frame: &mut Frame) -> AppStatus {
 
-        ui!(frame => {
-            Layout (
-                direction: Direction::Vertical,
-                constraints: [Constraint::Length(1), Constraint::Fill(1)]
-            ) {
-                Text::raw("We found the following languages in this directory."),
-                Layout (
-                    direction: Direction::Vertical,
-                    constraints: Constraint::from_lengths([
-                        self.detected_langs.len() as u16 + 2,
-                        self.unsupported_langs.len() as u16 + 2,
-                        1
-                    ])
-                ) {
-                    List::new(
-                        self.detected_langs.clone(),
-                        block: widget!({ Block::bordered(title: "Detected Languages") }),
-                    ),
-                    List::new(
-                        self.unsupported_langs.clone(),
-                        block: widget!({ Block::bordered(title: "Unsupported Languages") }),
-                    ),
-                    Layout(
-                        direction: Direction::Horizontal,
-                        constraints: [
-                            Constraint::Length(confirm_message.len() as u16),
-                            Constraint::Length(1),
-                            Constraint::Fill(1)
-                        ]
-                    ) {
-                       Block(title: confirm_message, fg: if self.config_exists { Color::Yellow } else { Color::Blue }),
-                       {{ "" }},
-                       {{ &self.textarea }}
-                    }
-                }
-            }
-        }
-        );
+    //     self.render_ref(frame.area(), frame.buffer_mut());
 
-        AppStatus::Ok
-    }
+    //     AppStatus::Ok
+    // }
 
     fn handle_events(&mut self, event: Event) -> AppStatus {
         handle_key_events(event, |key_event, key_code| {
@@ -120,6 +76,7 @@ impl<'a> AppWidget for InitWidget<'a> {
                             };
 
                             create_toml_config("./flint.toml", config).unwrap();
+                            self.created_config = true;
                         }
                         _ => (),
                     }
@@ -130,5 +87,48 @@ impl<'a> AppWidget for InitWidget<'a> {
             }
             AppStatus::Ok
         })
+    }
+}
+
+impl<'a> WidgetRef for InitWidget<'a> {
+    fn render_ref(&self, area: Rect, buf: &mut Buffer) {
+        let style = widget!({
+            Style(
+                fg: if self.config_exists { Color::Yellow } else { Color::Blue }
+            )
+        });
+
+        let confirm_message = widget!({
+            Text::raw(
+                if self.config_exists {
+                    "flint.toml already exists in this directory. Would you like to overwrite it? (y/n)"
+                } else {
+                    "Would you like to continue with creating flint.toml? (y/n)"
+                },
+                style: style
+            )
+        });
+
+        ui!((area, buf) => {
+            Layout(
+                constraints: Constraint::from_lengths([
+                    self.detected_langs.len() as u16 + 2,
+                    self.unsupported_langs.len() as u16 + 2,
+                    1
+                ]),
+                direction: Direction::Vertical
+            ) {
+                List::new(
+                    self.detected_langs.clone(),
+                    block: widget!({ Block::bordered(title: "Detected Languages") }),
+                ),
+
+                List::new(
+                    self.detected_langs.clone(),
+                    block: widget!({ Block::bordered(title: "Detected Languages") }),
+                ),
+                {{ confirm_message }}
+            }
+        });
     }
 }

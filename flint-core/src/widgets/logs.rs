@@ -1,13 +1,15 @@
 use std::sync::{OnceLock, RwLock, RwLockReadGuard};
 
 use flint_macros::{ui, widget};
-use ratatui::{
-    buffer::Buffer,
-    layout::{Constraint, Direction, Rect},
-    style::{Color, Style},
-    text::Text,
-    widgets::Widget,
-};
+// use ratatui::{
+//     buffer::Buffer,
+//     layout::{Constraint, Direction, Rect},
+//     style::{Color, Style},
+//     text::Text,
+//     widgets::Widget,
+// };
+
+use ratatui::prelude::*;
 
 #[derive(Copy, Clone, Debug, Default)]
 pub enum LogKind {
@@ -92,7 +94,9 @@ impl Widget for LogsWidget {
         });
 
         ui!((area, buffer) => {
-            {{ temp }}
+            {{ Some(
+                widget!({ Text::raw("bruh") })
+            ) }}
         });
     }
 }
