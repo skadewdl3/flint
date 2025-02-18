@@ -44,8 +44,8 @@ pub fn add_log(kind: LogKind, message: String) {
     }
 }
 
-impl WidgetRef for LogsWidget {
-    fn render_ref(&self, area: Rect, buffer: &mut Buffer) {
+impl Widget for LogsWidget {
+    fn render(self, area: Rect, buffer: &mut Buffer) {
         let logs = get_logs().unwrap();
 
         let log_lines: Vec<u16> = logs
