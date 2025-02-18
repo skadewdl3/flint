@@ -1,5 +1,3 @@
-use std::fs::rename;
-
 use super::WidgetHandlerOptions;
 use crate::{
     arg::ArgKind,
@@ -7,7 +5,7 @@ use crate::{
     widget::{Widget, WidgetKind, WidgetRenderer},
     MacroInput,
 };
-use proc_macro2::{Span, TokenStream};
+use proc_macro2::TokenStream;
 use quote::quote;
 use syn::Ident;
 

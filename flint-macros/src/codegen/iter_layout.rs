@@ -1,6 +1,6 @@
 /// Crate imports for widget handling functionality.
 use crate::{
-    arg::{Arg, ArgKind},
+    arg::ArgKind,
     codegen::util::generate_unique_id,
     widget::{Widget, WidgetKind, WidgetRenderer},
     MacroInput,
@@ -11,7 +11,7 @@ use super::{generate_widget_code, WidgetHandlerOptions};
 use proc_macro2::Span;
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::{Expr, Ident, Pat};
+use syn::{Expr, Pat};
 
 /// Handles generating code for an iteration-based layout widget.
 ///
@@ -215,8 +215,4 @@ pub fn handle_iter_layout_widget(
             }};
         }
     }
-
-    // if let MacroInput::Ui { renderer, widget } = input {
-    // } else {
-    // }
 }

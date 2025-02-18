@@ -6,11 +6,10 @@ use crate::util::{
 use crossterm::event::{Event, KeyCode};
 use flint_macros::{ui, widget};
 use ratatui::{
-    buffer::Buffer,
-    layout::{Constraint, Direction, Layout, Rect},
+    layout::{Constraint, Direction, Layout},
     style::{Color, Stylize},
     text::Text,
-    widgets::{Block, List, Widget},
+    widgets::{Block, List},
     Frame,
 };
 use std::collections::{BTreeSet, HashMap};

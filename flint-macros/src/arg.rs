@@ -1,5 +1,5 @@
 use syn::{
-    parse::{discouraged::Speculative, Parse, ParseStream},
+    parse::{Parse, ParseStream},
     Expr, Ident, Result, Token,
 };
 
