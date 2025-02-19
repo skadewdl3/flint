@@ -43,3 +43,29 @@ pub fn get_render_function(widget: &Widget) -> (TokenStream, TokenStream) {
 
     (render_fn, frame_render_fn)
 }
+
+pub fn get_stateless_render_function(widget: &Widget) -> (TokenStream, TokenStream) {
+    let render_fn = match widget.render_ref {
+        true => quote! { ratatui::widgets::WidgetRef::render_ref },
+        false => quote! { ratatui::widgets::Widget::render },
+    };
+
+    let frame_render_fn = match widget.render_ref {
+        true => quote! { render_widget_ref },
+        false => quote! { render_widget },
+    };
+    (render_fn, frame_render_fn)
+}
+
+pub fn get_stateful_render_function(widget: &Widget) -> (TokenStream, TokenStream) {
+    let render_fn = match widget.render_ref {
+        true => quote! { ratatui::widgets::StatefulWidgetRef::render_ref },
+        false => quote! { ratatui::widgets::StatefulWidget::render },
+    };
+
+    let frame_render_fn = match widget.render_ref {
+        true => quote! { render_stateful_widget_ref },
+        false => quote! { render_stateful_widget },
+    };
+    (render_fn, frame_render_fn)
+}

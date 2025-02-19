@@ -3,7 +3,7 @@ use crate::{
     arg::ArgKind,
     codegen::{
         generate_widget_code,
-        util::{generate_unique_id, get_render_function},
+        util::{generate_unique_id, get_render_function, get_stateless_render_function},
     },
     widget::{Widget, WidgetKind, WidgetRenderer},
     MacroInput,
@@ -81,35 +81,35 @@ pub fn handle_layout_widget(
             layout_code.extend(quote! {
 
 
-                        use ratatui::{
-                            buffer::Buffer,
-                            layout::{Layout, Rect},
-                            widgets::Widget,
-                        };
+                use ratatui::{
+                    buffer::Buffer,
+                    layout::{Layout, Rect},
+                    widgets::Widget,
+                };
 
-                        pub struct LayoutWrapper<'a> {
-                            layout: Layout,
-                            children: Vec<Box<dyn Fn(Rect, &mut Buffer) + 'a>>,
-                        }
+                pub struct LayoutWrapper<'a> {
+                    layout: Layout,
+                    children: Vec<Box<dyn Fn(Rect, &mut Buffer) + 'a>>,
+                }
 
-                        impl<'a> LayoutWrapper<'a> {
-                            pub fn new(layout: Layout, children: Vec<Box<dyn Fn(Rect, &mut Buffer) + 'a>>) -> Self {
-                                Self {
-                                    layout,
-                                    children,
-                                }
-                            }
+                impl<'a> LayoutWrapper<'a> {
+                    pub fn new(layout: Layout, children: Vec<Box<dyn Fn(Rect, &mut Buffer) + 'a>>) -> Self {
+                        Self {
+                            layout,
+                            children,
                         }
+                    }
+                }
 
-                        impl<'a> Widget for LayoutWrapper<'a> {
-                            fn render(self, area: Rect, buf: &mut Buffer) {
-                                let chunks = self.layout.split(area);
-                                for (idx, render_fn) in self.children.into_iter().enumerate() {
-                                    render_fn(chunks[idx], buf);
-                                }
-                            }
+                impl<'a> Widget for LayoutWrapper<'a> {
+                    fn render(self, area: Rect, buf: &mut Buffer) {
+                        let chunks = self.layout.split(area);
+                        for (idx, render_fn) in self.children.into_iter().enumerate() {
+                            render_fn(chunks[idx], buf);
                         }
-                    });
+                    }
+                }
+            });
 
             for (idx, child) in children.iter().enumerate() {
                 let new_options = WidgetHandlerOptions::new(false, layout_index, idx, input);
@@ -180,9 +180,27 @@ pub fn handle_layout_widget(
                         });
                     }
 
-                    // For other widgets (Variable and Constructor), we call frame.render_widget on them
-                    // since they actually retturn something that implements ratatui::Widget
-                    _ => {
+                    // Constructor widgets are always rendered as stateless, since if they are stateful
+                    // they will be wrapped in a stateless wrapper by generate_widget_code()
+                    WidgetKind::Constructor { .. } => {
+                        let (render_fn, frame_render_fn) = get_stateless_render_function(widget);
+                        render_statements.extend(match renderer {
+                            // TODO: if widget is render_ref, use the render_ref fucntion from WIdgetRef
+                            WidgetRenderer::Area { area, buffer } =>  {
+                                quote! {
+                                    #render_fn(#render_ref_code #child_widget, #area, #buffer);
+                                }
+                            }
+
+                            WidgetRenderer::Frame(frame) => quote! {
+                                #frame .#frame_render_fn(#render_ref_code #child_widget, #frame.area());
+                            },
+                        });
+                    }
+
+                    // For variable widgets, we'll the correct render function based on
+                    // the renderer, statefulness and if they're rendered by reference
+                    WidgetKind::Variable { .. } => {
                         render_statements.extend(match renderer {
                             // TODO: if widget is stateful, pass in the state
                             WidgetRenderer::Area { area, buffer } => quote! {

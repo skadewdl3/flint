@@ -7,7 +7,10 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::Ident;
 
-use super::{util::get_render_function, WidgetHandlerOptions};
+use super::{
+    util::{get_render_function, get_stateful_render_function},
+    WidgetHandlerOptions,
+};
 
 /// Handles the generation of widget construction code. This is the simplest kind of widget.
 /// It's called a constructor widget since we can specify the constructor function to use
@@ -66,6 +69,8 @@ pub fn handle_constructor_widget(
         }
     }
 
+    let (render_fn, frame_render_fn) = get_render_function(widget);
+
     let render_ref_code = match widget.render_ref {
         true => quote! {&},
         false => quote! {},
@@ -93,22 +98,88 @@ pub fn handle_constructor_widget(
     };
 
     if let MacroInput::Ui { renderer, .. } = input {
-        let (render_fn, frame_render_fn) = get_render_function(widget);
         if *is_top_level {
             match renderer {
                 // TODO: if widget is stateful, pass in the state
-                WidgetRenderer::Area { area, buffer } => quote! {
-                    #render_fn(#render_ref_code #widget_code, #area, #buffer #stateful_code);
-                },
+                WidgetRenderer::Area { area, buffer } => {
+                    return quote! {
+                        #render_fn(#render_ref_code #widget_code, #area, #buffer #stateful_code);
+                    };
+                }
 
-                WidgetRenderer::Frame(frame) => quote! {
-                    #frame .#frame_render_fn(#render_ref_code #widget_code, #frame.area() #stateful_code);
-                },
+                WidgetRenderer::Frame(frame) => {
+                    return quote! {
+                        #frame .#frame_render_fn(#render_ref_code #widget_code, #frame.area() #stateful_code);
+                    };
+                }
             }
-        } else {
-            widget_code
+        }
+    }
+
+    if widget.stateful {
+        let stateful_wrapper = match widget.render_ref {
+            true => {
+                panic!("The ui!() and widget!() macro's don't support rendering StatefulWidgetRef widgets yet.")
+            }
+
+            false => quote! {
+                use std::cell::RefCell;
+                use ratatui::{
+                    widgets::{StatefulWidget, Widget},
+                    layout::Rect,
+                    buffer::Buffer,
+                };
+
+                pub struct StatefulWrapper<'a, W, S>
+                where
+                    W: StatefulWidget<State = S>,
+                {
+                    widget: W,
+                    state: RefCell<&'a mut S>,
+                }
+
+                impl<'a, W, S> StatefulWrapper<'a, W, S>
+                where
+                    W: StatefulWidget<State = S>,
+                {
+                    /// Creates a new StatefulWrapper with the given widget and state
+                    pub fn new(widget: W, state: &'a mut S) -> Self {
+                        Self {
+                            widget,
+                            state: RefCell::new(state)
+                        }
+                    }
+                }
+
+                impl<'a, W, S> Widget for StatefulWrapper<'a, W, S>
+                where
+                    W: StatefulWidget<State = S>,
+                {
+                    fn render(self, area: Rect, buf: &mut Buffer) {
+                        let mut state = self.state.borrow_mut();
+                        ratatui::widgets::StatefulWidget::render(self.widget, area, buf, &mut *state);
+                    }
+                }
+            },
+        };
+
+        let stateful_wrapper_init = match widget.render_ref {
+            true => quote! {
+                StatefulRefWrapper::new(#render_ref_code #widget_code #stateful_code)
+            },
+            false => quote! {
+                StatefulWrapper::new(#widget_code #stateful_code)
+            },
+        };
+        quote! {
+            {
+                #stateful_wrapper
+                #stateful_wrapper_init
+            }
         }
     } else {
-        widget_code
+        quote! {
+            #widget_code
+        }
     }
 }

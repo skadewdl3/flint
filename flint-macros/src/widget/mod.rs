@@ -85,13 +85,6 @@ impl Parse for Widget {
             false
         };
 
-        let stateful_variable = if input.peek(Token![+]) {
-            _ = input.parse::<Token![+]>().unwrap();
-            true
-        } else {
-            false
-        };
-
         // If we find a "{", then try to parse for a variable widget
         if input.peek(token::Brace) {
             let content;
@@ -107,7 +100,7 @@ impl Parse for Widget {
                     kind: WidgetKind::Variable { expr },
                     args: vec![],
                     render_ref,
-                    stateful: stateful_variable,
+                    stateful: false,
                 });
             }
         }

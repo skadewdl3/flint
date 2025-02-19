@@ -46,18 +46,21 @@ impl<'a> WidgetRef for InitWidget<'a> {
 
         let mut state = self.state.borrow_mut();
 
-        let x = widget!({
-
-            List::new(
-                self.detected_langs.clone(),
-                block: widget!({ Block::bordered(title: "Detected Languages") }),
-                state: state,
-                highlight_symbol: ">"
-            )
-        });
+        // let x = widget!({
+        // });
 
         ui!((area, buf) => {
-            {{ x }}
+            Layout(
+                constraints: Constraint::from_fills([1]),
+                direction: Direction::Vertical
+            ) {
+                List::new(
+                    self.detected_langs.clone(),
+                    block: widget!({ Block::bordered(title: "Detected Languages") }),
+                    state: state,
+                    highlight_symbol: ">"
+                )
+            }
         }
         );
     }
