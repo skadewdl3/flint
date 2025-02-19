@@ -13,6 +13,7 @@ pub trait AppWidget: WidgetRef {
     fn setup(&mut self) -> AppStatus {
         return AppStatus::Ok;
     }
+
     fn handle_events(&mut self, _event: Event) -> AppStatus {
         return AppStatus::Ok;
     }

@@ -71,7 +71,6 @@ impl App {
         ui!(frame => {
             {{ self }}
         });
-        // self.render_ref(frame.area(), frame.buffer_mut());
     }
 
     fn handle_all_events(&mut self) -> AppStatus {
@@ -107,11 +106,6 @@ impl WidgetRef for App {
 }
 
 impl AppWidget for App {
-    // fn draw(&mut self, frame: &mut Frame) -> AppStatus {
-    //     let status = self.active_widget.draw(frame);
-    //     status
-    // }
-
     fn handle_events(&mut self, event: Event) -> AppStatus {
         let status = handle_key_events(event.clone(), |_, key_code| {
             match key_code {

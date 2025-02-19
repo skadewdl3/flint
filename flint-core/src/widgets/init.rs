@@ -6,8 +6,9 @@ use crate::util::{
 use crossterm::event::{Event, KeyCode};
 use flint_macros::{ui, widget};
 use ratatui::{
-    layout::{Constraint, Direction, Layout},
-    style::{Color, Stylize},
+    buffer::Buffer,
+    layout::{Constraint, Direction, Layout, Rect},
+    style::{Color, Style},
     text::Text,
     widgets::{Block, List, ListState},
     Frame,
@@ -83,13 +84,11 @@ impl<'a> AppWidget for InitWidget<'a> {
         self.cwd = file_path.to_string();
 
         let config_path = std::path::Path::new(&self.cwd).join("flint.toml");
-        if config_path.exists() {
-            self.config_exists = true;
-        }
+        self.config_exists = config_path.exists();
 
         AppStatus::Ok
     }
-
+  
     fn handle_events(&mut self, event: Event) -> AppStatus {
         handle_key_events(event, |key_event, key_code| {
             match key_code {
@@ -104,7 +103,6 @@ impl<'a> AppWidget for InitWidget<'a> {
                 //                 linters: HashMap::new(),
                 //                 common: HashMap::new(),
                 //             };
-
                 //             create_toml_config("./flint.toml", config).unwrap();
                 //         }
                 //         _ => (),
@@ -137,5 +135,48 @@ impl<'a> AppWidget for InitWidget<'a> {
             }
             AppStatus::Ok
         })
+    }
+}
+
+impl<'a> WidgetRef for InitWidget<'a> {
+    fn render_ref(&self, area: Rect, buf: &mut Buffer) {
+        let style = widget!({
+            Style(
+                fg: if self.config_exists { Color::Yellow } else { Color::Blue }
+            )
+        });
+
+        let confirm_message = widget!({
+            Text::raw(
+                if self.config_exists {
+                    "flint.toml already exists in this directory. Would you like to overwrite it? (y/n)"
+                } else {
+                    "Would you like to continue with creating flint.toml? (y/n)"
+                },
+                style: style
+            )
+        });
+
+        ui!((area, buf) => {
+            Layout(
+                constraints: Constraint::from_lengths([
+                    self.detected_langs.len() as u16 + 2,
+                    self.unsupported_langs.len() as u16 + 2,
+                    1
+                ]),
+                direction: Direction::Vertical
+            ) {
+                List::new(
+                    self.detected_langs.clone(),
+                    block: widget!({ Block::bordered(title: "Detected Languages") }),
+                ),
+
+                List::new(
+                    self.detected_langs.clone(),
+                    block: widget!({ Block::bordered(title: "Detected Languages") }),
+                ),
+                {{ confirm_message }}
+            }
+        });
     }
 }

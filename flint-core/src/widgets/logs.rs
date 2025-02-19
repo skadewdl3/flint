@@ -92,7 +92,9 @@ impl Widget for LogsWidget {
         });
 
         ui!((area, buffer) => {
-            {{ temp }}
+            {{ Some(
+                widget!({ Text::raw("bruh") })
+            ) }}
         });
     }
 }

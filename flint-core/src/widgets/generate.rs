@@ -29,6 +29,14 @@ impl Default for GenerateWidget {
     }
 }
 
+impl WidgetRef for GenerateWidget {
+    fn render_ref(&self, area: Rect, buf: &mut Buffer) {
+        ui!((area, buf) => {
+           {{ self.logs_widget }}
+        });
+    }
+}
+
 impl AppWidget for GenerateWidget {
     fn setup(&mut self) -> AppStatus {
         let toml = Arc::new(read_toml_config("./flint.toml").unwrap());
@@ -76,4 +84,5 @@ impl WidgetRef for GenerateWidget {
             {{ self.logs_widget }}
         });
     }
+
 }

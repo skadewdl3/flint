@@ -18,6 +18,7 @@ impl Default for TestWidget {
 }
 
 impl AppWidget for TestWidget {}
+
 impl WidgetRef for TestWidget {
     fn render_ref(&self, area: Rect, buf: &mut Buffer) {}
 }

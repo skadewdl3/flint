@@ -1,6 +1,6 @@
 use crate::{
     arg::ArgKind,
-    widget::{Widget, WidgetRenderer},
+    widget::{util::get_render_method, Widget, WidgetRenderer},
     MacroInput,
 };
 use proc_macro2::TokenStream;
@@ -98,6 +98,7 @@ pub fn handle_constructor_widget(
     };
 
     if let MacroInput::Ui { renderer, .. } = input {
+        let (render_method, frame_render_method) = get_render_method(widget);
         if *is_top_level {
             match renderer {
                 // TODO: if widget is stateful, pass in the state

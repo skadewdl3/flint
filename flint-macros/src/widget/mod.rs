@@ -1,4 +1,5 @@
 use crate::arg::{Arg, ArgKind};
+
 use syn::{
     braced,
     parse::{Parse, ParseStream},
@@ -86,6 +87,11 @@ impl Parse for Widget {
         };
 
         // If we find a "{", then try to parse for a variable widget
+        let mut render_ref = false;
+        if input.peek(Token![&]) {
+            render_ref = true;
+            let _ = input.parse::<Token![&]>();
+        }
         if input.peek(token::Brace) {
             let content;
             syn::braced!(content in input);

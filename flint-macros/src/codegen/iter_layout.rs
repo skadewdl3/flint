@@ -2,7 +2,7 @@
 use crate::{
     arg::ArgKind,
     codegen::util::generate_unique_id,
-    widget::{Widget, WidgetKind, WidgetRenderer},
+    widget::{util::get_render_method, Widget, WidgetKind, WidgetRenderer},
     MacroInput,
 };
 
@@ -76,6 +76,8 @@ pub fn handle_iter_layout_widget(
     let new_options = WidgetHandlerOptions::new(false, layout_index, *child_index, input);
     let child_widget = generate_widget_code(child, &new_options);
 
+    let (render_method, frame_render_method) = get_render_method(child);
+
     match input {
         MacroInput::Ui { renderer, .. } => {
             // Create chunks vector
@@ -120,7 +122,7 @@ pub fn handle_iter_layout_widget(
                         WidgetRenderer::Area { buffer, .. } => {
                             quote! {
                                 for (#iterator_index_ident, #loop_var) in #iter.enumerate() {
-                                    #child_widget.render(#chunks_ident[#iterator_index_ident], #buffer);
+                                    #child_widget.#render_method(#chunks_ident[#iterator_index_ident], #buffer);
                                 }
                             }
                         }
@@ -128,7 +130,7 @@ pub fn handle_iter_layout_widget(
                         WidgetRenderer::Frame(frame) => {
                             quote! {
                                 for (#iterator_index_ident, #loop_var) in #iter.enumerate() {
-                                    #frame .render_widget(#child_widget, #chunks_ident[#iterator_index_ident]);
+                                    #frame .#frame_render_method(#child_widget, #chunks_ident[#iterator_index_ident]);
                                 }
                             }
                         }
@@ -203,7 +205,7 @@ pub fn handle_iter_layout_widget(
                     |item, area, buf| {
                         let #loop_var = item;
                         let widget = #child_widget;
-                        widget.render(*area, buf);
+                        widget.#render_method(*area, buf);
                     }
                 )
             };

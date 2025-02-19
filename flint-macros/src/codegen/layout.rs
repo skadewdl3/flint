@@ -114,11 +114,12 @@ pub fn handle_layout_widget(
             for (idx, child) in children.iter().enumerate() {
                 let new_options = WidgetHandlerOptions::new(false, layout_index, idx, input);
 
+                let (render_method, _) = get_render_method(child);
                 let child_widget = generate_widget_code(child, &new_options);
 
                 layout_code.extend(quote! {
                     children.push(Box::new(|area, buf| {
-                        #child_widget.render(area, buf);
+                        #child_widget.#render_method(area, buf);
                     }));
                 });
             }

@@ -47,6 +47,7 @@ pub fn handle_variable_widget(
             match renderer {
                 // TODO: if widget is stateful, pass in the state
                 WidgetRenderer::Area { area, buffer } => quote! {
+
                     #render_fn(#render_ref_code #variable, #area, #buffer);
                 },
 
