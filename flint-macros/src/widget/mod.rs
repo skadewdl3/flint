@@ -3,7 +3,7 @@ use syn::{
     braced,
     parse::{Parse, ParseStream},
     punctuated::Punctuated,
-    token, Expr, Ident, Pat, Result, Token,
+    token, Expr, ExprBlock, Ident, Pat, Result, Token,
 };
 
 /// Represents the different kinds of widgets that can be parsed
@@ -26,12 +26,16 @@ pub enum WidgetKind {
     /// A widget represented by a variable expression
     Variable {
         /// The expression representing the widget
-        expr: Expr,
+        expr: ExprBlock,
     },
     IterLayout {
         loop_var: Pat,
         iter: Expr,
         /// The child widgets contained in this layout
+        child: Box<Widget>,
+    },
+    Stateful {
+        state: Expr,
         child: Box<Widget>,
     },
 }
@@ -69,8 +73,6 @@ pub struct Widget {
     pub args: Vec<Arg>,
     /// Whether this widget should be rendered as a reference
     pub render_ref: bool,
-    /// Whether this widget maintains internal state
-    pub stateful: bool,
 }
 
 /// Parser implementation for Widget
@@ -87,22 +89,13 @@ impl Parse for Widget {
 
         // If we find a "{", then try to parse for a variable widget
         if input.peek(token::Brace) {
-            let content;
-            syn::braced!(content in input);
+            let expr: ExprBlock = input.parse()?;
 
-            // Check if the content starts with another left brace
-            if content.peek(token::Brace) {
-                let inner_content;
-                syn::braced!(inner_content in content);
-                let expr: Expr = inner_content.parse()?;
-
-                return Ok(Widget {
-                    kind: WidgetKind::Variable { expr },
-                    args: vec![],
-                    render_ref,
-                    stateful: false,
-                });
-            }
+            return Ok(Widget {
+                kind: WidgetKind::Variable { expr },
+                args: vec![],
+                render_ref,
+            });
         }
 
         // Parse widget name
@@ -145,8 +138,33 @@ impl Parse for Widget {
                     child: Box::new(child),
                 },
                 render_ref: false,
-                stateful: false,
                 args,
+            });
+        }
+
+        if widget_name == "Stateful" {
+            // Parse the condition (which evaluates to a boolean) given in
+            // the parantheses
+            let content;
+            syn::parenthesized!(content in input);
+            let state = content.parse::<Expr>()?;
+
+            // The content in braces is rendered if the condition is true
+            // The braces can contain only one single widget. So if multiple child elements
+            // are required, they must be nested in a Layout widget.
+            let brace_content;
+            braced!(brace_content in input);
+            let child = brace_content.parse::<Widget>()?;
+
+            // If this was a conditional widget, we're done, since we've
+            // extracted the condition and children for both branches.
+            return Ok(Widget {
+                kind: WidgetKind::Stateful {
+                    state,
+                    child: Box::new(child),
+                },
+                render_ref: false,
+                args: vec![],
             });
         }
 
@@ -206,7 +224,6 @@ impl Parse for Widget {
                 kind,
                 args,
                 render_ref,
-                stateful,
             });
         }
 
@@ -232,7 +249,6 @@ impl Parse for Widget {
             kind,
             args,
             render_ref: false,
-            stateful: false,
         })
     }
 }

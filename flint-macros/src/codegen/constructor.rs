@@ -59,9 +59,6 @@ pub fn handle_constructor_widget(
 
     for arg in args {
         if let ArgKind::Named(name) = &arg.kind {
-            if widget.stateful && name.to_string() == "state" {
-                continue;
-            }
             let value = &arg.value;
             widget_code.extend(quote! {
                 .#name(#value)
@@ -76,110 +73,86 @@ pub fn handle_constructor_widget(
         false => quote! {},
     };
 
-    let stateful_code = match widget.stateful {
-        true => {
-            let (_, value) = args
-                .iter()
-                .filter_map(|arg| {
-                    if let ArgKind::Named(ref ident) = arg.kind {
-                        Some((ident, &arg.value))
-                    } else {
-                        None
-                    }
-                })
-                .find(|(ident, _)| ident.to_string() == "state")
-                .unwrap();
-
-            quote! {
-                , &mut #value
-            }
-        }
-        false => quote! {},
-    };
-
     if let MacroInput::Ui { renderer, .. } = input {
         if *is_top_level {
-            match renderer {
+            return match renderer {
                 // TODO: if widget is stateful, pass in the state
-                WidgetRenderer::Area { area, buffer } => {
-                    return quote! {
-                        #render_fn(#render_ref_code #widget_code, #area, #buffer #stateful_code);
-                    };
-                }
+                WidgetRenderer::Area { area, buffer } => quote! {
+                    #render_fn(#render_ref_code #widget_code, #area, #buffer);
+                },
 
-                WidgetRenderer::Frame(frame) => {
-                    return quote! {
-                        #frame .#frame_render_fn(#render_ref_code #widget_code, #frame.area() #stateful_code);
-                    };
-                }
-            }
+                WidgetRenderer::Frame(frame) => quote! {
+                    #frame .#frame_render_fn(#render_ref_code #widget_code, #frame.area());
+                },
+            };
         }
     }
 
-    if widget.stateful {
-        let stateful_wrapper = match widget.render_ref {
-            true => {
-                panic!("The ui!() and widget!() macro's don't support rendering StatefulWidgetRef widgets yet.")
-            }
+    // if widget.stateful {
+    //     let stateful_wrapper = match widget.render_ref {
+    //         true => {
+    //             panic!("The ui!() and widget!() macro's don't support rendering StatefulWidgetRef widgets yet.")
+    //         }
 
-            false => quote! {
-                use std::cell::RefCell;
-                use ratatui::{
-                    widgets::{StatefulWidget, Widget},
-                    layout::Rect,
-                    buffer::Buffer,
-                };
+    //         false => quote! {
+    //             use std::cell::RefCell;
+    //             use ratatui::{
+    //                 widgets::{StatefulWidget, Widget},
+    //                 layout::Rect,
+    //                 buffer::Buffer,
+    //             };
 
-                pub struct StatefulWrapper<'a, W, S>
-                where
-                    W: StatefulWidget<State = S>,
-                {
-                    widget: W,
-                    state: RefCell<&'a mut S>,
-                }
+    //             pub struct StatefulWrapper<'a, W, S>
+    //             where
+    //                 W: StatefulWidget<State = S>,
+    //             {
+    //                 widget: W,
+    //                 state: RefCell<&'a mut S>,
+    //             }
 
-                impl<'a, W, S> StatefulWrapper<'a, W, S>
-                where
-                    W: StatefulWidget<State = S>,
-                {
-                    /// Creates a new StatefulWrapper with the given widget and state
-                    pub fn new(widget: W, state: &'a mut S) -> Self {
-                        Self {
-                            widget,
-                            state: RefCell::new(state)
-                        }
-                    }
-                }
+    //             impl<'a, W, S> StatefulWrapper<'a, W, S>
+    //             where
+    //                 W: StatefulWidget<State = S>,
+    //             {
+    //                 /// Creates a new StatefulWrapper with the given widget and state
+    //                 pub fn new(widget: W, state: &'a mut S) -> Self {
+    //                     Self {
+    //                         widget,
+    //                         state: RefCell::new(state)
+    //                     }
+    //                 }
+    //             }
 
-                impl<'a, W, S> Widget for StatefulWrapper<'a, W, S>
-                where
-                    W: StatefulWidget<State = S>,
-                {
-                    fn render(self, area: Rect, buf: &mut Buffer) {
-                        let mut state = self.state.borrow_mut();
-                        ratatui::widgets::StatefulWidget::render(self.widget, area, buf, &mut *state);
-                    }
-                }
-            },
-        };
+    //             impl<'a, W, S> Widget for StatefulWrapper<'a, W, S>
+    //             where
+    //                 W: StatefulWidget<State = S>,
+    //             {
+    //                 fn render(self, area: Rect, buf: &mut Buffer) {
+    //                     let mut state = self.state.borrow_mut();
+    //                     ratatui::widgets::StatefulWidget::render(self.widget, area, buf, &mut *state);
+    //                 }
+    //             }
+    //         },
+    //     };
 
-        let stateful_wrapper_init = match widget.render_ref {
-            true => quote! {
-                StatefulRefWrapper::new(#render_ref_code #widget_code #stateful_code)
-            },
-            false => quote! {
-                StatefulWrapper::new(#widget_code #stateful_code)
-            },
-        };
-        quote! {
-            {
-                #stateful_wrapper
-                #stateful_wrapper_init
-            }
-        }
-    } else {
-        quote! {
-            #widget_code
-        }
+    //     let stateful_wrapper_init = match widget.render_ref {
+    //         true => quote! {
+    //             StatefulRefWrapper::new(#render_ref_code #widget_code #stateful_code)
+    //         },
+    //         false => quote! {
+    //             StatefulWrapper::new(#widget_code #stateful_code)
+    //         },
+    //     };
+    //     quote! {
+    //         {
+    //             #stateful_wrapper
+    //             #stateful_wrapper_init
+    //         }
+    //     }
+    // } else {
+    // }
+
+    quote! {
+        #widget_code
     }
 }

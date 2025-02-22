@@ -73,7 +73,7 @@ impl AppWidget for GenerateWidget {
 impl WidgetRef for GenerateWidget {
     fn render_ref(&self, area: Rect, buf: &mut Buffer) {
         ui!((area, buf) => {
-            {{ self.logs_widget }}
+            { self.logs_widget }
         });
     }
 }

@@ -92,7 +92,7 @@ impl Widget for LogsWidget {
         });
 
         ui!((area, buffer) => {
-            {{ temp }}
+            { temp }
         });
     }
 }

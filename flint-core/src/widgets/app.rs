@@ -69,7 +69,7 @@ impl App {
 
     fn draw(&self, frame: &mut Frame) {
         ui!(frame => {
-            {{ self }}
+            { self }
         });
         // self.render_ref(frame.area(), frame.buffer_mut());
     }
@@ -100,9 +100,7 @@ impl WidgetRef for App {
             }}
         });
 
-        ui!((area, buf) => {
-            &{{ *self.active_widget }}
-        });
+        self.active_widget.render_ref(area, buf);
     }
 }
 

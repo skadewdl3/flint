@@ -1,15 +1,16 @@
 use crate::{
+    codegen::{
+        generate_widget_code,
+        util::{generate_unique_id, get_stateful_render_function},
+    },
     widget::{Widget, WidgetRenderer},
     MacroInput,
 };
 
-use super::{
-    util::{generate_unique_id, get_render_function},
-    WidgetHandlerOptions,
-};
-use proc_macro2::{Span, TokenStream};
+use super::{util::get_render_function, WidgetHandlerOptions};
+use proc_macro2::TokenStream;
 use quote::quote;
-use syn::{Expr, ExprBlock};
+use syn::Expr;
 
 /// Handles the rendering of a widget stored in a variable.
 /// Sometimes, we need to render a widget constructed elsewhere. That's where this function comes in.
@@ -28,14 +29,17 @@ use syn::{Expr, ExprBlock};
 /// # Returns
 ///
 /// A TokenStream containing either a render_widget call (if top level) or just the variable reference
-pub fn handle_variable_widget(
+pub fn handle_stateful_widget(
     widget: &Widget,
-    variable: &ExprBlock,
+    state: &Expr,
+    child: &Box<Widget>,
     options: &WidgetHandlerOptions,
 ) -> TokenStream {
     let WidgetHandlerOptions {
         is_top_level,
         input,
+        parent_id,
+        child_index,
         ..
     } = options;
 
@@ -44,26 +48,23 @@ pub fn handle_variable_widget(
         false => quote! {},
     };
 
-    let variable_index = generate_unique_id() as usize;
-    let variable_ident =
-        proc_macro2::Ident::new(&format!("variable_{}", variable_index), Span::call_site());
-
+    let new_options = WidgetHandlerOptions::new(false, *parent_id, *child_index, input);
+    let child_widget = generate_widget_code(child, &new_options);
     if let MacroInput::Ui { renderer, .. } = input {
-        let (render_fn, frame_render_fn) = get_render_function(widget);
+        let (stateful_render_fn, stateful_frame_render_fn) = get_stateful_render_function(widget);
         if *is_top_level {
             return match renderer {
                 // TODO: if widget is stateful, pass in the state
                 WidgetRenderer::Area { area, buffer } => quote! {
-                    let #variable_ident = #variable;
-                    #render_fn(#render_ref_code #variable_ident, #area, #buffer);
+                    #stateful_render_fn(#render_ref_code #child_widget, #area, #buffer, #state);
                 },
 
                 WidgetRenderer::Frame(frame) => quote! {
-                    let #variable_ident = #variable;
-                    #frame .#frame_render_fn(#render_ref_code #variable_ident, #frame.area());
+                    #frame .#stateful_frame_render_fn(#render_ref_code #child_widget, #frame.area(), #state);
                 },
             };
         }
     }
-    quote! { let #variable_ident = #variable; #variable_ident }
+
+    quote! { #child_widget }
 }

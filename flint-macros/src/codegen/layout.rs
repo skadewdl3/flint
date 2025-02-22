@@ -3,7 +3,7 @@ use crate::{
     arg::ArgKind,
     codegen::{
         generate_widget_code,
-        util::{generate_unique_id, get_render_function, get_stateless_render_function},
+        util::{generate_unique_id, get_render_function, get_stateful_render_function},
     },
     widget::{Widget, WidgetKind, WidgetRenderer},
     MacroInput,
@@ -165,6 +165,8 @@ pub fn handle_layout_widget(
             for (idx, child) in children.iter().enumerate() {
                 let new_options = WidgetHandlerOptions::new(false, layout_index, idx, input);
                 let (render_fn, frame_render_fn) = get_render_function(child);
+                let (stateful_render_fn, stateful_frame_render_fn) =
+                    get_stateful_render_function(child);
                 let child_widget = generate_widget_code(child, &new_options);
                 let render_ref_code = match child.render_ref {
                     true => quote! {&},
@@ -183,7 +185,7 @@ pub fn handle_layout_widget(
                     // Constructor widgets are always rendered as stateless, since if they are stateful
                     // they will be wrapped in a stateless wrapper by generate_widget_code()
                     WidgetKind::Constructor { .. } => {
-                        let (render_fn, frame_render_fn) = get_stateless_render_function(widget);
+                        let (render_fn, frame_render_fn) = get_render_function(widget);
                         render_statements.extend(match renderer {
                             // TODO: if widget is render_ref, use the render_ref fucntion from WIdgetRef
                             WidgetRenderer::Area { area, buffer } =>  {
@@ -209,6 +211,19 @@ pub fn handle_layout_widget(
 
                             WidgetRenderer::Frame(frame) => quote! {
                                 #frame .#frame_render_fn(#render_ref_code #child_widget, #frame.area());
+                            },
+                        });
+                    }
+
+                    WidgetKind::Stateful { ref state, .. } => {
+                        render_statements.extend(match renderer {
+                            // TODO: if widget is stateful, pass in the state
+                            WidgetRenderer::Area { area, buffer } => quote! {
+                                #stateful_render_fn(#render_ref_code #child_widget, #area, #buffer, #state);
+                            },
+
+                            WidgetRenderer::Frame(frame) => quote! {
+                                #frame .#stateful_frame_render_fn(#render_ref_code #child_widget, #frame.area(), #state);
                             },
                         });
                     }

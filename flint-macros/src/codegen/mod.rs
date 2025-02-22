@@ -3,6 +3,7 @@
 pub mod constructor;
 pub mod iter_layout;
 pub mod layout;
+pub mod stateful;
 pub mod util;
 pub mod variable;
 
@@ -13,6 +14,7 @@ use crate::{
 use constructor::handle_constructor_widget;
 use iter_layout::handle_iter_layout_widget;
 use layout::handle_layout_widget;
+use stateful::handle_stateful_widget;
 use variable::handle_variable_widget;
 
 /// Options for configuring widget code generation.
@@ -72,6 +74,10 @@ pub fn generate_widget_code(
             iter,
             child,
         } => handle_iter_layout_widget(widget, loop_var, iter, child, options),
+
+        WidgetKind::Stateful { ref state, child } => {
+            handle_stateful_widget(widget, state, child, options)
+        }
 
         WidgetKind::Variable { expr } => handle_variable_widget(widget, expr, options),
 
