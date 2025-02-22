@@ -1,5 +1,7 @@
 use crate::{
-    codegen::{generate_widget_code, util::get_stateful_render_function},
+    codegen::{
+        generate_widget_code, util::get_stateful_render_function, wrapper::get_stateful_wrapper,
+    },
     widget::{Widget, WidgetRenderer},
     MacroInput,
 };
@@ -72,45 +74,7 @@ pub fn handle_stateful_widget(
                 )
             }
 
-            false => quote! {
-                use std::cell::RefCell;
-                use ratatui::{
-                    widgets::{StatefulWidget, Widget},
-                    layout::Rect,
-                    buffer::Buffer,
-                };
-
-                pub struct StatefulWrapper<'a, W, S>
-                where
-                    W: StatefulWidget<State = S>,
-                {
-                    widget: W,
-                    state: RefCell<&'a mut S>,
-                }
-
-                impl<'a, W, S> StatefulWrapper<'a, W, S>
-                where
-                    W: StatefulWidget<State = S>,
-                {
-                    /// Creates a new StatefulWrapper with the given widget and state
-                    pub fn new(widget: W, state: &'a mut S) -> Self {
-                        Self {
-                            widget,
-                            state: RefCell::new(state)
-                        }
-                    }
-                }
-
-                impl<'a, W, S> Widget for StatefulWrapper<'a, W, S>
-                where
-                    W: StatefulWidget<State = S>,
-                {
-                    fn render(self, area: Rect, buf: &mut Buffer) {
-                        let mut state = self.state.borrow_mut();
-                        ratatui::widgets::StatefulWidget::render(self.widget, area, buf, &mut *state);
-                    }
-                }
-            },
+            false => get_stateful_wrapper(),
         };
 
         let stateful_wrapper_init = match child.render_ref {

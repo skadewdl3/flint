@@ -4,6 +4,7 @@ use crate::{
     codegen::{
         generate_widget_code,
         util::{generate_unique_id, get_render_function, get_stateful_render_function},
+        wrapper::get_layout_wrapper,
     },
     widget::{Widget, WidgetKind, WidgetRenderer},
     MacroInput,
@@ -78,47 +79,7 @@ pub fn handle_layout_widget(
                 let mut children: Vec<Box<dyn Fn(Rect, &mut Buffer)>> = Vec::new();
             });
 
-            layout_code.extend(quote! {
-
-
-                use ratatui::{
-                    buffer::Buffer,
-                    layout::{Layout, Rect},
-                    widgets::{Widget, WidgetRef},
-                };
-
-                pub struct LayoutWrapper<'a> {
-                    layout: Layout,
-                    children: Vec<Box<dyn Fn(Rect, &mut Buffer) + 'a>>,
-                }
-
-                impl<'a> LayoutWrapper<'a> {
-                    pub fn new(layout: Layout, children: Vec<Box<dyn Fn(Rect, &mut Buffer) + 'a>>) -> Self {
-                        Self {
-                            layout,
-                            children,
-                        }
-                    }
-                }
-
-                impl<'a> Widget for LayoutWrapper<'a> {
-                    fn render(self, area: Rect, buf: &mut Buffer) {
-                        let chunks = self.layout.split(area);
-                        for (idx, render_fn) in self.children.into_iter().enumerate() {
-                            render_fn(chunks[idx], buf);
-                        }
-                    }
-                }
-
-                impl<'a> WidgetRef for LayoutWrapper<'a> {
-                    fn render_ref<'b>(&'b self, area: Rect, buf: &mut Buffer) {
-                        let chunks = self.layout.split(area);
-                        for (idx, render_fn) in self.children.iter().enumerate() {
-                            render_fn(chunks[idx], buf);
-                        }
-                    }
-                }
-            });
+            layout_code.extend(get_layout_wrapper());
 
             for (idx, child) in children.iter().enumerate() {
                 let new_options = WidgetHandlerOptions::new(false, layout_index, idx, input);
@@ -208,30 +169,29 @@ pub fn handle_layout_widget(
                         });
                     }
 
-                    // For variable widgets, we'll the correct render function based on
-                    // the renderer, statefulness and if they're rendered by reference
-                    WidgetKind::Variable { .. } | WidgetKind::Conditional { .. } => {
-                        render_statements.extend(match renderer {
-                            // TODO: if widget is stateful, pass in the state
-                            WidgetRenderer::Area {  buffer, .. } => quote! {
-                                #render_fn(#render_ref_code #child_widget, #chunks_ident[#idx], #buffer);
-                            },
-
-                            WidgetRenderer::Frame(frame) => quote! {
-                                #frame .#frame_render_fn(#render_ref_code #child_widget, #chunks_ident[#idx]);
-                            },
-                        });
-                    }
-
+                    // For stateful widgets, we'll call the stateful versions of the render functions
+                    // and pass in the state
                     WidgetKind::Stateful { ref state, .. } => {
                         render_statements.extend(match renderer {
-                            // TODO: if widget is stateful, pass in the state
                             WidgetRenderer::Area {  buffer, .. } => quote! {
                                 #stateful_render_fn(#render_ref_code #child_widget, #chunks_ident[#idx], #buffer, #state);
                             },
 
                             WidgetRenderer::Frame(frame) => quote! {
                                 #frame .#stateful_frame_render_fn(#render_ref_code #child_widget, #chunks_ident[#idx], #state);
+                            },
+                        });
+                    }
+
+                    // For all other widgets, we'll just render them normally into the layout chunks
+                    _ => {
+                        render_statements.extend(match renderer {
+                            WidgetRenderer::Area {  buffer, .. } => quote! {
+                                #render_fn(#render_ref_code #child_widget, #chunks_ident[#idx], #buffer);
+                            },
+
+                            WidgetRenderer::Frame(frame) => quote! {
+                                #frame .#frame_render_fn(#render_ref_code #child_widget, #chunks_ident[#idx]);
                             },
                         });
                     }

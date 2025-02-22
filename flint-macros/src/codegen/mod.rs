@@ -7,6 +7,7 @@ pub mod layout;
 pub mod stateful;
 pub mod util;
 pub mod variable;
+pub mod wrapper;
 
 use crate::{
     widget::{Widget, WidgetKind},

@@ -1,5 +1,5 @@
 use crate::{
-    codegen::{generate_widget_code, util::get_stateful_render_function},
+    codegen::{generate_widget_code, wrapper::get_conditional_wrapper},
     widget::{Widget, WidgetRenderer},
     MacroInput,
 };
@@ -49,62 +49,7 @@ pub fn handle_conditional_widget(
     let new_options = WidgetHandlerOptions::new(false, *parent_id, *child_index, input);
     let if_child_widget = generate_widget_code(if_child, &new_options);
 
-    let conditional_wrapper = quote! {
-        use ratatui::{
-            widgets::Widget,
-            layout::Rect,
-            buffer::Buffer,
-        };
-
-        pub struct ConditionalWrapper<W, E>
-        where
-            W: Widget,
-            E: Widget,
-        {
-            if_widget: W,
-            else_widget: Option<E>,
-            condition: bool,
-        }
-
-        impl<W, E> ConditionalWrapper<W, E>
-        where
-            W: Widget,
-            E: Widget,
-        {
-            /// Creates a new ConditionalWrapper with the given widget and condition
-            pub fn new(if_widget: W, condition: bool) -> Self {
-                Self {
-                    if_widget,
-                    else_widget: None,
-                    condition,
-                }
-            }
-
-            /// Adds an else widget to the conditional wrapper
-            pub fn with_else(if_widget: W, else_widget: E, condition: bool) -> Self {
-                Self {
-                    if_widget,
-                    else_widget: Some(else_widget),
-                    condition,
-                }
-            }
-        }
-
-        impl<W, E> Widget for ConditionalWrapper<W, E>
-        where
-            W: Widget,
-            E: Widget,
-        {
-            fn render(self, area: Rect, buf: &mut Buffer) {
-                if self.condition {
-                    self.if_widget.render(area, buf);
-                } else if let Some(else_widget) = self.else_widget {
-                    else_widget.render(area, buf);
-                }
-            }
-        }
-    };
-
+    let conditional_wrapper = get_conditional_wrapper();
     if let MacroInput::Ui { renderer, .. } = input {
         let (render_fn, frame_render_fn) = get_render_function(widget);
 
