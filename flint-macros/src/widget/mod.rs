@@ -1,6 +1,6 @@
 use crate::arg::Arg;
 use syn::{
-    braced,
+    braced, bracketed, parenthesized,
     parse::{Parse, ParseStream},
     punctuated::Punctuated,
     token, Expr, ExprBlock, Ident, Pat, Result, Token,
@@ -37,6 +37,11 @@ pub enum WidgetKind {
     Stateful {
         state: Expr,
         child: Box<Widget>,
+    },
+    Conditional {
+        condition: Expr,
+        if_child: Box<Widget>,
+        else_child: Option<Box<Widget>>,
     },
 }
 
@@ -165,6 +170,32 @@ impl Parse for Widget {
                 },
                 render_ref: false,
                 args: vec![],
+            });
+        }
+
+        if widget_name == "If" {
+            let mut content;
+            parenthesized!(content in input);
+            let condition = content.parse::<Expr>()?;
+
+            braced!(content in input);
+            let if_child = content.parse::<Widget>()?;
+
+            let else_child = if input.peek(Ident) && input.parse::<Ident>()? == "Else" {
+                braced!(content in input);
+                Some(content.parse::<Widget>()?)
+            } else {
+                None
+            };
+
+            return Ok(Widget {
+                kind: WidgetKind::Conditional {
+                    condition,
+                    if_child: Box::new(if_child),
+                    else_child: else_child.map(|child| Box::new(child)),
+                },
+                args: vec![],
+                render_ref: false,
             });
         }
 

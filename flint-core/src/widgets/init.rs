@@ -75,26 +75,32 @@ impl<'a> WidgetRef for InitWidget<'a> {
                         self.unsupported_langs.clone(),
                         block: widget!({ Block::bordered(title: "Unsupported Languages") }),
                     ),
-                    &{
-                        if !self.created_config {
-                            Some(textarea)
-                        } else { None }
-                    },
-
-                    &{
-                        if self.created_config {
-                            Some(
-                                widget!({ Paragraph::new("Configuration created successfully!", style: Style::default().fg(Color::Green)) })
-                            )
-                        } else {
-                            None
-                        }
+                    If (!self.created_config) {
+                        {textarea}
+                    } Else {
+                        Paragraph::new("Configuration created successfully")
                     }
                 }
             }
         }
         );
     }
+
+    // &{
+    //                         if !self.created_config {
+    //                             Some(textarea)
+    //                         } else { None }
+    //                     },
+
+    //                     &{
+    //                         if self.created_config {
+    //                             Some(
+    //                                 widget!({ Paragraph::new("Configuration created successfully!", style: Style::default().fg(Color::Green)) })
+    //                             )
+    //                         } else {
+    //                             None
+    //                         }
+    //                     }
 }
 
 impl<'a> AppWidget for InitWidget<'a> {

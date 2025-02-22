@@ -210,7 +210,7 @@ pub fn handle_layout_widget(
 
                     // For variable widgets, we'll the correct render function based on
                     // the renderer, statefulness and if they're rendered by reference
-                    WidgetKind::Variable { .. } => {
+                    WidgetKind::Variable { .. } | WidgetKind::Conditional { .. } => {
                         render_statements.extend(match renderer {
                             // TODO: if widget is stateful, pass in the state
                             WidgetRenderer::Area {  buffer, .. } => quote! {
