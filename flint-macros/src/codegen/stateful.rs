@@ -67,7 +67,9 @@ pub fn handle_stateful_widget(
     } else {
         let stateful_wrapper = match child.render_ref {
             true => {
-                panic!("The ui!() and widget!() macro's don't support rendering StatefulWidgetRef widgets yet.")
+                panic!(
+                    "The widget!() macro doesn't support rendering StatefulWidgetRef widgets yet."
+                )
             }
 
             false => quote! {

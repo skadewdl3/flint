@@ -113,7 +113,6 @@ pub fn handle_layout_widget(
 
             for (idx, child) in children.iter().enumerate() {
                 let new_options = WidgetHandlerOptions::new(false, layout_index, idx, input);
-
                 let child_widget = generate_widget_code(child, &new_options);
 
                 layout_code.extend(quote! {
@@ -188,14 +187,14 @@ pub fn handle_layout_widget(
                         let (render_fn, frame_render_fn) = get_render_function(widget);
                         render_statements.extend(match renderer {
                             // TODO: if widget is render_ref, use the render_ref fucntion from WIdgetRef
-                            WidgetRenderer::Area { area, buffer } =>  {
+                            WidgetRenderer::Area { buffer, .. } =>  {
                                 quote! {
-                                    #render_fn(#render_ref_code #child_widget, #area, #buffer);
+                                    #render_fn(#render_ref_code #child_widget, #chunks_ident[#idx], #buffer);
                                 }
                             }
 
                             WidgetRenderer::Frame(frame) => quote! {
-                                #frame .#frame_render_fn(#render_ref_code #child_widget, #frame.area());
+                                #frame .#frame_render_fn(#render_ref_code #child_widget, #chunks_ident[#idx]);
                             },
                         });
                     }
@@ -205,12 +204,12 @@ pub fn handle_layout_widget(
                     WidgetKind::Variable { .. } => {
                         render_statements.extend(match renderer {
                             // TODO: if widget is stateful, pass in the state
-                            WidgetRenderer::Area { area, buffer } => quote! {
-                                #render_fn(#render_ref_code #child_widget, #area, #buffer);
+                            WidgetRenderer::Area {  buffer, .. } => quote! {
+                                #render_fn(#render_ref_code #child_widget, #chunks_ident[#idx], #buffer);
                             },
 
                             WidgetRenderer::Frame(frame) => quote! {
-                                #frame .#frame_render_fn(#render_ref_code #child_widget, #frame.area());
+                                #frame .#frame_render_fn(#render_ref_code #child_widget, #chunks_ident[#idx]);
                             },
                         });
                     }
@@ -218,12 +217,12 @@ pub fn handle_layout_widget(
                     WidgetKind::Stateful { ref state, .. } => {
                         render_statements.extend(match renderer {
                             // TODO: if widget is stateful, pass in the state
-                            WidgetRenderer::Area { area, buffer } => quote! {
-                                #stateful_render_fn(#render_ref_code #child_widget, #area, #buffer, #state);
+                            WidgetRenderer::Area {  buffer, .. } => quote! {
+                                #stateful_render_fn(#render_ref_code #child_widget, #chunks_ident[#idx], #buffer, #state);
                             },
 
                             WidgetRenderer::Frame(frame) => quote! {
-                                #frame .#stateful_frame_render_fn(#render_ref_code #child_widget, #frame.area(), #state);
+                                #frame .#stateful_frame_render_fn(#render_ref_code #child_widget, #chunks_ident[#idx], #state);
                             },
                         });
                     }

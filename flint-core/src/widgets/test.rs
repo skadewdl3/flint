@@ -1,8 +1,8 @@
 use ratatui::prelude::*;
-use ratatui::{widgets::WidgetRef, Frame};
+use ratatui::widgets::WidgetRef;
 use throbber_widgets_tui::ThrobberState;
 
-use super::{AppStatus, AppWidget};
+use super::AppWidget;
 
 #[derive(Debug)]
 pub struct TestWidget {
@@ -19,5 +19,5 @@ impl Default for TestWidget {
 
 impl AppWidget for TestWidget {}
 impl WidgetRef for TestWidget {
-    fn render_ref(&self, area: Rect, buf: &mut Buffer) {}
+    fn render_ref(&self, _area: Rect, _buf: &mut Buffer) {}
 }

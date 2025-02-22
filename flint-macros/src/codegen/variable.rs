@@ -9,7 +9,7 @@ use super::{
 };
 use proc_macro2::{Span, TokenStream};
 use quote::quote;
-use syn::{Expr, ExprBlock};
+use syn::ExprBlock;
 
 /// Handles the rendering of a widget stored in a variable.
 /// Sometimes, we need to render a widget constructed elsewhere. That's where this function comes in.

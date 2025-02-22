@@ -1,4 +1,4 @@
-use crate::arg::{Arg, ArgKind};
+use crate::arg::Arg;
 use syn::{
     braced,
     parse::{Parse, ParseStream},
@@ -191,17 +191,6 @@ impl Parse for Widget {
         } else {
             vec![]
         };
-
-        let stateful = args
-            .iter()
-            .filter_map(|arg| {
-                if let ArgKind::Named(ref ident) = arg.kind {
-                    Some(ident.to_string())
-                } else {
-                    None
-                }
-            })
-            .any(|name| name == "state");
 
         // If this is a layout widget, we'll need to parse child widgets in braces
         // so create a field for that. No widgets except Layout widgets can have children,

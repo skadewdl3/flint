@@ -7,10 +7,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::Ident;
 
-use super::{
-    util::{get_render_function, get_stateful_render_function},
-    WidgetHandlerOptions,
-};
+use super::{util::get_render_function, WidgetHandlerOptions};
 
 /// Handles the generation of widget construction code. This is the simplest kind of widget.
 /// It's called a constructor widget since we can specify the constructor function to use

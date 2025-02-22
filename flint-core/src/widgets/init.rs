@@ -7,16 +7,11 @@ use crossterm::event::{Event, KeyCode};
 use flint_macros::{ui, widget};
 use ratatui::{
     layout::{Constraint, Direction, Layout},
-    style::{Color, Stylize},
+    prelude::*,
     text::Text,
-    widgets::{Block, List, ListState},
-    Frame,
+    widgets::{Block, List, Paragraph, WidgetRef},
 };
-use ratatui::{prelude::*, widgets::WidgetRef};
-use std::{
-    cell::RefCell,
-    collections::{BTreeSet, HashMap},
-};
+use std::collections::{BTreeSet, HashMap};
 use tui_textarea::TextArea;
 
 #[derive(Debug, Default)]
@@ -24,10 +19,9 @@ pub struct InitWidget<'a> {
     textarea: TextArea<'a>,
     detected_langs: BTreeSet<String>,
     unsupported_langs: BTreeSet<String>,
-    created_config: bool,
+    _created_config: bool,
     config_exists: bool,
     cwd: String,
-    state: RefCell<ListState>,
 }
 
 impl<'a> InitWidget<'a> {
@@ -44,27 +38,25 @@ impl<'a> WidgetRef for InitWidget<'a> {
             "Would you like to continue with creating flint.toml? (y/n)"
         };
 
-        let mut state = self.state.borrow_mut();
-
-        // let x = widget!({
-
-        //     Stateful(&mut state) {
-
-        //     }
-        // });
-
         ui!((area, buf) => {
-            Layout(
-                constraints: Constraint::from_fills([1]),
-                direction: Direction::Vertical
-            ) {
-                Stateful(&mut state) {
-                    List::new(
-                        self.detected_langs.clone(),
-                        block: widget!({ Block::bordered(title: "Detected Languages") }),
-                        highlight_symbol: ">"
-                    )
-                }
+            Layout (
+                direction: Direction::Vertical,
+                constraints: Constraint::from_lengths([
+
+                    self.detected_langs.len() as u16 + 2,
+                    self.unsupported_langs.len() as u16 + 2,
+                    1
+                ])
+            ){
+                List::new(
+                    self.detected_langs.clone(),
+                    block: widget!({ Block::bordered(title: "Detected Languages") })
+                ),
+
+                List::new(
+                                    self.unsupported_langs.clone(),
+                                    block: widget!({ Block::bordered(title: "Detected Languages") })
+                                )
             }
         }
         );
@@ -98,47 +90,26 @@ impl<'a> AppWidget for InitWidget<'a> {
     fn handle_events(&mut self, event: Event) -> AppStatus {
         handle_key_events(event, |key_event, key_code| {
             match key_code {
-                // KeyCode::Enter => {
-                //     let input = self.textarea.lines().get(0).unwrap();
+                KeyCode::Enter => {
+                    let input = self.textarea.lines().get(0).unwrap();
 
-                //     match input.as_str() {
-                //         "n" => return AppStatus::Exit,
-                //         "y" => {
-                //             let config = Config {
-                //                 flint: FlintConfig { version: 1 },
-                //                 linters: HashMap::new(),
-                //                 common: HashMap::new(),
-                //             };
+                    match input.as_str() {
+                        "n" => return AppStatus::Exit,
+                        "y" => {
+                            let config = Config {
+                                flint: FlintConfig { version: 1 },
+                                linters: HashMap::new(),
+                                common: HashMap::new(),
+                            };
 
-                //             create_toml_config("./flint.toml", config).unwrap();
-                //         }
-                //         _ => (),
-                //     }
-                // }
-                // _ => {
-                //     self.textarea.input(key_event);
-                // }
-                KeyCode::Down => {
-                    let mut state = self.state.borrow_mut();
-                    if let Some(prev_selected) = state.selected() {
-                        if prev_selected + 1 < self.detected_langs.len() {
-                            state.select(Some(prev_selected + 1));
+                            create_toml_config("./flint.toml", config).unwrap();
                         }
-                    } else {
-                        state.select(Some(0));
+                        _ => (),
                     }
                 }
-                KeyCode::Up => {
-                    let mut state = self.state.borrow_mut();
-                    if let Some(prev_selected) = state.selected() {
-                        if prev_selected > 0 {
-                            state.select(Some(prev_selected - 1));
-                        }
-                    } else {
-                        state.select(Some(0));
-                    }
+                _ => {
+                    self.textarea.input(key_event);
                 }
-                _ => (),
             }
             AppStatus::Ok
         })

@@ -1,5 +1,5 @@
 use crossterm::event::Event;
-use ratatui::{widgets::WidgetRef, Frame};
+use ratatui::widgets::WidgetRef;
 
 pub mod app;
 pub mod generate;

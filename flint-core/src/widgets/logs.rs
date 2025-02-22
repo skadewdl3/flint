@@ -6,7 +6,7 @@ use ratatui::{
     layout::{Constraint, Direction, Rect},
     style::{Color, Style},
     text::Text,
-    widgets::{Widget, WidgetRef},
+    widgets::Widget,
 };
 
 #[derive(Copy, Clone, Debug, Default)]
