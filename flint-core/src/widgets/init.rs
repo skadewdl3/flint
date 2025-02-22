@@ -19,7 +19,7 @@ pub struct InitWidget<'a> {
     textarea: TextArea<'a>,
     detected_langs: BTreeSet<String>,
     unsupported_langs: BTreeSet<String>,
-    _created_config: bool,
+    created_config: bool,
     config_exists: bool,
     cwd: String,
 }
@@ -38,25 +38,59 @@ impl<'a> WidgetRef for InitWidget<'a> {
             "Would you like to continue with creating flint.toml? (y/n)"
         };
 
+        let textarea = widget!({
+            Layout(
+                direction: Direction::Horizontal,
+                constraints: [
+                    Constraint::Length(confirm_message.len() as u16),
+                    Constraint::Length(1),
+                    Constraint::Fill(1)
+                ]
+            ) {
+                Paragraph::new(confirm_message, style: Style::default().fg(Color::Yellow)),
+                {" "},
+                {&self.textarea}
+            }
+        });
+
         ui!((area, buf) => {
             Layout (
                 direction: Direction::Vertical,
-                constraints: Constraint::from_lengths([
+                constraints: [Constraint::Length(1), Constraint::Fill(1)]
+            ) {
+                {"We found the following languages in this directory."},
+                Layout (
+                    direction: Direction::Vertical,
+                    constraints: Constraint::from_lengths([
+                        self.detected_langs.len() as u16 + 2,
+                        self.unsupported_langs.len() as u16 + 2,
+                        1, 1
+                    ])
+                ) {
+                    List::new(
+                        self.detected_langs.clone(),
+                        block: widget!({ Block::bordered(title: "Detected Languages") }),
+                    ),
+                    List::new(
+                        self.unsupported_langs.clone(),
+                        block: widget!({ Block::bordered(title: "Unsupported Languages") }),
+                    ),
+                    &{
+                        if !self.created_config {
+                            Some(textarea)
+                        } else { None }
+                    },
 
-                    self.detected_langs.len() as u16 + 2,
-                    self.unsupported_langs.len() as u16 + 2,
-                    1
-                ])
-            ){
-                List::new(
-                    self.detected_langs.clone(),
-                    block: widget!({ Block::bordered(title: "Detected Languages") })
-                ),
-
-                List::new(
-                                    self.unsupported_langs.clone(),
-                                    block: widget!({ Block::bordered(title: "Detected Languages") })
-                                )
+                    &{
+                        if self.created_config {
+                            Some(
+                                widget!({ Paragraph::new("Configuration created successfully!", style: Style::default().fg(Color::Green)) })
+                            )
+                        } else {
+                            None
+                        }
+                    }
+                }
             }
         }
         );
@@ -103,6 +137,7 @@ impl<'a> AppWidget for InitWidget<'a> {
                             };
 
                             create_toml_config("./flint.toml", config).unwrap();
+                            self.created_config = true;
                         }
                         _ => (),
                     }

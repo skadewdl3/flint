@@ -84,7 +84,7 @@ pub fn handle_layout_widget(
                 use ratatui::{
                     buffer::Buffer,
                     layout::{Layout, Rect},
-                    widgets::Widget,
+                    widgets::{Widget, WidgetRef},
                 };
 
                 pub struct LayoutWrapper<'a> {
@@ -105,6 +105,15 @@ pub fn handle_layout_widget(
                     fn render(self, area: Rect, buf: &mut Buffer) {
                         let chunks = self.layout.split(area);
                         for (idx, render_fn) in self.children.into_iter().enumerate() {
+                            render_fn(chunks[idx], buf);
+                        }
+                    }
+                }
+
+                impl<'a> WidgetRef for LayoutWrapper<'a> {
+                    fn render_ref<'b>(&'b self, area: Rect, buf: &mut Buffer) {
+                        let chunks = self.layout.split(area);
+                        for (idx, render_fn) in self.children.iter().enumerate() {
                             render_fn(chunks[idx], buf);
                         }
                     }
