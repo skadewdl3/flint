@@ -65,5 +65,5 @@ pub fn handle_variable_widget(
             };
         }
     }
-    quote! { let #variable_ident = #variable; #variable_ident }
+    quote! {{ let #variable_ident = #variable; #variable_ident }}
 }
