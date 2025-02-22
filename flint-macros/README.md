@@ -222,7 +222,132 @@ ui!(frame => {
 });
 ```
 
-Even here, I believe the version with the `ui!()` macro is more readable and composable.
+
+## Advanced Features
+I believe by this point, you're convinced of the benefits of this macro. The below examples show how the macro simplifies some complicated UI patterns.
+
+### Variable Widgets
+
+Variables containing widgets can be rendered using a double brace syntax:
+
+```rust
+// Store a widget in a variable
+let my_widget = Paragraph::new("Hello");
+
+// Render it using { }
+ui!(frame => {
+    { my_widget }
+});
+
+// The double braces can contain any expression that returns a Widget
+// here widget1 and widget2 must be of the same type
+ui!(frame => {
+    { if complex_condition {
+        widget1
+    } else {
+        widget2
+    } }
+});
+```
+
+### Conditional Rendering
+If the example just above, both the widgets must be of the same type. If they aren't, you'll need to use the If-Else syntax.
+The macro supports if/else conditional rendering using a syntax similar to JSX:
+
+```rust
+// Simple if condition
+ui!(frame => {
+    If(show_header) {
+        Paragraph::new("Header")
+    }
+});
+
+// If-else condition
+ui!(frame => {
+    If(is_loading) {
+        Spinner::new()
+    } Else {
+        Paragraph::new("Content loaded!")
+    }
+});
+
+// Can be nested in layouts
+ui!(frame => {
+    Layout(direction: Direction::Vertical) {
+        If(show_header) {
+            Paragraph::new("Header", style: header_style)
+        },
+        If(has_error) {
+            Paragraph::new("Error!", style: error_style)
+        } Else {
+            Paragraph::new("Success!", style: success_style)
+        }
+    }
+});
+```
+
+### Stateful Widgets
+
+For widgets that maintain state (like List or Table), use the Stateful wrapper:
+If you create a widget using Stateful in the `widget!()` macro, you won't need to pass
+the state in again - you can use the variable rendering syntax directly.
+
+```rust
+// Create the state
+let mut list_state = ListState::default();
+
+// Wrap the widget with Stateful
+ui!(frame => {
+    Stateful(list_state) {
+        List::new(items)
+    }
+});
+
+// Can be combined with other features
+ui!(frame => {
+    Layout(direction: Direction::Horizontal) {
+        Stateful(left_state) {
+            List::new(left_items)
+        },
+        Stateful(right_state) {
+            Table::new(right_items)
+        }
+    }
+});
+```
+
+### Rendering by Reference
+If any of your widgets implement WidgetRef instead of widget, you cannot directly render them.
+To simplify this process, just prefix the widget with `&`.
+
+Note that this doesn't work with the `For`, `If-Else` and `Stateful` syntax.
+
+
+```rust
+// Regular widget
+ui!(frame => {
+    Paragraph::new("By value")
+});
+
+// Widget rendered by reference
+ui!(frame => {
+    &Paragraph::new("By reference")
+});
+
+// Useful for certain stateful widgets
+ui!(frame => {
+    Stateful(table_state) {
+        &Table::new(items)
+    }
+});
+
+// Can be used with variable widgets too
+let widget = Table::new(items);
+ui!(frame => {
+    &{{ widget }}
+});
+```
+
 
 I'll add more docs soon, but here's some quick examples of additional functionality.
 1.
@@ -248,14 +373,14 @@ ui!(frame => { Widget::custom("title", 42, color: Color::Red, bold: true) });
 ui!(frame => { Block::bordered(title: "My Block", borders: Borders::ALL, style: Style::default().fg(Color::Blue)) });
 
 // Variable widget: renders any expression that implements Widget trait
-ui!(frame => { {{ my_custom_widget }} });
+ui!(frame => { { my_custom_widget } });
 
 // For loop with iterator and layout constraints
 // Under the hood, this converts to a layout, hence you can pas all the named arguments
 // you could to a Layout widget
 ui!(frame => {
     For (item in items.iter(), constraints: [Constraint::Length(3)]) {
-        {{ item.to_widget() }}
+        { item.to_widget() }
     }
 });
 
@@ -290,8 +415,8 @@ let content_panel = widget!({
 // Use them together in the main UI using {{ }}
 ui!(frame => {
     Layout(direction: Direction::Horizontal) {
-        {{ sidebar }},
-        {{ content_panel }}
+        { sidebar },
+        { content_panel }
     }
 });
 ```
