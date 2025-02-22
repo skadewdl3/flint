@@ -1,30 +1,33 @@
-/// Crate imports for widget handling functionality.
+use super::{generate_widget_code, wrapper::get_iter_layout_wrapper, WidgetHandlerOptions};
 use crate::{
     arg::ArgKind,
     codegen::util::generate_unique_id,
     widget::{Widget, WidgetKind, WidgetRenderer},
     MacroInput,
 };
-
-/// Super module imports for widget code generation.
-use super::{generate_widget_code, wrapper::get_iter_layout_wrapper, WidgetHandlerOptions};
 use proc_macro2::Span;
 use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{Expr, Pat};
 
-/// Handles generating code for an iteration-based layout widget.
+/// Generates code for a widget that repeats a child widget for each item in an iterator.
+/// This function handles both top-level and nested layouts, supporting different rendering modes
+/// through MacroInput variants.
 ///
 /// # Arguments
 ///
-/// * `loop_var` - The loop variable expression
-/// * `iter` - The iterator expression
-/// * `child` - The child widget to render in the loop
-/// * `options` - Configuration options for widget handling
+/// * `widget` - The widget definition containing layout arguments and configuration
+/// * `loop_var` - Pattern to bind each iterator item (e.g. the 'x' in 'for x in items')
+/// * `iter` - Expression that produces the iterator to loop over
+/// * `child` - The widget template to render for each iterator item
+/// * `options` - Configuration including parent context and rendering mode
 ///
 /// # Returns
 ///
-/// A TokenStream containing the generated widget code
+/// A TokenStream containing the generated layout and rendering code, which will:
+/// - Set up the layout configuration
+/// - Split the available area into chunks
+/// - Render the child widget for each iterator item in the appropriate chunk
 pub fn handle_iter_layout_widget(
     widget: &Widget,
     loop_var: &Pat,

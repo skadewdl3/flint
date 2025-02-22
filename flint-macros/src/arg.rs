@@ -41,8 +41,7 @@ impl Parse for Arg {
     /// - `Ok(Arg)` if parsing succeeds
     /// - `Err(Error)` if parsing fails
     fn parse(input: ParseStream) -> Result<Self> {
-        // First, check for named parameter pattern
-
+        // First, check for named parameter pattern, if we find one then parse it
         if input.peek(Ident) && input.peek2(Token![:]) {
             let name = input.parse::<Ident>()?;
             input.parse::<Token![:]>()?;
@@ -54,7 +53,7 @@ impl Parse for Arg {
             });
         }
 
-        // If not named, try parsing as a regular expression
+        // If not named, try parsing as a positional parameter
         let value = input.parse::<Expr>()?;
         Ok(Arg {
             value,

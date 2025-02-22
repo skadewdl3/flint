@@ -13,21 +13,32 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::Ident;
 
-/// Handles the code generation for a layout widget. This widget is responsible for
-/// arranging its child widgets within a specified layout. It reduces the complexity of layout
-/// management by automatically rendering the children in the correct area of the layout
-/// according to their order.
+/// This module handles code generation for layout widgets in a UI system. Layout widgets are containers
+/// that organize and arrange their child widgets according to specified layout rules.
+///
+/// The code generation process involves:
+/// 1. Creating a new layout instance with provided arguments
+/// 2. Configuring the layout with any named parameters
+/// 3. Handling child widgets differently based on the input type (Raw vs UI)
+/// 4. For Raw input: Creating a vector of render functions for children
+/// 5. For UI input: Splitting the available area into chunks and rendering children into those chunks
+///
+/// The function supports different types of child widgets:
+/// - Layout widgets: Rendered recursively
+/// - Constructor widgets: Always rendered statelessly
+/// - Stateful widgets: Rendered with state management
+/// - Other widgets: Rendered normally into layout chunks
 ///
 /// # Arguments
 ///
-/// * `widget` - The layout widget to handle
-/// * `name` - The identifier for this layout
-/// * `children` - Vector of child widgets contained in this layout
-/// * `options` - Configuration options for widget handling
+/// * `widget` - The layout widget configuration to process
+/// * `name` - The identifier for this layout instance
+/// * `children` - Vector of child widgets to be arranged in this layout
+/// * `options` - Configuration options including parent/child relationships and render mode
 ///
 /// # Returns
 ///
-/// A TokenStream containing the generated code for this layout widget and its children
+/// A TokenStream containing the complete generated code for this layout and its children
 pub fn handle_layout_widget(
     widget: &Widget,
     name: &Ident,
@@ -46,6 +57,7 @@ pub fn handle_layout_widget(
     let layout_ident = proc_macro2::Ident::new(&format!("layout_{}", layout_index), name.span());
     let parent_ident = proc_macro2::Ident::new(&format!("chunks_{}", parent_id), name.span());
 
+    // Extract positional arguments from widget configuration
     let positional_args: Vec<_> = args
         .iter()
         .filter_map(|arg| match &arg.kind {
@@ -54,11 +66,12 @@ pub fn handle_layout_widget(
         })
         .collect();
 
+    // Begin constructing layout initialization code
     let mut layout_code = quote! {
         let mut #layout_ident = #name::default(#(#positional_args),*)
     };
 
-    // Add named arguments as method calls
+    // Configure layout with named arguments
     for arg in args {
         if let ArgKind::Named(name) = &arg.kind {
             let value = &arg.value;
@@ -70,10 +83,8 @@ pub fn handle_layout_widget(
 
     layout_code.extend(quote! { ; });
 
-    // Always end with semicolon after configuration
-    //
-
     match input {
+        // Raw mode: Create vector of render functions
         MacroInput::Raw { .. } => {
             layout_code.extend(quote! {
                 let mut children: Vec<Box<dyn Fn(Rect, &mut Buffer)>> = Vec::new();
@@ -103,12 +114,12 @@ pub fn handle_layout_widget(
             }
         }
 
+        // UI mode: Split area into chunks and render children
         MacroInput::Ui { renderer, .. } => {
-            // Create chunks vector
             let chunks_ident =
                 proc_macro2::Ident::new(&format!("chunks_{}", layout_index), name.span());
 
-            // Split the area - for top level use frame.area(), for nested use the parent's chunk
+            // Generate area splitting code based on layout level
             let split_code = if *is_top_level {
                 match renderer {
                     WidgetRenderer::Area { area, .. } => {
@@ -131,6 +142,7 @@ pub fn handle_layout_widget(
 
             let mut render_statements = quote! {};
 
+            // Process each child widget
             for (idx, child) in children.iter().enumerate() {
                 let new_options = WidgetHandlerOptions::new(false, layout_index, idx, input);
                 let (render_fn, frame_render_fn) = get_render_function(child);
@@ -143,20 +155,17 @@ pub fn handle_layout_widget(
                 };
 
                 match child.kind {
-                    // Layout widgets don't return an actual widget, so we don't call frame.render_widget on them
-                    // Instead, their children are rendered recursively
+                    // Layout widgets render recursively
                     WidgetKind::Layout { .. } | WidgetKind::IterLayout { .. } => {
                         render_statements.extend(quote! {
                             #child_widget
                         });
                     }
 
-                    // Constructor widgets are always rendered as stateless, since if they are stateful
-                    // they will be wrapped in a stateless wrapper by generate_widget_code()
+                    // Constructor widgets render statelessly
                     WidgetKind::Constructor { .. } => {
                         let (render_fn, frame_render_fn) = get_render_function(widget);
                         render_statements.extend(match renderer {
-                            // TODO: if widget is render_ref, use the render_ref fucntion from WIdgetRef
                             WidgetRenderer::Area { buffer, .. } =>  {
                                 quote! {
                                     #render_fn(#render_ref_code #child_widget, #chunks_ident[#idx], #buffer);
@@ -169,8 +178,7 @@ pub fn handle_layout_widget(
                         });
                     }
 
-                    // For stateful widgets, we'll call the stateful versions of the render functions
-                    // and pass in the state
+                    // Stateful widgets include state in rendering
                     WidgetKind::Stateful { ref state, .. } => {
                         render_statements.extend(match renderer {
                             WidgetRenderer::Area {  buffer, .. } => quote! {
@@ -183,7 +191,7 @@ pub fn handle_layout_widget(
                         });
                     }
 
-                    // For all other widgets, we'll just render them normally into the layout chunks
+                    // Standard widgets render normally
                     _ => {
                         render_statements.extend(match renderer {
                             WidgetRenderer::Area {  buffer, .. } => quote! {
@@ -198,7 +206,7 @@ pub fn handle_layout_widget(
                 }
             }
 
-            // Combine everything into a block
+            // Combine all generated code
             quote! {
                 {
                     #layout_code

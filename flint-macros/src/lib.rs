@@ -1,4 +1,5 @@
 //! This module provides a procedural macro for generating UI widget code.
+//! It includes functionality for handling UI widgets and their rendering options.
 
 /// Internal module for argument handling
 mod arg;
@@ -16,6 +17,12 @@ use syn::{
 };
 use widget::{Widget, WidgetRenderer};
 
+/// Represents the different types of macro input that can be processed
+///
+/// # Variants
+///
+/// * `Ui` - Contains both a widget and its renderer
+/// * `Raw` - Contains just a widget without rendering information
 #[derive(Debug)]
 enum MacroInput {
     Ui {
@@ -27,6 +34,15 @@ enum MacroInput {
     },
 }
 
+/// Implements the parsing logic for MacroInput
+///
+/// # Arguments
+///
+/// * `input` - The ParseStream to read tokens from
+///
+/// # Returns
+///
+/// Result containing the parsed MacroInput or an error
 impl Parse for MacroInput {
     fn parse(input: ParseStream) -> Result<Self> {
         // First check if we start with a brace (ui_raw case)
@@ -65,7 +81,9 @@ impl Parse for MacroInput {
     }
 }
 
-/// Generates UI widget code based on the macro input
+/// Generates UI widget code with rendering options
+///
+/// This macro processes input containing both widget definition and rendering information.
 ///
 /// # Arguments
 ///
@@ -74,6 +92,10 @@ impl Parse for MacroInput {
 /// # Returns
 ///
 /// TokenStream containing the generated widget code
+///
+/// # Panics
+///
+/// Panics if a widget is passed directly without rendering options
 #[proc_macro]
 pub fn ui(input: TokenStream) -> TokenStream {
     let macro_input = parse_macro_input!(input as MacroInput);
@@ -86,6 +108,21 @@ pub fn ui(input: TokenStream) -> TokenStream {
     }
 }
 
+/// Generates widget code without rendering options
+///
+/// This macro processes raw widget definitions without any rendering information.
+///
+/// # Arguments
+///
+/// * `input` - The input TokenStream containing the widget definition
+///
+/// # Returns
+///
+/// TokenStream containing the generated widget code
+///
+/// # Panics
+///
+/// Panics if rendering options are included in the input
 #[proc_macro]
 pub fn widget(input: TokenStream) -> TokenStream {
     let macro_input = parse_macro_input!(input as MacroInput);

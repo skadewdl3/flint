@@ -1,6 +1,6 @@
 use crate::arg::Arg;
 use syn::{
-    braced, bracketed, parenthesized,
+    braced, parenthesized,
     parse::{Parse, ParseStream},
     punctuated::Punctuated,
     token, Expr, ExprBlock, Ident, Pat, Result, Token,
@@ -28,30 +28,52 @@ pub enum WidgetKind {
         /// The expression representing the widget
         expr: ExprBlock,
     },
+    /// A layout widget that iterates over a collection to create widgets
     IterLayout {
+        /// The loop variable pattern
         loop_var: Pat,
+        /// The iterator expression
         iter: Expr,
-        /// The child widgets contained in this layout
+        /// The child widget to be rendered for each iteration
         child: Box<Widget>,
     },
+    /// A widget that maintains some state
     Stateful {
+        /// The state expression
         state: Expr,
+        /// The child widget that depends on the state
         child: Box<Widget>,
     },
+    /// A widget that renders conditionally based on a condition
     Conditional {
+        /// The condition expression
         condition: Expr,
+        /// The widget to render if condition is true
         if_child: Box<Widget>,
+        /// The optional widget to render if condition is false
         else_child: Option<Box<Widget>>,
     },
 }
 
+/// Specifies how a widget should be rendered
 #[derive(Debug)]
 pub enum WidgetRenderer {
-    Area { area: Expr, buffer: Expr },
-    Frame(Expr),
+    /// Render the widget in a specific area with a buffer
+    Area {
+        /// The area expression
+        area: Expr,
+        /// The buffer expression
+        buffer: Expr,
+    },
+    /// Render the widget in a frame
+    Frame(
+        /// The frame expression
+        Expr,
+    ),
 }
 
 impl Parse for WidgetRenderer {
+    /// Parses a widget renderer from a token stream
     fn parse(input: ParseStream) -> Result<Self> {
         if input.peek(token::Paren) {
             let content;

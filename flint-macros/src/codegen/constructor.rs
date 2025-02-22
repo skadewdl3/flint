@@ -1,3 +1,4 @@
+use super::{util::get_render_function, WidgetHandlerOptions};
 use crate::{
     arg::ArgKind,
     widget::{Widget, WidgetRenderer},
@@ -7,26 +8,34 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::Ident;
 
-use super::{util::get_render_function, WidgetHandlerOptions};
-
 /// Handles the generation of widget construction code. This is the simplest kind of widget.
 /// It's called a constructor widget since we can specify the constructor function to use
 /// as well as any additional arguments required for the widget's construction.
 ///
 /// This function takes a widget definition and generates the appropriate TokenStream
 /// for constructing that widget, including both positional and named arguments.
+/// It handles three main tasks:
+///
+/// 1. Generates constructor call with positional arguments
+/// 2. Adds any named arguments as method chaining
+/// 3. If the widget is top-level, generates code to render it to a frame or area
 ///
 /// # Arguments
 ///
-/// * `widget` - The widget definition containing arguments and configuration
-/// * `name` - The identifier for the widget type/name
-/// * `constructor` - The identifier for the widget's constructor function
-/// * `options` - Additional options controlling widget generation behavior
+/// * `widget` - The widget definition containing arguments and configuration, including
+///             positional args, named args, and render settings
+/// * `name` - The identifier for the widget type/name that will be constructed
+/// * `constructor` - The identifier for the specific constructor function to call
+/// * `options` - Additional options including whether this is a top-level widget
+///              and what kind of UI input is being used
 ///
 /// # Returns
 ///
-/// Returns a TokenStream containing the widget construction code. If the widget is
-/// marked as top-level, the code will include rendering the widget to a frame.
+/// Returns a TokenStream containing:
+/// - Just the widget construction code for non-top-level widgets
+/// - Construction + rendering code for top-level widgets, using either:
+///   - Area rendering with area and buffer
+///   - Frame rendering with frame.render() calls
 pub fn handle_constructor_widget(
     widget: &Widget,
     name: &Ident,
@@ -41,6 +50,7 @@ pub fn handle_constructor_widget(
 
     let args = &widget.args;
 
+    // Extract just the positional arguments in order
     let positional_args: Vec<_> = args
         .iter()
         .filter_map(|arg| match &arg.kind {
@@ -54,6 +64,7 @@ pub fn handle_constructor_widget(
         #name :: #constructor(#(#positional_args),*)
     };
 
+    // Add any named arguments as chained method calls
     for arg in args {
         if let ArgKind::Named(name) = &arg.kind {
             let value = &arg.value;
@@ -65,11 +76,13 @@ pub fn handle_constructor_widget(
 
     let (render_fn, frame_render_fn) = get_render_function(widget);
 
+    // Determine if we need to pass widget by reference when rendering
     let render_ref_code = match widget.render_ref {
         true => quote! {&},
         false => quote! {},
     };
 
+    // For top-level widgets in UI context, generate rendering code
     if let MacroInput::Ui { renderer, .. } = input {
         if *is_top_level {
             return match renderer {
@@ -85,70 +98,7 @@ pub fn handle_constructor_widget(
         }
     }
 
-    // if widget.stateful {
-    //     let stateful_wrapper = match widget.render_ref {
-    //         true => {
-    //             panic!("The ui!() and widget!() macro's don't support rendering StatefulWidgetRef widgets yet.")
-    //         }
-
-    //         false => quote! {
-    //             use std::cell::RefCell;
-    //             use ratatui::{
-    //                 widgets::{StatefulWidget, Widget},
-    //                 layout::Rect,
-    //                 buffer::Buffer,
-    //             };
-
-    //             pub struct StatefulWrapper<'a, W, S>
-    //             where
-    //                 W: StatefulWidget<State = S>,
-    //             {
-    //                 widget: W,
-    //                 state: RefCell<&'a mut S>,
-    //             }
-
-    //             impl<'a, W, S> StatefulWrapper<'a, W, S>
-    //             where
-    //                 W: StatefulWidget<State = S>,
-    //             {
-    //                 /// Creates a new StatefulWrapper with the given widget and state
-    //                 pub fn new(widget: W, state: &'a mut S) -> Self {
-    //                     Self {
-    //                         widget,
-    //                         state: RefCell::new(state)
-    //                     }
-    //                 }
-    //             }
-
-    //             impl<'a, W, S> Widget for StatefulWrapper<'a, W, S>
-    //             where
-    //                 W: StatefulWidget<State = S>,
-    //             {
-    //                 fn render(self, area: Rect, buf: &mut Buffer) {
-    //                     let mut state = self.state.borrow_mut();
-    //                     ratatui::widgets::StatefulWidget::render(self.widget, area, buf, &mut *state);
-    //                 }
-    //             }
-    //         },
-    //     };
-
-    //     let stateful_wrapper_init = match widget.render_ref {
-    //         true => quote! {
-    //             StatefulRefWrapper::new(#render_ref_code #widget_code #stateful_code)
-    //         },
-    //         false => quote! {
-    //             StatefulWrapper::new(#widget_code #stateful_code)
-    //         },
-    //     };
-    //     quote! {
-    //         {
-    //             #stateful_wrapper
-    //             #stateful_wrapper_init
-    //         }
-    //     }
-    // } else {
-    // }
-
+    // For non-top-level widgets, just return the construction code
     quote! {
         #widget_code
     }
