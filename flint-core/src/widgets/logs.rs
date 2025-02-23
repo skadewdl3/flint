@@ -1,12 +1,12 @@
-use std::sync::{OnceLock, RwLock, RwLockReadGuard, RwLockWriteGuard};
+use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 use flint_macros::{ui, widget};
 use ratatui::{
     buffer::Buffer,
     layout::{Constraint, Direction, Rect},
     style::{Color, Style},
-    text::Text,
-    widgets::{Paragraph, Widget, Wrap},
+    text::{Line, Span, Text},
+    widgets::{Block, Padding, Paragraph, Widget, Wrap},
 };
 
 #[derive(Copy, Clone, Debug, Default)]
@@ -75,26 +75,21 @@ impl Widget for LogsWidget {
     fn render(self, area: Rect, buffer: &mut Buffer) {
         let logs = get_logs().unwrap();
 
-        let log_lines: Vec<u16> = logs
+        let log_lines = logs
             .iter()
-            .map(|(kind, log)| match kind {
-                LogKind::Debug => log.lines().count() as u16 + 1,
-                _ => log.lines().count() as u16,
+            .flat_map(|(kind, log)| {
+                log.split('\n')
+                    .map(|line| Line::from(line.to_string()).style(get_style(kind)))
+                    .collect::<Vec<Line>>()
             })
-            .collect();
+            .collect::<Vec<Line>>();
+
+        let text = Text::from(log_lines);
+
+        let block = widget!({ Block::bordered(title: "Logs", padding: Padding::horizontal(1)) });
 
         ui!((area, buffer) => {
-            For (
-                (kind, log) in logs.iter(),
-                constraints: Constraint::from_lengths(log_lines),
-                direction: Direction::Vertical
-            ) {
-                Paragraph::new(
-                    log.as_str(),
-                    style: get_style(kind),
-                    wrap: Wrap { trim: true }
-                )
-            }
+           Paragraph::new(text, block: block)
         });
     }
 }

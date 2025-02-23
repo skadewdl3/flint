@@ -1,5 +1,5 @@
 use super::{
-    logs::{add_log, get_logs, LogKind, LogsWidget},
+    logs::{add_log, LogKind, LogsWidget},
     AppError, AppResult, AppWidget,
 };
 use crate::util::{
@@ -55,39 +55,36 @@ impl<'a> WidgetRef for InitWidget<'a> {
 
         ui!((area, buf) => {
             Layout(
-                constraints: Constraint::from_fills([1, 1]),
+                constraints: [Constraint::Fill(1), Constraint::Length(2), Constraint::Fill(1)],
                 direction: Direction::Horizontal
             ) {
 
                 Layout (
                     direction: Direction::Vertical,
-                    constraints: [Constraint::Length(1), Constraint::Fill(1)]
+                    constraints: Constraint::from_lengths([
+                        1,
+                        self.detected_langs.len() as u16 + 2,
+                        self.unsupported_langs.len() as u16 + 2,
+                        1
+                    ])
                 ) {
                     {"We found the following languages in this directory."},
-                    Layout (
-                        direction: Direction::Vertical,
-                        constraints: Constraint::from_lengths([
-                            self.detected_langs.len() as u16 + 2,
-                            self.unsupported_langs.len() as u16 + 2,
-                            1, 1
-                        ])
-                    ) {
-                        List::new(
-                            self.detected_langs.clone(),
-                            block: widget!({ Block::bordered(title: "Detected Languages") }),
-                        ),
-                        List::new(
-                            self.unsupported_langs.clone(),
-                            block: widget!({ Block::bordered(title: "Unsupported Languages") }),
-                        ),
-                        If (!self.created_config) {
-                            {textarea}
-                        } Else {
-                            Paragraph::new("Configuration created successfully")
-                        }
+
+                    List::new(
+                        self.detected_langs.clone(),
+                        block: widget!({ Block::bordered(title: "Detected Languages") }),
+                    ),
+                    List::new(
+                        self.unsupported_langs.clone(),
+                        block: widget!({ Block::bordered(title: "Unsupported Languages") }),
+                    ),
+                    If (!self.created_config) {
+                        {textarea}
+                    } Else {
+                        Paragraph::new("Configuration created successfully")
                     }
                 },
-
+                {""},
                 {self.logs}
             }
         }
