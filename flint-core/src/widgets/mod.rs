@@ -1,6 +1,3 @@
-use crossterm::event::Event;
-use ratatui::widgets::WidgetRef;
-
 pub mod app;
 pub mod generate;
 pub mod help;
@@ -9,28 +6,40 @@ pub mod test;
 pub use app::*;
 pub mod logs;
 
+use crossterm::event::Event;
+use ratatui::widgets::WidgetRef;
+use std::io;
+use thiserror::Error;
+
 pub trait AppWidget: WidgetRef {
-    fn setup(&mut self) -> AppStatus {
-        return AppStatus::Ok;
+    fn setup(&mut self) -> AppResult<()> {
+        Ok(())
     }
-    fn handle_events(&mut self, _event: Event) -> AppStatus {
-        return AppStatus::Ok;
+    fn handle_events(&mut self, _event: Event) -> AppResult<()> {
+        Ok(())
     }
 }
 
-#[derive(Copy, Clone)]
-pub enum AppStatus<'a> {
-    Ok,
+#[derive(Error, Debug)]
+pub enum AppError {
+    #[error("Network error: {0}")]
+    Network(String),
+
+    #[error("Deserialization error: {0}")]
+    Deserialization(#[from] toml::de::Error),
+
+    #[error("Serialization error: {0}")]
+    Serialization(#[from] toml::ser::Error),
+
+    #[error("IO error: {0}")]
+    Io(#[from] io::Error),
+
+    #[error("Application error: {0}")]
+    Err(String),
+
+    #[error("User requested exit")]
     Exit,
-    Error(&'a str),
 }
 
-impl AppStatus<'_> {
-    pub fn into_result(&self) -> Result<(), std::io::Error> {
-        match self {
-            Self::Ok => Ok(()),
-            Self::Exit => Ok(()),
-            Self::Error(msg) => Err(std::io::Error::new(std::io::ErrorKind::Other, *msg)),
-        }
-    }
-}
+// Create type alias for Result with AppError as default error type
+pub type AppResult<T> = Result<T, AppError>;

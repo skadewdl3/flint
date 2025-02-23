@@ -1,4 +1,4 @@
-use crate::widgets::AppStatus;
+use crate::widgets::AppResult;
 use crossterm::event::{Event, KeyCode, KeyEvent};
 use plugin::Plugin;
 use std::{
@@ -17,12 +17,12 @@ pub static PLUGIN_MAP: OnceLock<HashMap<String, BTreeSet<Plugin>>> = OnceLock::n
 pub use lang::{detect_languages, get_language_map};
 pub use plugin::{get_plugin_map, get_plugins_dir, list_plugins};
 
-pub fn handle_key_events<'a>(
+pub fn handle_key_events(
     event: Event,
-    callback: impl FnOnce(KeyEvent, KeyCode) -> AppStatus<'a>,
-) -> AppStatus<'a> {
+    callback: impl FnOnce(KeyEvent, KeyCode) -> AppResult<()>,
+) -> AppResult<()> {
     if let Event::Key(key_event) = event {
         return callback(key_event, key_event.code);
     }
-    AppStatus::Ok
+    Ok(())
 }

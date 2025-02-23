@@ -3,6 +3,8 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 use toml;
 
+use crate::widgets::AppResult;
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct FlintConfig {
     // pub langs: Vec<String>,
@@ -16,14 +18,14 @@ pub struct Config {
     pub linters: HashMap<String, toml::Value>,
 }
 
-pub fn create_toml_config(path: &str, config: Config) -> Result<(), Box<dyn std::error::Error>> {
-    let toml_str = toml::to_string(&config).unwrap();
+pub fn create_toml_config(path: &str, config: Config) -> AppResult<()> {
+    let toml_str = toml::to_string(&config)?;
     std::fs::write(path, toml_str)?;
 
     Ok(())
 }
 
-pub fn read_toml_config(path: &str) -> Result<Config, Box<dyn std::error::Error>> {
+pub fn read_toml_config(path: &str) -> AppResult<Config> {
     let toml_str = std::fs::read_to_string(path)?;
     let config: Config = toml::from_str(&toml_str)?;
 

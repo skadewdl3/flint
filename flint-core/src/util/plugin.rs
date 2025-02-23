@@ -26,6 +26,74 @@ pub struct Plugin {
     pub path: PathBuf,
 }
 
+impl Plugin {
+    pub fn run<'a>(&self, toml: &Arc<Config>) -> Result<HashMap<String, String>, String> {
+        let lua = Lua::new();
+        add_helper_globals(&lua);
+        let common_config = lua
+            .to_value(&toml.common)
+            .expect("unable to convert common config to lua value");
+        let plugin_config = toml
+            .linters
+            .get(&self.details.id)
+            .expect("unable to find config for a plugin");
+        let plugin_config = lua
+            .to_value(plugin_config)
+            .expect("unable to convert plugin config to lua value");
+        let plugin_config = plugin_config
+            .as_table()
+            .expect("unable to convert plugin config lua value to table");
+
+        plugin_config
+            .set("common", common_config)
+            .expect("unable to set common table to config table");
+
+        let contents = match std::fs::read_to_string(&self.path) {
+            Ok(contents) => contents,
+            Err(_) => {
+                return Err("Error reading plugin code".into());
+            }
+        };
+
+        let (validate, generate) = match lua.load(contents).exec() {
+            Ok(_) => {
+                let validate: Function = lua
+                    .globals()
+                    .get("Validate")
+                    .expect("could not find validate function in plugin file");
+                let generate: Function = lua
+                    .globals()
+                    .get("Generate")
+                    .expect("could not find generate function in plugin file");
+                (validate, generate)
+            }
+            Err(_) => {
+                return Err("Error loading lua file".into());
+            }
+        };
+
+        let validate_success = validate
+            .call::<mlua::Value>(plugin_config)
+            .expect("error running validate function");
+
+        let validate_success: bool = lua
+            .from_value(validate_success)
+            .expect("unable to convert validation result to boolean");
+        if !validate_success {
+            return Err("Plugin config validation failed".into());
+        }
+
+        let generate_results = generate
+            .call::<mlua::Value>(plugin_config)
+            .expect("error running generate function");
+        let generate_results: HashMap<String, String> = lua
+            .from_value(generate_results)
+            .expect("unable to convert generation result to String");
+
+        Ok(generate_results)
+    }
+}
+
 pub fn get_plugins_dir() -> PathBuf {
     if cfg!(debug_assertions) {
         return PathBuf::from("./flint-core/src/plugins");
@@ -95,75 +163,6 @@ pub fn get_plugin_map() -> &'static HashMap<String, BTreeSet<Plugin>> {
         }
         m
     })
-}
-
-pub fn run_plugin<'a>(
-    plugin: &Plugin,
-    toml: &Arc<Config>,
-) -> Result<HashMap<String, String>, String> {
-    let lua = Lua::new();
-    add_helper_globals(&lua);
-    let common_config = lua
-        .to_value(&toml.common)
-        .expect("unable to convert common config to lua value");
-    let plugin_config = toml
-        .linters
-        .get(&plugin.details.id)
-        .expect("unable to find config for a plugin");
-    let plugin_config = lua
-        .to_value(plugin_config)
-        .expect("unable to convert plugin config to lua value");
-    let plugin_config = plugin_config
-        .as_table()
-        .expect("unable to convert plugin config lua value to table");
-
-    plugin_config
-        .set("common", common_config)
-        .expect("unable to set common table to config table");
-
-    let contents = match std::fs::read_to_string(&plugin.path) {
-        Ok(contents) => contents,
-        Err(_) => {
-            return Err("Error reading plugin code".into());
-        }
-    };
-
-    let (validate, generate) = match lua.load(contents).exec() {
-        Ok(_) => {
-            let validate: Function = lua
-                .globals()
-                .get("Validate")
-                .expect("could not find validate function in plugin file");
-            let generate: Function = lua
-                .globals()
-                .get("Generate")
-                .expect("could not find generate function in plugin file");
-            (validate, generate)
-        }
-        Err(_) => {
-            return Err("Error loading lua file".into());
-        }
-    };
-
-    let validate_success = validate
-        .call::<mlua::Value>(plugin_config)
-        .expect("error running validate function");
-
-    let validate_success: bool = lua
-        .from_value(validate_success)
-        .expect("unable to convert validation result to boolean");
-    if !validate_success {
-        return Err("Plugin config validation failed".into());
-    }
-
-    let generate_results = generate
-        .call::<mlua::Value>(plugin_config)
-        .expect("error running generate function");
-    let generate_results: HashMap<String, String> = lua
-        .from_value(generate_results)
-        .expect("unable to convert generation result to String");
-
-    Ok(generate_results)
 }
 
 fn add_helper_globals(lua: &Lua) {
