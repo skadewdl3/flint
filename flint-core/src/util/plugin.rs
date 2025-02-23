@@ -192,6 +192,12 @@ fn add_helper_globals(lua: &Lua) {
             Err(err) => Err(mlua::Error::external(err)),
         })
         .unwrap();
+    let to_toml = lua
+        .create_function(|_, value: Value| match toml::to_string_pretty(&value) {
+            Ok(toml_str) => Ok(toml_str),
+            Err(err) => Err(mlua::Error::external(err)),
+        })
+        .unwrap();
 
     log.set("info", create_log_fn(LogKind::Info)).unwrap();
     log.set("error", create_log_fn(LogKind::Error)).unwrap();
@@ -199,5 +205,6 @@ fn add_helper_globals(lua: &Lua) {
     log.set("success", create_log_fn(LogKind::Success)).unwrap();
     log.set("debug", debug_print).unwrap();
     lua.globals().set("to_json", to_json).unwrap();
+    lua.globals().set("to_toml", to_toml).unwrap();
     lua.globals().set("log", log).unwrap();
 }

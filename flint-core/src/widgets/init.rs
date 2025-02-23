@@ -24,12 +24,6 @@ pub struct InitWidget<'a> {
     cwd: String,
 }
 
-impl<'a> InitWidget<'a> {
-    pub fn hello_world(&self) -> &'a str {
-        "Hello World"
-    }
-}
-
 impl<'a> WidgetRef for InitWidget<'a> {
     fn render_ref(&self, area: Rect, buf: &mut Buffer) {
         let confirm_message = if self.config_exists {
@@ -85,22 +79,6 @@ impl<'a> WidgetRef for InitWidget<'a> {
         }
         );
     }
-
-    // &{
-    //                         if !self.created_config {
-    //                             Some(textarea)
-    //                         } else { None }
-    //                     },
-
-    //                     &{
-    //                         if self.created_config {
-    //                             Some(
-    //                                 widget!({ Paragraph::new("Configuration created successfully!", style: Style::default().fg(Color::Green)) })
-    //                             )
-    //                         } else {
-    //                             None
-    //                         }
-    //                     }
 }
 
 impl<'a> AppWidget for InitWidget<'a> {
