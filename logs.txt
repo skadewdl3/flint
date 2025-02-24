@@ -190,3 +190,58 @@
 }
 [info]: Generating ESLint configuration
 [success]: Generated eslint config successfully
+[error]: Error reading file ./flint-core/src/plugins/lint/eslint: Is a directory (os error 21)
+[error]: Error reading file ./flint-core/src/plugins/lint/sqlfluff: Is a directory (os error 21)
+[error]: Error reading file ./flint-core/src/plugins/lint/eslint: Is a directory (os error 21)
+[error]: Error reading file ./flint-core/src/plugins/lint/sqlfluff: Is a directory (os error 21)
+[info]: Determined current directory: /home/skadewdl3/Projects/flint
+[error]: Error reading plugin code
+[error]: Error reading plugin code
+[info]: Generating ESLint configuration
+[info]: Validating sqlfluff config
+[success]: Generated sqlfluff config successfully
+[debug]: {
+  "common": {
+    "todo_comments_allowed": false,
+    "detect_unused_variables": true,
+    "quote_style": "double",
+    "constant_case": "UPPER_CASE",
+    "require_early_return": true,
+    "variable_case": "snake_case",
+    "trailing_whitespace": false,
+    "require_try_catch": true,
+    "bracket_style": "kr",
+    "sort_imports": true,
+    "ban_empty_loops": true,
+    "max_file_length": 1000,
+    "require_logging_in_exceptions": true,
+    "require_function_comments": true,
+    "docstrings_required": true,
+    "allow_global_variables": false,
+    "catch_specific_exceptions": true,
+    "require_const_for_immutable": true,
+    "require_switch_default": true,
+    "max_nesting_depth": 3,
+    "function_case": "camelCase",
+    "max_function_length": 50,
+    "indent": {
+      "indent_size": 4,
+      "function_declaration": {
+        "parameters": 3,
+        "body": 2
+      },
+      "indent_style": "spaces",
+      "switch_case": 5
+    },
+    "interface_prefix": "I",
+    "require_semicolons": true,
+    "class_case": "PascalCase",
+    "max_function_parameters": 5,
+    "allow_unused_imports": false,
+    "max_nesting_depth_loops": 3,
+    "max_line_length": 120
+  },
+  "semi": false
+}
+[info]: Generating ESLint configuration
+[success]: Generated eslint config successfully

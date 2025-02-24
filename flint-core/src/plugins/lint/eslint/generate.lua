@@ -1,21 +1,3 @@
-function Details()
-    local details = {
-        id = "eslint",
-        author = "Soham Karandikar",
-        version = "0.0.1",
-        extensions = { "js", "ts", "mjs", "cjs" },
-        category = "lint"
-    }
-    return details
-end
-
-function Validate(config)
-    -- sleep(2000)
-    local temp = { foo = 'bar', baz = 123, qux = { nested = true } }
-    log.debug(config);
-    return true
-end
-
 function Generate(config)
     local common = config.common
     log.info("Generating ESLint configuration")
@@ -31,7 +13,7 @@ function Generate(config)
         ["@stylistic/js"] = "stylisticJs"
     }
 
-    
+
     --Function to get correct stylistic plugin based on rule extension
     local function getplugin(rule_key)
         local extension_map = {
@@ -49,9 +31,9 @@ function Generate(config)
         end
         return "@stylistic"
     end
-    
+
     local function createRuleConfig(rule_name, value, options)
-        if value == nil then return {} end 
+        if value == nil then return {} end
 
         local base_config = { "error", value }
         if options then
@@ -63,10 +45,10 @@ function Generate(config)
             ['@stylistic/' .. rule_name] = base_config
         }
     end
-    
+
     local function getIndentRule(indent_config)
         if not indent_config then return nil end
-        
+
         local options = {
             SwitchCase = indent_config.switch_case,
             FunctionDeclaration = {
@@ -90,12 +72,12 @@ function Generate(config)
             flatTernaryExpressions = indent_config.flat_ternary_expressions,
             offsetTernaryExpressions = indent_config.offset_ternary_expressions
         }
-        
+
         -- Clean nil values
         for k, v in pairs(options) do
             if v == nil then options[k] = nil end
         end
-        
+
         return createRuleConfig(
             "indent",
             indent_config.indent_style == "spaces" and indent_config.indent_size or "tab",
@@ -219,7 +201,7 @@ function Generate(config)
         }
     }
 
-    -- Generate Import statements 
+    -- Generate Import statements
     local importStatements = ""
     for name, path in pairs(imports) do
         importStatements = importStatements .. "import " .. name .. " from '" .. path .. "';\n"
