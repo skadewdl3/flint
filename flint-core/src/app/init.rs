@@ -1,17 +1,22 @@
-use super::{AppStatus, AppWidget};
-use crate::util::{
-    handle_key_events,
-    toml::{create_toml_config, Config, FlintConfig},
+use super::{AppError, AppResult, AppWidget};
+use crate::{
+    util::{
+        handle_key_events,
+        toml::{create_toml_config, Config, FlintConfig},
+    },
+    widgets::logs::{add_log, LogKind, LogsWidget},
 };
 use crossterm::event::{Event, KeyCode};
 use flint_macros::{ui, widget};
 use ratatui::{
     layout::{Constraint, Direction, Layout},
     prelude::*,
-    text::Text,
     widgets::{Block, List, Paragraph, WidgetRef},
 };
-use std::collections::{BTreeSet, HashMap};
+use std::{
+    collections::{BTreeSet, HashMap},
+    path::PathBuf,
+};
 use tui_textarea::TextArea;
 
 #[derive(Debug, Default)]
@@ -21,7 +26,8 @@ pub struct InitWidget<'a> {
     unsupported_langs: BTreeSet<String>,
     created_config: bool,
     config_exists: bool,
-    cwd: String,
+    cwd: PathBuf,
+    logs: LogsWidget,
 }
 
 impl<'a> WidgetRef for InitWidget<'a> {
@@ -48,19 +54,22 @@ impl<'a> WidgetRef for InitWidget<'a> {
         });
 
         ui!((area, buf) => {
-            Layout (
-                direction: Direction::Vertical,
-                constraints: [Constraint::Length(1), Constraint::Fill(1)]
+            Layout(
+                constraints: [Constraint::Fill(1), Constraint::Length(2), Constraint::Fill(1)],
+                direction: Direction::Horizontal
             ) {
-                {"We found the following languages in this directory."},
+
                 Layout (
                     direction: Direction::Vertical,
                     constraints: Constraint::from_lengths([
+                        1,
                         self.detected_langs.len() as u16 + 2,
                         self.unsupported_langs.len() as u16 + 2,
-                        1, 1
+                        1
                     ])
                 ) {
+                    {"We found the following languages in this directory."},
+
                     List::new(
                         self.detected_langs.clone(),
                         block: widget!({ Block::bordered(title: "Detected Languages") }),
@@ -74,7 +83,9 @@ impl<'a> WidgetRef for InitWidget<'a> {
                     } Else {
                         Paragraph::new("Configuration created successfully")
                     }
-                }
+                },
+                {""},
+                {self.logs}
             }
         }
         );
@@ -82,37 +93,34 @@ impl<'a> WidgetRef for InitWidget<'a> {
 }
 
 impl<'a> AppWidget for InitWidget<'a> {
-    fn setup(&mut self) -> AppStatus {
-        let file_path = match std::env::current_dir() {
-            Ok(path) => path,
-            Err(_) => return AppStatus::Error("Unable to determine current directory"),
-        };
+    fn setup(&mut self) -> AppResult<()> {
+        self.cwd = std::env::current_dir()?;
+        add_log(
+            LogKind::Info,
+            format!("Determined current directory: {}", self.cwd.display()),
+        );
 
-        let file_path = file_path
-            .to_str()
-            .expect("Unable to convert path to string");
-
-        let (detected_langs, unsupported_langs) = crate::util::detect_languages(file_path);
+        let (detected_langs, unsupported_langs) =
+            crate::util::detect_languages(self.cwd.to_str().unwrap());
         self.detected_langs = detected_langs;
         self.unsupported_langs = unsupported_langs;
-        self.cwd = file_path.to_string();
 
         let config_path = std::path::Path::new(&self.cwd).join("flint.toml");
         if config_path.exists() {
             self.config_exists = true;
         }
 
-        AppStatus::Ok
+        Ok(())
     }
 
-    fn handle_events(&mut self, event: Event) -> AppStatus {
+    fn handle_events(&mut self, event: Event) -> AppResult<()> {
         handle_key_events(event, |key_event, key_code| {
             match key_code {
                 KeyCode::Enter => {
                     let input = self.textarea.lines().get(0).unwrap();
 
                     match input.as_str() {
-                        "n" => return AppStatus::Exit,
+                        "n" => return Err(AppError::Exit),
                         "y" => {
                             let config = Config {
                                 flint: FlintConfig { version: 1 },
@@ -120,7 +128,7 @@ impl<'a> AppWidget for InitWidget<'a> {
                                 common: HashMap::new(),
                             };
 
-                            create_toml_config("./flint.toml", config).unwrap();
+                            create_toml_config("./flint.toml", config)?;
                             self.created_config = true;
                         }
                         _ => (),
@@ -130,7 +138,7 @@ impl<'a> AppWidget for InitWidget<'a> {
                     self.textarea.input(key_event);
                 }
             }
-            AppStatus::Ok
+            Ok(())
         })
     }
 }

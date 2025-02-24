@@ -339,6 +339,7 @@ dependencies = [
  "ratatui",
  "serde",
  "serde_json",
+ "thiserror",
  "threadpool",
  "throbber-widgets-tui",
  "toml",

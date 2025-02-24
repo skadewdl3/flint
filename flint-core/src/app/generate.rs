@@ -1,11 +1,7 @@
-use super::{
-    logs::{add_log, LogKind, LogsWidget},
-    AppStatus, AppWidget,
-};
-use crate::util::{
-    get_plugin_map,
-    plugin::{run_plugin, Plugin},
-    toml::read_toml_config,
+use super::{AppResult, AppWidget};
+use crate::{
+    util::{get_plugin_map, plugin::Plugin, toml::read_toml_config},
+    widgets::logs::{add_log, LogKind, LogsWidget},
 };
 use flint_macros::ui;
 use ratatui::prelude::*;
@@ -30,8 +26,8 @@ impl Default for GenerateWidget {
 }
 
 impl AppWidget for GenerateWidget {
-    fn setup(&mut self) -> AppStatus {
-        let toml = Arc::new(read_toml_config("./flint.toml").unwrap());
+    fn setup(&mut self) -> AppResult<()> {
+        let toml = Arc::new(read_toml_config("./flint.toml")?);
         let plugin_ids = toml.linters.keys().collect::<Vec<&String>>();
 
         self.plugins = get_plugin_map()
@@ -48,9 +44,10 @@ impl AppWidget for GenerateWidget {
             let toml_clone = toml.clone();
 
             self.thread_pool.execute(move || {
-                let result = run_plugin(&plugin, &toml_clone);
+                let result = plugin.run(&toml_clone);
                 match result {
                     Ok(res) => {
+                        // TODO: Ask user if we want to overwrite files
                         for (file_name, contents) in res {
                             std::fs::write(file_name, contents).unwrap();
                         }
@@ -66,7 +63,7 @@ impl AppWidget for GenerateWidget {
             });
         }
 
-        AppStatus::Ok
+        Ok(())
     }
 }
 
