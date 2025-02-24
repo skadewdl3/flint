@@ -3,7 +3,7 @@ use crate::widgets::logs::{add_log, LogKind};
 use serde_json::to_string_pretty;
 
 use directories::ProjectDirs;
-use mlua::{Function, Lua, LuaSerdeExt, Value};
+use mlua::{Error, Function, Lua, LuaSerdeExt, Value};
 use serde::{Deserialize, Serialize};
 use std::{
     collections::{BTreeSet, HashMap},
@@ -48,42 +48,47 @@ impl Plugin {
             .set("common", common_config)
             .expect("unable to set common table to config table");
 
-        let contents = match std::fs::read_to_string(&self.path) {
-            Ok(contents) => contents,
-            Err(_) => {
-                return Err("Error reading plugin code".into());
-            }
+        let generate: Result<Function, Error> = {
+            let contents = match std::fs::read_to_string(&self.path.join("generate.lua")) {
+                Ok(contents) => contents,
+                Err(_) => {
+                    return Err("Error reading plugin code".into());
+                }
+            };
+
+            lua.load(contents)
+                .exec()
+                .map(|_| lua.globals().get("Generate").unwrap())
         };
 
-        let (validate, generate) = match lua.load(contents).exec() {
-            Ok(_) => {
-                let validate: Function = lua
-                    .globals()
-                    .get("Validate")
-                    .expect("could not find validate function in plugin file");
-                let generate: Function = lua
-                    .globals()
-                    .get("Generate")
-                    .expect("could not find generate function in plugin file");
-                (validate, generate)
-            }
-            Err(_) => {
-                return Err("Error loading lua file".into());
-            }
+        let validate: Result<Function, Error> = {
+            let contents = match std::fs::read_to_string(&self.path.join("validate.lua")) {
+                Ok(contents) => contents,
+                Err(_) => {
+                    return Err("Error reading plugin code".into());
+                }
+            };
+
+            lua.load(contents)
+                .exec()
+                .map(|_| lua.globals().get("Validate").unwrap())
         };
 
         let validate_success = validate
+            .expect("error reading validate.lua")
             .call::<mlua::Value>(plugin_config)
             .expect("error running validate function");
 
         let validate_success: bool = lua
             .from_value(validate_success)
             .expect("unable to convert validation result to boolean");
+
         if !validate_success {
             return Err("Plugin config validation failed".into());
         }
 
         let generate_results = generate
+            .expect("Error reading generate.lua")
             .call::<mlua::Value>(plugin_config)
             .expect("error running generate function");
         let generate_results: HashMap<String, String> = lua
@@ -114,7 +119,7 @@ impl Plugin {
     pub fn list() -> Option<BTreeSet<Plugin>> {
         let lua = Lua::new();
 
-        let plugins_dir = Self::dir().join("lint");
+        let plugins_dir = Self::dir().join("lint"); // TODO: Handle testing plugins as well
         if let Err(err) = std::fs::create_dir_all(&plugins_dir) {
             add_log(
                 LogKind::Error,
@@ -148,7 +153,7 @@ impl Plugin {
             };
 
             let path = entry.path();
-            let contents = match std::fs::read_to_string(&path) {
+            let contents = match std::fs::read_to_string(&path.join("details.lua")) {
                 Ok(contents) => contents,
                 Err(err) => {
                     add_log(
