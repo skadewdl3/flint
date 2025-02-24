@@ -1,4 +1,3 @@
-use crate::widgets::AppResult;
 use crossterm::event::{Event, KeyCode, KeyEvent};
 use plugin::Plugin;
 use std::{
@@ -15,7 +14,9 @@ pub static PLUGINS: OnceLock<BTreeSet<Plugin>> = OnceLock::new();
 pub static PLUGIN_MAP: OnceLock<HashMap<String, BTreeSet<Plugin>>> = OnceLock::new();
 
 pub use lang::{detect_languages, get_language_map};
-pub use plugin::{get_plugin_map, get_plugins_dir, list_plugins};
+pub use plugin::get_plugin_map;
+
+use crate::app::AppResult;
 
 pub fn handle_key_events(
     event: Event,

@@ -1,10 +1,10 @@
-use super::{
-    logs::{add_log, LogKind, LogsWidget},
-    AppError, AppResult, AppWidget,
-};
-use crate::util::{
-    handle_key_events,
-    toml::{create_toml_config, Config, FlintConfig},
+use super::{AppError, AppResult, AppWidget};
+use crate::{
+    util::{
+        handle_key_events,
+        toml::{create_toml_config, Config, FlintConfig},
+    },
+    widgets::logs::{add_log, LogKind, LogsWidget},
 };
 use crossterm::event::{Event, KeyCode};
 use flint_macros::{ui, widget};

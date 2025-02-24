@@ -1,12 +1,12 @@
+use super::generate::GenerateWidget;
+use super::help::HelpWidget;
+use super::init::InitWidget;
+use super::test::TestWidget;
+use super::AppWidget;
 use crate::util::handle_key_events;
-use crate::widgets::generate::GenerateWidget;
-use crate::widgets::help::HelpWidget;
-use crate::widgets::init::InitWidget;
 use crate::widgets::logs::{add_log, LogKind};
-use crate::widgets::test::TestWidget;
-use crate::widgets::AppWidget;
 use crossterm::event;
-use crossterm::event::{Event, KeyCode};
+use crossterm::event::KeyCode;
 use flint_macros::{ui, widget};
 use ratatui::widgets::WidgetRef;
 use ratatui::{prelude::*, DefaultTerminal};
@@ -97,14 +97,14 @@ impl App {
 
 impl WidgetRef for App {
     fn render_ref(&self, area: Rect, buf: &mut Buffer) {
-        // ui!((area, buf) => {
-        //     {
-        //         &self.error.as_ref().map(|err| {
-        //             add_log(LogKind::Error, err.clone());
-        //             Some(widget!({ Popup::new(err.as_str(), title: format!("Error occurred")) }))
-        //         })
-        //     }
-        // });
+        ui!((area, buf) => {
+            {
+                &self.error.as_ref().map(|err| {
+                    add_log(LogKind::Error, err.clone());
+                    Some(widget!({ Popup::new(err.as_str(), title: format!("Error occurred")) }))
+                })
+            }
+        });
 
         self.active_widget.render_ref(area, buf);
     }

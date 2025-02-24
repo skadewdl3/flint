@@ -1,12 +1,12 @@
 use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 use flint_macros::{ui, widget};
+use ratatui::text::{Line, Text};
 use ratatui::{
     buffer::Buffer,
-    layout::{Constraint, Direction, Rect},
+    layout::Rect,
     style::{Color, Style},
-    text::{Line, Span, Text},
-    widgets::{Block, Padding, Paragraph, Widget, Wrap},
+    widgets::{Block, Padding, Paragraph, Widget},
 };
 
 #[derive(Copy, Clone, Debug, Default)]
@@ -62,13 +62,13 @@ pub fn add_log(kind: LogKind, message: String) {
 }
 
 fn get_style(kind: &LogKind) -> Style {
-    match kind {
-        LogKind::Info => Style::default().fg(Color::Blue),
-        LogKind::Success => Style::default().fg(Color::Green),
-        LogKind::Error => Style::default().fg(Color::Red),
-        LogKind::Warn => Style::default().fg(Color::Yellow),
-        LogKind::Debug => Style::default().fg(Color::White),
-    }
+    Style::default().fg(match kind {
+        LogKind::Info => Color::Blue,
+        LogKind::Success => Color::Green,
+        LogKind::Error => Color::Red,
+        LogKind::Warn => Color::Yellow,
+        LogKind::Debug => Color::White,
+    })
 }
 
 impl Widget for LogsWidget {
@@ -85,7 +85,6 @@ impl Widget for LogsWidget {
             .collect::<Vec<Line>>();
 
         let text = Text::from(log_lines);
-
         let block = widget!({ Block::bordered(title: "Logs", padding: Padding::horizontal(1)) });
 
         ui!((area, buffer) => {

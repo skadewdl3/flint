@@ -1,8 +1,8 @@
-use super::{
-    logs::{add_log, LogKind, LogsWidget},
-    AppResult, AppWidget,
+use super::{AppResult, AppWidget};
+use crate::{
+    util::{get_plugin_map, plugin::Plugin, toml::read_toml_config},
+    widgets::logs::{add_log, LogKind, LogsWidget},
 };
-use crate::util::{get_plugin_map, plugin::Plugin, toml::read_toml_config};
 use flint_macros::ui;
 use ratatui::prelude::*;
 use ratatui::widgets::WidgetRef;

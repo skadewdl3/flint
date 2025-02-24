@@ -175,3 +175,18 @@
 [success]: Generated sqlfluff config successfully
 [success]: Generated eslint config successfully
 [info]: Determined current directory: /home/skadewdl3/Projects/flint
+[info]: Determined current directory: /home/skadewdl3/Projects/flint
+[info]: Determined current directory: /home/skadewdl3/Projects/flint
+[info]: Determined current directory: /home/skadewdl3/Projects/flint
+[info]: Validating sqlfluff config
+[info]: Generating sqlfluff linter file
+[success]: Generated sqlfluff config successfully
+[debug]: {
+  "qux": {
+    "nested": true
+  },
+  "baz": 123,
+  "foo": "bar"
+}
+[info]: Generating ESLint configuration
+[success]: Generated eslint config successfully

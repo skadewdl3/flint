@@ -92,67 +92,96 @@ impl Plugin {
 
         Ok(generate_results)
     }
-}
 
-pub fn get_plugins_dir() -> PathBuf {
-    if cfg!(debug_assertions) {
-        return PathBuf::from("./flint-core/src/plugins");
-    } else if let Some(proj_dirs) = ProjectDirs::from("com", "Flint", "flint") {
-        let plugins_path = proj_dirs.data_dir().to_path_buf().join("plugins");
-        if !plugins_path.exists() {
-            std::fs::create_dir_all(&plugins_path).expect("Failed to create plugins directory");
-            std::fs::create_dir_all(&plugins_path.join("test"))
-                .expect("Failed to create test directory");
-            std::fs::create_dir_all(&plugins_path.join("lint"))
-                .expect("Failed to create lint directory");
+    pub fn dir() -> PathBuf {
+        if cfg!(debug_assertions) {
+            return PathBuf::from("./flint-core/src/plugins");
+        } else if let Some(proj_dirs) = ProjectDirs::from("com", "Flint", "flint") {
+            let plugins_path = proj_dirs.data_dir().to_path_buf().join("plugins");
+            if !plugins_path.exists() {
+                std::fs::create_dir_all(&plugins_path).expect("Failed to create plugins directory");
+                std::fs::create_dir_all(&plugins_path.join("test"))
+                    .expect("Failed to create test directory");
+                std::fs::create_dir_all(&plugins_path.join("lint"))
+                    .expect("Failed to create lint directory");
+            }
+            plugins_path
+        } else {
+            panic!("Unable to determine project directories");
         }
-        plugins_path
-    } else {
-        panic!("Unable to determine project directories");
     }
-}
 
-pub fn list_plugins() -> BTreeSet<Plugin> {
-    let lua = Lua::new();
+    pub fn list() -> Option<BTreeSet<Plugin>> {
+        let lua = Lua::new();
 
-    let mut plugins = BTreeSet::new();
-    let plugins_dir = get_plugins_dir().join("lint");
-    if let Ok(entries) = std::fs::read_dir(plugins_dir) {
-        for entry in entries {
-            if let Ok(entry) = entry {
-                let file_path = entry.path();
-                let contents = match std::fs::read_to_string(&file_path) {
-                    Ok(contents) => contents,
-                    Err(err) => {
-                        eprintln!("Error reading file {}: {}", file_path.display(), err);
-                        continue;
-                    }
-                };
+        let plugins_dir = Self::dir().join("lint");
+        if let Err(err) = std::fs::create_dir_all(&plugins_dir) {
+            add_log(
+                LogKind::Error,
+                format!("Failed to create lint directory: {}", err),
+            );
+            return None;
+        }
 
-                match lua.load(contents).exec() {
-                    Ok(_) => {
-                        let details: Function = lua.globals().get("Details").unwrap();
-                        let lua_val = details.call::<mlua::Value>(()).unwrap();
-                        let details: PluginDetails = lua.from_value(lua_val).unwrap();
-                        plugins.insert(Plugin {
-                            details,
-                            path: file_path,
-                        });
-                    }
-                    Err(err) => {
-                        eprintln!("Error loading lua file {}: {}", file_path.display(), err);
-                        continue;
-                    }
+        let entries = match std::fs::read_dir(plugins_dir) {
+            Err(err) => {
+                add_log(
+                    LogKind::Error,
+                    format!("Failed to create lint directory: {}", err),
+                );
+                return None;
+            }
+
+            Ok(entries) => entries,
+        };
+
+        let plugins = entries.filter_map(|entry| {
+            let entry = match entry {
+                Ok(entry) => entry,
+                Err(err) => {
+                    add_log(
+                        LogKind::Error,
+                        format!("Error reading directory entry: {}", err),
+                    );
+                    return None;
+                }
+            };
+
+            let path = entry.path();
+            let contents = match std::fs::read_to_string(&path) {
+                Ok(contents) => contents,
+                Err(err) => {
+                    add_log(
+                        LogKind::Error,
+                        format!("Error reading file {}: {}", path.display(), err),
+                    );
+                    return None;
+                }
+            };
+
+            match lua.load(contents).exec() {
+                Ok(_) => {
+                    let details: Function = lua.globals().get("Details").unwrap();
+                    let lua_val = details.call::<mlua::Value>(()).unwrap();
+                    let details: PluginDetails = lua.from_value(lua_val).unwrap();
+                    Some(Plugin { details, path })
+                }
+                Err(err) => {
+                    add_log(
+                        LogKind::Error,
+                        format!("Error loading lua file {}: {}", path.display(), err),
+                    );
+                    None
                 }
             }
-        }
+        });
+        return Some(plugins.collect());
     }
-    plugins
 }
 
 pub fn get_plugin_map() -> &'static HashMap<String, BTreeSet<Plugin>> {
     PLUGIN_MAP.get_or_init(|| {
-        let plugins = PLUGINS.get_or_init(|| list_plugins());
+        let plugins = PLUGINS.get_or_init(|| Plugin::list().unwrap());
         let mut m = HashMap::new();
         for plugin in plugins {
             for extension in &plugin.details.extensions {
