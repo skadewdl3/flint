@@ -511,3 +511,23 @@
 [info]: Generating ESLint configuration
 [success]: Generated sqlfluff config successfully
 [success]: Generated eslint config successfully
+[info]: Determined current directory: /home/skadewdl3/Projects/flint
+[info]: Determined current directory: /home/skadewdl3/Projects/flint
+[info]: Determined current directory: /home/skadewdl3/Projects/flint
+[info]: Determined current directory: /home/skadewdl3/Projects/flint
+[info]: Determined current directory: /home/skadewdl3/Projects/flint
+[info]: Determined current directory: /home/skadewdl3/Projects/flint
+[info]: Determined current directory: /home/skadewdl3/Projects/flint
+[info]: Determined current directory: /home/skadewdl3/Projects/flint
+[info]: Determined current directory: /home/skadewdl3/Projects/flint
+[info]: Determined current directory: /home/skadewdl3/Projects/flint
+[info]: Determined current directory: /home/skadewdl3/Projects/flint
+[info]: Determined current directory: /home/skadewdl3/Projects/flint
+[info]: Determined current directory: /home/skadewdl3/Projects/flint
+[info]: Determined current directory: /home/skadewdl3/Projects/flint
+[info]: Determined current directory: /home/skadewdl3/Projects/flint
+[info]: Determined current directory: /home/skadewdl3/Projects/flint
+[info]: Determined current directory: /home/skadewdl3/Projects/flint
+[info]: Determined current directory: /home/skadewdl3/Projects/flint
+[info]: Determined current directory: /home/skadewdl3/Projects/flint
+[info]: Determined current directory: /home/skadewdl3/Projects/flint

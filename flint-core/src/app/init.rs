@@ -2,16 +2,17 @@ use super::{AppError, AppResult, AppWidget};
 use crate::{
     util::{
         handle_key_events,
+        lang::Language,
         toml::{create_toml_config, Config, FlintConfig},
     },
     widgets::logs::{add_log, LogKind, LogsWidget},
 };
 use crossterm::event::{Event, KeyCode};
-use flint_macros::{ui, widget};
+use flint_macros::{ui, widget as w};
 use ratatui::{
     layout::{Constraint, Direction, Layout},
     prelude::*,
-    widgets::{Block, List, Paragraph, WidgetRef},
+    widgets::{Block, List, Paragraph, WidgetRef, Wrap},
 };
 use std::{
     collections::{BTreeSet, HashMap},
@@ -22,12 +23,10 @@ use tui_textarea::TextArea;
 #[derive(Debug, Default)]
 pub struct InitWidget<'a> {
     textarea: TextArea<'a>,
-    detected_langs: BTreeSet<String>,
-    unsupported_langs: BTreeSet<String>,
+    langs: BTreeSet<Language>,
     created_config: bool,
     config_exists: bool,
     cwd: PathBuf,
-    logs: LogsWidget,
 }
 
 impl<'a> WidgetRef for InitWidget<'a> {
@@ -38,7 +37,7 @@ impl<'a> WidgetRef for InitWidget<'a> {
             "Would you like to continue with creating flint.toml? (y/n)"
         };
 
-        let textarea = widget!({
+        let textarea = w!({
             Layout(
                 direction: Direction::Horizontal,
                 constraints: [
@@ -53,39 +52,37 @@ impl<'a> WidgetRef for InitWidget<'a> {
             }
         });
 
+        let languages = self
+            .langs
+            .iter()
+            .map(|lang| match lang {
+                Language::Supported(name) => Line::from(name.clone()),
+                Language::Unsupported(name) => {
+                    Line::from(name.clone()).style(Style::default().fg(Color::Red).bold())
+                }
+            })
+            .collect::<Vec<Line>>();
+
         ui!((area, buf) => {
             Layout(
-                constraints: [Constraint::Fill(1), Constraint::Length(2), Constraint::Fill(1)],
+                constraints: [Constraint::Fill(1)],
                 direction: Direction::Horizontal
             ) {
-
                 Layout (
                     direction: Direction::Vertical,
-                    constraints: Constraint::from_lengths([
-                        1,
-                        self.detected_langs.len() as u16 + 2,
-                        self.unsupported_langs.len() as u16 + 2,
-                        1
-                    ])
+                    constraints: [Constraint::Length((self.langs.len() + 2) as u16), Constraint::Min(1)]
                 ) {
-                    {"We found the following languages in this directory."},
-
-                    List::new(
-                        self.detected_langs.clone(),
-                        block: widget!({ Block::bordered(title: "Detected Languages") }),
-                    ),
-                    List::new(
-                        self.unsupported_langs.clone(),
-                        block: widget!({ Block::bordered(title: "Unsupported Languages") }),
+                    Paragraph::new(
+                      languages,
+                      block: w!({ Block::bordered(title: "We found the following languages in this directory (".to_string() + &self.langs.iter().filter(|lang| matches!(lang, Language::Unsupported(_))).count().to_string() + " unsupported)") }),
+                      wrap: Wrap { trim: false }
                     ),
                     If (!self.created_config) {
                         {textarea}
                     } Else {
-                        Paragraph::new("Configuration created successfully")
+                        Paragraph::new("Configuration created successfully. Press any key to exit.", style: w!({ Style(fg: Color::Green) }))
                     }
                 },
-                {""},
-                {self.logs}
             }
         }
         );
@@ -100,10 +97,7 @@ impl<'a> AppWidget for InitWidget<'a> {
             format!("Determined current directory: {}", self.cwd.display()),
         );
 
-        let (detected_langs, unsupported_langs) =
-            crate::util::detect_languages(self.cwd.to_str().unwrap());
-        self.detected_langs = detected_langs;
-        self.unsupported_langs = unsupported_langs;
+        self.langs = crate::util::detect_languages(self.cwd.to_str().unwrap());
 
         let config_path = std::path::Path::new(&self.cwd).join("flint.toml");
         if config_path.exists() {
@@ -115,6 +109,9 @@ impl<'a> AppWidget for InitWidget<'a> {
 
     fn handle_events(&mut self, event: Event) -> AppResult<()> {
         handle_key_events(event, |key_event, key_code| {
+            if self.created_config {
+                return Err(AppError::Exit);
+            }
             match key_code {
                 KeyCode::Enter => {
                     let input = self.textarea.lines().get(0).unwrap();

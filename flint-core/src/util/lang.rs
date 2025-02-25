@@ -7,6 +7,12 @@ use ignore::Walk;
 
 use super::{get_plugin_map, LANGUAGE_MAP};
 
+#[derive(Ord, PartialOrd, Eq, PartialEq, Debug)]
+pub enum Language {
+    Supported(String),
+    Unsupported(String),
+}
+
 pub fn get_language_map() -> &'static HashMap<String, String> {
     LANGUAGE_MAP.get_or_init(|| {
         let mut map = HashMap::new();
@@ -24,9 +30,7 @@ pub fn get_language_map() -> &'static HashMap<String, String> {
     })
 }
 
-pub fn detect_languages<'a>(
-    project_path: impl Into<&'a str>,
-) -> (BTreeSet<String>, BTreeSet<String>) {
+pub fn detect_languages<'a>(project_path: impl Into<&'a str>) -> BTreeSet<Language> {
     let mut languages = BTreeSet::new();
     let path = Path::new(project_path.into());
     for result in Walk::new(path) {
@@ -44,19 +48,15 @@ pub fn detect_languages<'a>(
 
     let supported_languages: BTreeSet<String> = get_plugin_map().keys().cloned().collect();
 
-    // println!("{:#?}", get_plugin_list());
-
-    let unsupported_languages: BTreeSet<String> = languages
+    languages
         .iter()
-        .filter(|lang| !supported_languages.contains(lang.as_str()))
-        .map(|lang| get_language_map().get(lang).unwrap_or(lang))
-        .cloned()
-        .collect();
-
-    let languages: BTreeSet<String> = languages
-        .iter()
-        .map(|lang| get_language_map().get(lang).unwrap_or(lang))
-        .cloned()
-        .collect();
-    (languages, unsupported_languages)
+        .map(|lang| {
+            let language_name = get_language_map().get(lang).unwrap_or(lang).to_string();
+            if supported_languages.contains(lang) {
+                Language::Supported(language_name)
+            } else {
+                Language::Unsupported(language_name)
+            }
+        })
+        .collect()
 }
