@@ -245,3 +245,269 @@
 }
 [info]: Generating ESLint configuration
 [success]: Generated eslint config successfully
+[info]: Determined current directory: /home/skadewdl3/Projects/flint
+[info]: Validating sqlfluff config
+[success]: Generated sqlfluff config successfully
+[debug]: {
+  "common": {
+    "todo_comments_allowed": false,
+    "interface_prefix": "I",
+    "quote_style": "double",
+    "constant_case": "UPPER_CASE",
+    "sort_imports": true,
+    "variable_case": "snake_case",
+    "trailing_whitespace": false,
+    "require_try_catch": true,
+    "catch_specific_exceptions": true,
+    "max_function_length": 50,
+    "ban_empty_loops": true,
+    "max_nesting_depth_loops": 3,
+    "require_logging_in_exceptions": true,
+    "require_function_comments": true,
+    "function_case": "camelCase",
+    "require_semicolons": true,
+    "bracket_style": "kr",
+    "require_const_for_immutable": true,
+    "docstrings_required": true,
+    "allow_global_variables": false,
+    "detect_unused_variables": true,
+    "class_case": "PascalCase",
+    "indent": {
+      "indent_size": 4,
+      "function_declaration": {
+        "parameters": 3,
+        "body": 2
+      },
+      "indent_style": "spaces",
+      "switch_case": 5
+    },
+    "max_function_parameters": 5,
+    "max_file_length": 1000,
+    "max_line_length": 120,
+    "max_nesting_depth": 3,
+    "allow_unused_imports": false,
+    "require_switch_default": true,
+    "require_early_return": true
+  },
+  "semi": false
+}
+[info]: Generating ESLint configuration
+[success]: Generated eslint config successfully
+[info]: Validating sqlfluff config
+[debug]: {
+  "capitalization": true,
+  "common": {
+    "todo_comments_allowed": false,
+    "require_const_for_immutable": true,
+    "quote_style": "double",
+    "max_nesting_depth": 3,
+    "catch_specific_exceptions": true,
+    "variable_case": "snake_case",
+    "trailing_whitespace": false,
+    "require_try_catch": true,
+    "bracket_style": "kr",
+    "max_function_length": 50,
+    "ban_empty_loops": true,
+    "max_file_length": 1000,
+    "require_logging_in_exceptions": true,
+    "require_function_comments": true,
+    "docstrings_required": true,
+    "class_case": "PascalCase",
+    "max_nesting_depth_loops": 3,
+    "allow_global_variables": false,
+    "require_early_return": true,
+    "sort_imports": true,
+    "function_case": "camelCase",
+    "max_line_length": 120,
+    "indent": {
+      "indent_size": 4,
+      "function_declaration": {
+        "parameters": 3,
+        "body": 2
+      },
+      "indent_style": "spaces",
+      "switch_case": 5
+    },
+    "require_switch_default": true,
+    "constant_case": "UPPER_CASE",
+    "interface_prefix": "I",
+    "require_semicolons": true,
+    "allow_unused_imports": false,
+    "detect_unused_variables": true,
+    "max_function_parameters": 5
+  },
+  "abcd": {
+    "xyz": true
+  }
+}
+[success]: Generated sqlfluff config successfully
+[info]: Generating ESLint configuration
+[success]: Generated eslint config successfully
+[info]: Validating sqlfluff config
+[debug]: {
+  "capitalization": true,
+  "common": {
+    "todo_comments_allowed": false,
+    "require_const_for_immutable": true,
+    "quote_style": "double",
+    "max_nesting_depth": 3,
+    "require_switch_default": true,
+    "variable_case": "snake_case",
+    "trailing_whitespace": false,
+    "require_try_catch": true,
+    "require_semicolons": true,
+    "max_function_length": 50,
+    "class_case": "PascalCase",
+    "max_file_length": 1000,
+    "require_logging_in_exceptions": true,
+    "detect_unused_variables": true,
+    "function_case": "camelCase",
+    "ban_empty_loops": true,
+    "allow_global_variables": false,
+    "interface_prefix": "I",
+    "catch_specific_exceptions": true,
+    "max_function_parameters": 5,
+    "docstrings_required": true,
+    "constant_case": "UPPER_CASE",
+    "indent": {
+      "indent_size": 4,
+      "function_declaration": {
+        "parameters": 3,
+        "body": 2
+      },
+      "indent_style": "spaces",
+      "switch_case": 5
+    },
+    "max_line_length": 120,
+    "max_nesting_depth_loops": 3,
+    "sort_imports": true,
+    "bracket_style": "kr",
+    "allow_unused_imports": false,
+    "require_function_comments": true,
+    "require_early_return": true
+  },
+  "abcd": {
+    "xyz": true
+  }
+}
+[success]: Generated sqlfluff config successfully
+[info]: Generating ESLint configuration
+[success]: Generated eslint config successfully
+[info]: Validating sqlfluff config
+[debug]: null
+[success]: Generated sqlfluff config successfully
+[info]: Generating ESLint configuration
+[success]: Generated eslint config successfully
+[info]: Validating sqlfluff config
+[debug]: null
+[success]: Generated sqlfluff config successfully
+[info]: Generating ESLint configuration
+[success]: Generated eslint config successfully
+[info]: Validating sqlfluff config
+[debug]: null
+[info]: Generating ESLint configuration
+[success]: Generated sqlfluff config successfully
+[success]: Generated eslint config successfully
+[info]: Validating sqlfluff config
+[debug]: {
+  "capitalization": true,
+  "common": {
+    "todo_comments_allowed": false,
+    "constant_case": "UPPER_CASE",
+    "quote_style": "double",
+    "max_nesting_depth": 3,
+    "sort_imports": true,
+    "variable_case": "snake_case",
+    "trailing_whitespace": false,
+    "require_try_catch": true,
+    "require_semicolons": true,
+    "max_function_length": 50,
+    "class_case": "PascalCase",
+    "max_file_length": 1000,
+    "require_logging_in_exceptions": true,
+    "detect_unused_variables": true,
+    "function_case": "camelCase",
+    "allow_global_variables": false,
+    "docstrings_required": true,
+    "interface_prefix": "I",
+    "ban_empty_loops": true,
+    "max_nesting_depth_loops": 3,
+    "require_switch_default": true,
+    "require_const_for_immutable": true,
+    "indent": {
+      "indent_size": 4,
+      "function_declaration": {
+        "parameters": 3,
+        "body": 2
+      },
+      "indent_style": "spaces",
+      "switch_case": 5
+    },
+    "require_function_comments": true,
+    "catch_specific_exceptions": true,
+    "max_function_parameters": 5,
+    "require_early_return": true,
+    "allow_unused_imports": false,
+    "bracket_style": "kr",
+    "max_line_length": 120
+  },
+  "abcd": {
+    "xyz": true
+  }
+}
+[success]: Generated sqlfluff config successfully
+[info]: Generating ESLint configuration
+[success]: Generated eslint config successfully
+[info]: Validating sqlfluff config
+[info]: Generating ESLint configuration
+[success]: Generated sqlfluff config successfully
+[success]: Generated eslint config successfully
+[info]: Validating sqlfluff config
+[info]: Generating ESLint configuration
+[success]: Generated sqlfluff config successfully
+[success]: Generated eslint config successfully
+[info]: Validating sqlfluff config
+[debug]: "capitalization"
+[info]: Generating ESLint configuration[debug]: "abcd"
+
+[success]: Generated sqlfluff config successfully
+[success]: Generated eslint config successfully
+[info]: Validating sqlfluff config
+[debug]: "capitalization"
+[debug]: true
+[debug]: "abcd"
+[debug]: {
+  "xyz": true
+}
+[success]: Generated sqlfluff config successfully
+[info]: Generating ESLint configuration
+[success]: Generated eslint config successfully
+[info]: Validating sqlfluff config
+[info]: Generating ESLint configuration
+[debug]: "capitalization"
+[debug]: true
+[debug]: "abcd"
+[debug]: {
+  "pqr": {
+    "xyz": true
+  }
+}
+[success]: Generated sqlfluff config successfully
+[success]: Generated eslint config successfully
+[info]: Validating sqlfluff config
+[info]: Generating ESLint configuration
+[success]: Generated eslint config successfully
+[info]: Validating sqlfluff config
+[info]: Generating ESLint configuration
+[success]: Generated eslint config successfully
+[info]: Validating sqlfluff config
+[info]: Generating ESLint configuration
+[success]: Generated eslint config successfully
+[info]: Validating sqlfluff config
+[success]: Generated sqlfluff config successfully
+[info]: Generating ESLint configuration
+[success]: Generated eslint config successfully
+[info]: Validating sqlfluff config
+[info]: Generating ESLint configuration
+[success]: Generated sqlfluff config successfully
+[success]: Generated eslint config successfully
