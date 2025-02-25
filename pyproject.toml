@@ -1,0 +1,5 @@
+[tool.sqlfluff.rules.capitalisation.keywords]
+capitlisation_policy = "upper"
+
+[tool.sqlfluff.templater]
+unwrap_wrapped_queries = true

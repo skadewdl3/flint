@@ -54,4 +54,5 @@ ban_empty_loops = true
 semi = false
 
 [linters.sqlfluff]
-capitalization = true
+rules.capitalisation.keywords.capitlisation_policy = "upper"
+templater.unwrap_wrapped_queries = true
