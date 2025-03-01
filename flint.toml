@@ -50,9 +50,17 @@ require_early_return = true
 require_switch_default = true
 ban_empty_loops = true
 
-[linters.eslint]
+[rules.eslint] # rename this to rules.eslint
 semi = false
+root = "./src/js-test"
+ignore = ["node_modules"]
 
-[linters.sqlfluff]
+[config.eslint]
+
+
+[rules.sqlfluff]
 rules.capitalisation.keywords.capitlisation_policy = "upper"
 templater.unwrap_wrapped_queries = true
+
+[tests.jest]
+enabled = false
