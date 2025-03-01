@@ -1,12 +1,15 @@
 use super::{AppResult, AppWidget};
 use crate::{
-    util::{get_plugin_map, plugin::Plugin, toml::read_toml_config},
+    util::{
+        plugin::{self, Plugin},
+        toml::Config,
+    },
     widgets::logs::{add_log, LogKind, LogsWidget},
 };
 use flint_macros::ui;
 use ratatui::prelude::*;
 use ratatui::widgets::WidgetRef;
-use std::{collections::BTreeSet, sync::Arc};
+use std::{collections::BTreeSet, path::PathBuf, sync::Arc};
 use threadpool::ThreadPool;
 
 pub struct GenerateWidget {
@@ -27,10 +30,10 @@ impl Default for GenerateWidget {
 
 impl AppWidget for GenerateWidget {
     fn setup(&mut self) -> AppResult<()> {
-        let toml = Arc::new(read_toml_config("./flint.toml")?);
-        let plugin_ids = toml.linters.keys().collect::<Vec<&String>>();
+        let toml = Arc::new(Config::load(PathBuf::from("./flint.toml")).unwrap());
+        let plugin_ids = toml.rules.keys().collect::<Vec<&String>>();
 
-        self.plugins = get_plugin_map()
+        self.plugins = plugin::map()
             .values()
             .flat_map(|plugin_set| plugin_set.iter())
             .collect::<BTreeSet<&Plugin>>()

@@ -1,17 +1,20 @@
 use std::{
     collections::{BTreeSet, HashMap},
     path::Path,
+    sync::OnceLock,
 };
 
 use ignore::Walk;
 
-use super::{get_plugin_map, LANGUAGE_MAP};
+use super::plugin;
 
 #[derive(Ord, PartialOrd, Eq, PartialEq, Debug)]
 pub enum Language {
     Supported(String),
     Unsupported(String),
 }
+
+pub static LANGUAGE_MAP: OnceLock<HashMap<String, String>> = OnceLock::new();
 
 pub fn get_language_map() -> &'static HashMap<String, String> {
     LANGUAGE_MAP.get_or_init(|| {
@@ -46,7 +49,7 @@ pub fn detect_languages<'a>(project_path: impl Into<&'a str>) -> BTreeSet<Langua
         }
     }
 
-    let supported_languages: BTreeSet<String> = get_plugin_map().keys().cloned().collect();
+    let supported_languages: BTreeSet<String> = plugin::map().keys().cloned().collect();
 
     languages
         .iter()

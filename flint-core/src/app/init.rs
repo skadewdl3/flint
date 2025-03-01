@@ -1,23 +1,16 @@
 use super::{AppError, AppResult, AppWidget};
 use crate::{
-    util::{
-        handle_key_events,
-        lang::Language,
-        toml::{create_toml_config, Config, FlintConfig},
-    },
-    widgets::logs::{add_log, LogKind, LogsWidget},
+    util::{handle_key_events, lang::Language, toml::Config},
+    widgets::logs::{add_log, LogKind},
 };
 use crossterm::event::{Event, KeyCode};
 use flint_macros::{ui, widget as w};
 use ratatui::{
     layout::{Constraint, Direction, Layout},
     prelude::*,
-    widgets::{Block, List, Paragraph, WidgetRef, Wrap},
+    widgets::{Block, Paragraph, WidgetRef, Wrap},
 };
-use std::{
-    collections::{BTreeSet, HashMap},
-    path::PathBuf,
-};
+use std::{collections::BTreeSet, path::PathBuf};
 use tui_textarea::TextArea;
 
 #[derive(Debug, Default)]
@@ -119,13 +112,7 @@ impl<'a> AppWidget for InitWidget<'a> {
                     match input.as_str() {
                         "n" => return Err(AppError::Exit),
                         "y" => {
-                            let config = Config {
-                                flint: FlintConfig { version: 1 },
-                                linters: HashMap::new(),
-                                common: HashMap::new(),
-                            };
-
-                            create_toml_config("./flint.toml", config)?;
+                            Config::create_default(PathBuf::from("./flint.toml"));
                             self.created_config = true;
                         }
                         _ => (),

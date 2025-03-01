@@ -1,23 +1,42 @@
+use std::path::PathBuf;
+
+use flint_macros::ui;
 use ratatui::prelude::*;
 use ratatui::widgets::WidgetRef;
 use throbber_widgets_tui::ThrobberState;
 
-use super::AppWidget;
+use crate::{
+    util::{
+        plugin::{self, Plugin, PluginKind},
+        toml::Config,
+    },
+    widgets::logs::LogsWidget,
+};
 
-#[derive(Debug)]
+use super::{AppResult, AppWidget};
+
+#[derive(Debug, Default)]
 pub struct TestWidget {
-    _throbber_state: ThrobberState,
+    logs: LogsWidget,
 }
 
-impl Default for TestWidget {
-    fn default() -> Self {
-        Self {
-            _throbber_state: ThrobberState::default(),
-        }
+impl AppWidget for TestWidget {
+    fn setup(&mut self) -> AppResult<()> {
+        let plugins = plugin::list_from_config();
+        let x: Vec<String> = plugins
+            .iter()
+            .filter_map(|plugin| match plugin.kind {
+                PluginKind::Lint => None,
+                PluginKind::Test => Some(plugin.details.id.clone()),
+            })
+            .collect();
+        Ok(())
     }
 }
-
-impl AppWidget for TestWidget {}
 impl WidgetRef for TestWidget {
-    fn render_ref(&self, _area: Rect, _buf: &mut Buffer) {}
+    fn render_ref(&self, area: Rect, buf: &mut Buffer) {
+        ui!((area, buf) => {
+            { self.logs }
+        });
+    }
 }

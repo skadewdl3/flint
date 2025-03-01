@@ -531,3 +531,4 @@
 [info]: Determined current directory: /home/skadewdl3/Projects/flint
 [info]: Determined current directory: /home/skadewdl3/Projects/flint
 [info]: Determined current directory: /home/skadewdl3/Projects/flint
+[info]: Determined current directory: /home/skadewdl3/Projects/flint

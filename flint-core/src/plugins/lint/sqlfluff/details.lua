@@ -4,11 +4,9 @@ function Details()
         author = "Onkar Kapuskari",
         version = "0.0.1",
         extensions = { "sql" },
-        category = "lint"
     }
     return details
 end
-
 
 function Generate()
     log.info("Generating sqlfluff linter file")

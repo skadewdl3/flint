@@ -1,3 +1,3 @@
 function Lint(config)
-    return { "eslint", "--help" }
+    return { "npx", "eslint" }
 end
