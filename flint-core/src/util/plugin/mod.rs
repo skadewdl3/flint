@@ -1,5 +1,8 @@
 use super::toml::Config;
-use crate::widgets::logs::{add_log, LogKind};
+use crate::{
+    app::{AppError, AppResult},
+    widgets::logs::{add_log, LogKind},
+};
 
 pub mod find;
 pub mod lint;
@@ -38,7 +41,7 @@ pub enum PluginKind {
 }
 
 impl Plugin {
-    pub fn run<'a>(&self, toml: &Arc<Config>) -> Result<HashMap<String, String>, String> {
+    pub fn generate<'a>(&self, toml: &Arc<Config>) -> Result<HashMap<String, String>, String> {
         let lua = Lua::new();
         add_helper_globals(&lua);
         let common_config = lua
@@ -107,6 +110,54 @@ impl Plugin {
             .expect("unable to convert generation result to String");
 
         Ok(generate_results)
+    }
+
+    pub fn run<'a>(&self, toml: &Arc<Config>) -> AppResult<Vec<String>> {
+        let lua = Lua::new();
+        add_helper_globals(&lua);
+        let common_config = lua
+            .to_value(&toml.common)
+            .expect("unable to convert common config to lua value");
+
+        let plugin_config = match self.kind {
+            PluginKind::Lint => toml.rules.get(&self.details.id),
+            PluginKind::Test => toml.tests.get(&self.details.id),
+        }
+        .expect(&format!(
+            "unable to find config for a plugin for {}",
+            &self.details.id
+        ));
+
+        let plugin_config = lua
+            .to_value(plugin_config)
+            .expect("unable to convert plugin config to lua value");
+        let plugin_config = plugin_config
+            .as_table()
+            .expect("unable to convert plugin config lua value to table");
+
+        plugin_config
+            .set("common", common_config)
+            .expect("unable to set common table to config table");
+
+        let run: Result<Function, Error> = {
+            let contents = std::fs::read_to_string(&self.path.join("run.lua"))
+                .expect("Error reading plugin code");
+
+            lua.load(contents)
+                .exec()
+                .map(|_| lua.globals().get("Run").unwrap())
+        };
+
+        let run_success = run
+            .expect("error reading run.lua")
+            .call::<mlua::Value>(plugin_config)
+            .expect("error running run function");
+
+        let run_command: Vec<String> = lua
+            .from_value(run_success)
+            .expect("unable to parse run command");
+
+        Ok(run_command)
     }
 
     pub fn list_from_config(config: &Config) -> Vec<&Plugin> {

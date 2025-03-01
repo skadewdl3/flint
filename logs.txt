@@ -532,3 +532,7 @@
 [info]: Determined current directory: /home/skadewdl3/Projects/flint
 [info]: Determined current directory: /home/skadewdl3/Projects/flint
 [info]: Determined current directory: /home/skadewdl3/Projects/flint
+[error]: Failed to execute command 'jest': No such file or directory (os error 2)
+[success]: Run jest config successfully
+[error]: Failed to execute command 'jest': No such file or directory (os error 2)
+[error]: Failed to execute command 'eslint': No such file or directory (os error 2)

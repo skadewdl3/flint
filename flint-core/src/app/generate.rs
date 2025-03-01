@@ -47,7 +47,7 @@ impl AppWidget for GenerateWidget {
             let toml_clone = toml.clone();
 
             self.thread_pool.execute(move || {
-                let result = plugin.run(&toml_clone);
+                let result = plugin.generate(&toml_clone);
                 match result {
                     Ok(res) => {
                         // TODO: Ask user if we want to overwrite files

@@ -1,3 +1,3 @@
-function Lint(config)
+function Run(config)
     return { "eslint", "--help" }
 end
