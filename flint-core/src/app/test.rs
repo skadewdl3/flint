@@ -65,7 +65,7 @@ impl AppWidget for TestWidget {
 
                 let output = cmd_output.unwrap();
 
-                let eval_result = plugin.eval(&toml_clone, output);
+                let eval_result = plugin.eval(output);
 
                 if let Err(eval) = eval_result {
                     add_log(

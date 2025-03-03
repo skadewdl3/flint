@@ -161,7 +161,7 @@ impl Plugin {
         Ok(run_command)
     }
 
-    pub fn eval(&self, toml: &Arc<Config>, output: Output) -> AppResult<()> {
+    pub fn eval(&self, output: Output) -> AppResult<()> {
         let lua = Lua::new();
         add_helper_globals(&lua);
 
