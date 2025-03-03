@@ -31,7 +31,7 @@ pub fn map() -> &'static HashMap<String, BTreeSet<Plugin>> {
 
 pub fn dir() -> PathBuf {
     if cfg!(debug_assertions) {
-        return PathBuf::from("./flint-core/src/plugins");
+        return PathBuf::from("./flint-plugins");
     } else if let Some(proj_dirs) = ProjectDirs::from("com", "Flint", "flint") {
         let plugins_path = proj_dirs.data_dir().to_path_buf().join("plugins");
         if !plugins_path.exists() {

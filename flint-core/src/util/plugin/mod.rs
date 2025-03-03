@@ -4,6 +4,7 @@ use crate::app::{AppError, AppResult};
 pub mod find;
 pub mod helpers;
 pub use find::*;
+pub mod download;
 
 use helpers::add_helper_globals;
 
