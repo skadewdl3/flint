@@ -1,3 +1,7 @@
 function Run(config)
-    return { "npx", "eslint" }
+    return { "eslint", "--help" }
+end
+
+function Eval(config)
+    return {}
 end

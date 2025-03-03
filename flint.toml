@@ -52,10 +52,10 @@ ban_empty_loops = true
 
 [rules.eslint] # rename this to rules.eslint
 semi = false
-root = "./src/js-test"
-ignore = ["node_modules"]
 
 [config.eslint]
+root = "./src/js-test"
+ignore = ["node_modules"]
 
 
 [rules.sqlfluff]
@@ -64,3 +64,4 @@ templater.unwrap_wrapped_queries = true
 
 [tests.jest]
 enabled = false
+config_path = "src/jest.config.ts"

@@ -1,3 +1,7 @@
 function Run(config)
-    return { "jest", "--help" }
+    return { "jest" }
+end
+
+function Eval(output)
+
 end

@@ -5,6 +5,6 @@ function Generate(config)
     output.tool.sqlfluff = config
 
     return {
-        ["pyproject.toml"] = to_toml(output)
+        ["pyproject.toml"] = toml.stringify(output)
     }
 end

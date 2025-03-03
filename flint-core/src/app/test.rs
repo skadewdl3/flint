@@ -4,11 +4,10 @@ use flint_macros::ui;
 use ratatui::prelude::*;
 use ratatui::widgets::WidgetRef;
 use threadpool::ThreadPool;
-use throbber_widgets_tui::ThrobberState;
 
 use crate::{
     util::{
-        plugin::{self, Plugin, PluginKind},
+        plugin::{self, PluginKind},
         toml::Config,
     },
     widgets::logs::{add_log, LogKind, LogsWidget},
@@ -38,7 +37,7 @@ impl AppWidget for TestWidget {
 
         for plugin in plugins
             .into_iter()
-            .filter(|plugin| plugin.kind == PluginKind::Lint)
+            .filter(|plugin| plugin.kind == PluginKind::Test)
         {
             let plugin = plugin.clone();
             let toml_clone = toml.clone();

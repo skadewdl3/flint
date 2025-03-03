@@ -21,3 +21,4 @@ tui-popup = "0.6.0"
 tui-textarea = "0.7.0"
 flint-macros = { path = "../flint-macros" }
 thiserror = "2.0.11"
+serde_yaml = "0.9.34"
