@@ -1,8 +1,5 @@
 use super::toml::Config;
-use crate::{
-    app::{AppError, AppResult},
-    widgets::logs::{add_log, LogKind},
-};
+use crate::app::AppResult;
 
 pub mod find;
 pub mod helpers;
@@ -11,9 +8,8 @@ pub mod test;
 pub use find::*;
 
 use helpers::add_helper_globals;
-use serde_json::to_string_pretty;
 
-use mlua::{Error, Function, Lua, LuaSerdeExt, Value};
+use mlua::{Error, Function, Lua, LuaSerdeExt, Table};
 use serde::{Deserialize, Serialize};
 use std::{
     collections::{HashMap, HashSet},
@@ -43,9 +39,7 @@ pub enum PluginKind {
 }
 
 impl Plugin {
-    pub fn generate<'a>(&self, toml: &Arc<Config>) -> Result<HashMap<String, String>, String> {
-        let lua = Lua::new();
-        add_helper_globals(&lua);
+    pub fn get_config_lua(&self, lua: &Lua, toml: &Arc<Config>) -> Table {
         let common_config = lua
             .to_value(&toml.common)
             .expect("unable to convert common config to lua value");
@@ -82,6 +76,15 @@ impl Plugin {
                 ))
             }
         }
+
+        plugin_config.clone()
+    }
+
+    pub fn generate<'a>(&self, toml: &Arc<Config>) -> Result<HashMap<String, String>, String> {
+        let lua = Lua::new();
+        add_helper_globals(&lua);
+
+        let plugin_config = &self.get_config_lua(&lua, toml);
 
         let generate: Result<Function, Error> = {
             let contents = match std::fs::read_to_string(&self.path.join("generate.lua")) {
@@ -136,29 +139,7 @@ impl Plugin {
     pub fn run<'a>(&self, toml: &Arc<Config>) -> AppResult<Vec<String>> {
         let lua = Lua::new();
         add_helper_globals(&lua);
-        let common_config = lua
-            .to_value(&toml.common)
-            .expect("unable to convert common config to lua value");
-
-        let plugin_config = match self.kind {
-            PluginKind::Lint => toml.rules.get(&self.details.id),
-            PluginKind::Test => toml.tests.get(&self.details.id),
-        }
-        .expect(&format!(
-            "unable to find config for a plugin for {}",
-            &self.details.id
-        ));
-
-        let plugin_config = lua
-            .to_value(plugin_config)
-            .expect("unable to convert plugin config to lua value");
-        let plugin_config = plugin_config
-            .as_table()
-            .expect("unable to convert plugin config lua value to table");
-
-        plugin_config
-            .set("common", common_config)
-            .expect("unable to set common table to config table");
+        let plugin_config = &self.get_config_lua(&lua, toml);
 
         let run: Result<Function, Error> = {
             let contents = std::fs::read_to_string(&self.path.join("run.lua"))
