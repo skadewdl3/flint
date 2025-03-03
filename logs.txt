@@ -154,3 +154,871 @@
   "numPassedTests": 1,
   "wasInterrupted": false
 }
+[debug]: {
+  "status": 0,
+  "stdout": "{\"numFailedTestSuites\":0,\"numFailedTests\":0,\"numPassedTestSuites\":1,\"numPassedTests\":1,\"numPendingTestSuites\":0,\"numPendingTests\":0,\"numRuntimeErrorTestSuites\":0,\"numTodoTests\":0,\"numTotalTestSuites\":1,\"numTotalTests\":1,\"openHandles\":[],\"snapshot\":{\"added\":0,\"didUpdate\":false,\"failure\":false,\"filesAdded\":0,\"filesRemoved\":0,\"filesRemovedList\":[],\"filesUnmatched\":0,\"filesUpdated\":0,\"matched\":0,\"total\":0,\"unchecked\":0,\"uncheckedKeysByFile\":[],\"unmatched\":0,\"updated\":0},\"startTime\":1741001910539,\"success\":true,\"testResults\":[{\"assertionResults\":[{\"ancestorTitles\":[],\"duration\":1,\"failureDetails\":[],\"failureMessages\":[],\"fullName\":\"adds 1 + 2 to equal 3\",\"invocations\":1,\"location\":null,\"numPassingAsserts\":1,\"retryReasons\":[],\"status\":\"passed\",\"title\":\"adds 1 + 2 to equal 3\"}],\"endTime\":1741001910647,\"message\":\"\",\"name\":\"/home/skadewdl3/Projects/flint/sum.test.js\",\"startTime\":1741001910556,\"status\":\"passed\",\"summary\":\"\"}],\"wasInterrupted\":false}\n",
+  "stderr": "PASS ./sum.test.js\n  ✓ adds 1 + 2 to equal 3 (1 ms)\n\nTest Suites: 1 passed, 1 total\nTests:       1 passed, 1 total\nSnapshots:   0 total\nTime:        0.11 s, estimated 1 s\nRan all test suites.\n",
+  "success": true
+}
+[debug]: {
+  "numTodoTests": 0,
+  "numPendingTestSuites": 0,
+  "numFailedTestSuites": 0,
+  "numFailedTests": 0,
+  "numPassedTestSuites": 1,
+  "snapshot": {
+    "total": 0,
+    "filesRemoved": 0,
+    "filesRemovedList": {},
+    "updated": 0,
+    "added": 0,
+    "failure": false,
+    "unchecked": 0,
+    "filesUpdated": 0,
+    "unmatched": 0,
+    "filesUnmatched": 0,
+    "filesAdded": 0,
+    "uncheckedKeysByFile": {},
+    "didUpdate": false,
+    "matched": 0
+  },
+  "testResults": [
+    {
+      "message": "",
+      "name": "/home/skadewdl3/Projects/flint/sum.test.js",
+      "summary": "",
+      "endTime": 1540155767,
+      "startTime": 1540155676,
+      "assertionResults": [
+        {
+          "failureMessages": {},
+          "failureDetails": {},
+          "fullName": "adds 1 + 2 to equal 3",
+          "duration": 1,
+          "ancestorTitles": {},
+          "invocations": 1,
+          "status": "passed",
+          "title": "adds 1 + 2 to equal 3",
+          "retryReasons": {},
+          "numPassingAsserts": 1
+        }
+      ],
+      "status": "passed"
+    }
+  ],
+  "startTime": 1540155659,
+  "openHandles": {},
+  "numTotalTests": 1,
+  "success": true,
+  "numTotalTestSuites": 1,
+  "numRuntimeErrorTestSuites": 0,
+  "numPendingTests": 0,
+  "numPassedTests": 1,
+  "wasInterrupted": false
+}
+[debug]: {
+  "status": 0,
+  "stdout": "{\"numFailedTestSuites\":0,\"numFailedTests\":0,\"numPassedTestSuites\":1,\"numPassedTests\":1,\"numPendingTestSuites\":0,\"numPendingTests\":0,\"numRuntimeErrorTestSuites\":0,\"numTodoTests\":0,\"numTotalTestSuites\":1,\"numTotalTests\":1,\"openHandles\":[],\"snapshot\":{\"added\":0,\"didUpdate\":false,\"failure\":false,\"filesAdded\":0,\"filesRemoved\":0,\"filesRemovedList\":[],\"filesUnmatched\":0,\"filesUpdated\":0,\"matched\":0,\"total\":0,\"unchecked\":0,\"uncheckedKeysByFile\":[],\"unmatched\":0,\"updated\":0},\"startTime\":1741002345874,\"success\":true,\"testResults\":[{\"assertionResults\":[{\"ancestorTitles\":[],\"duration\":1,\"failureDetails\":[],\"failureMessages\":[],\"fullName\":\"adds 1 + 2 to equal 3\",\"invocations\":1,\"location\":null,\"numPassingAsserts\":1,\"retryReasons\":[],\"status\":\"passed\",\"title\":\"adds 1 + 2 to equal 3\"}],\"endTime\":1741002345976,\"message\":\"\",\"name\":\"/home/skadewdl3/Projects/flint/sum.test.js\",\"startTime\":1741002345890,\"status\":\"passed\",\"summary\":\"\"}],\"wasInterrupted\":false}\n",
+  "stderr": "PASS ./sum.test.js\n  ✓ adds 1 + 2 to equal 3 (1 ms)\n\nTest Suites: 1 passed, 1 total\nTests:       1 passed, 1 total\nSnapshots:   0 total\nTime:        0.104 s, estimated 1 s\nRan all test suites.\n",
+  "success": true
+}
+[debug]: {
+  "numTodoTests": 0,
+  "numPendingTestSuites": 0,
+  "numFailedTestSuites": 0,
+  "numFailedTests": 0,
+  "numPassedTestSuites": 1,
+  "snapshot": {
+    "total": 0,
+    "filesRemoved": 0,
+    "filesRemovedList": {},
+    "updated": 0,
+    "added": 0,
+    "failure": false,
+    "unchecked": 0,
+    "filesUpdated": 0,
+    "unmatched": 0,
+    "filesUnmatched": 0,
+    "filesAdded": 0,
+    "uncheckedKeysByFile": {},
+    "didUpdate": false,
+    "matched": 0
+  },
+  "testResults": [
+    {
+      "message": "",
+      "name": "/home/skadewdl3/Projects/flint/sum.test.js",
+      "summary": "",
+      "endTime": 1540591096,
+      "startTime": 1540591010,
+      "assertionResults": [
+        {
+          "failureMessages": {},
+          "failureDetails": {},
+          "fullName": "adds 1 + 2 to equal 3",
+          "duration": 1,
+          "ancestorTitles": {},
+          "invocations": 1,
+          "status": "passed",
+          "title": "adds 1 + 2 to equal 3",
+          "retryReasons": {},
+          "numPassingAsserts": 1
+        }
+      ],
+      "status": "passed"
+    }
+  ],
+  "startTime": 1540590994,
+  "openHandles": {},
+  "numTotalTests": 1,
+  "success": true,
+  "numTotalTestSuites": 1,
+  "numRuntimeErrorTestSuites": 0,
+  "numPendingTests": 0,
+  "numPassedTests": 1,
+  "wasInterrupted": false
+}
+[debug]: {
+  "status": 0,
+  "stdout": "{\"numFailedTestSuites\":0,\"numFailedTests\":0,\"numPassedTestSuites\":1,\"numPassedTests\":1,\"numPendingTestSuites\":0,\"numPendingTests\":0,\"numRuntimeErrorTestSuites\":0,\"numTodoTests\":0,\"numTotalTestSuites\":1,\"numTotalTests\":1,\"openHandles\":[],\"snapshot\":{\"added\":0,\"didUpdate\":false,\"failure\":false,\"filesAdded\":0,\"filesRemoved\":0,\"filesRemovedList\":[],\"filesUnmatched\":0,\"filesUpdated\":0,\"matched\":0,\"total\":0,\"unchecked\":0,\"uncheckedKeysByFile\":[],\"unmatched\":0,\"updated\":0},\"startTime\":1741002604746,\"success\":true,\"testResults\":[{\"assertionResults\":[{\"ancestorTitles\":[],\"duration\":1,\"failureDetails\":[],\"failureMessages\":[],\"fullName\":\"adds 1 + 2 to equal 3\",\"invocations\":1,\"location\":null,\"numPassingAsserts\":1,\"retryReasons\":[],\"status\":\"passed\",\"title\":\"adds 1 + 2 to equal 3\"}],\"endTime\":1741002604852,\"message\":\"\",\"name\":\"/home/skadewdl3/Projects/flint/sum.test.js\",\"startTime\":1741002604761,\"status\":\"passed\",\"summary\":\"\"}],\"wasInterrupted\":false}\n",
+  "stderr": "PASS ./sum.test.js\n  ✓ adds 1 + 2 to equal 3 (1 ms)\n\nTest Suites: 1 passed, 1 total\nTests:       1 passed, 1 total\nSnapshots:   0 total\nTime:        0.108 s, estimated 1 s\nRan all test suites.\n",
+  "success": true
+}
+[debug]: {
+  "numTodoTests": 0,
+  "numPendingTestSuites": 0,
+  "numFailedTestSuites": 0,
+  "numFailedTests": 0,
+  "numPassedTestSuites": 1,
+  "snapshot": {
+    "total": 0,
+    "filesRemoved": 0,
+    "filesRemovedList": {},
+    "updated": 0,
+    "added": 0,
+    "failure": false,
+    "unchecked": 0,
+    "filesUpdated": 0,
+    "unmatched": 0,
+    "filesUnmatched": 0,
+    "filesAdded": 0,
+    "uncheckedKeysByFile": {},
+    "didUpdate": false,
+    "matched": 0
+  },
+  "testResults": [
+    {
+      "message": "",
+      "name": "/home/skadewdl3/Projects/flint/sum.test.js",
+      "summary": "",
+      "endTime": 1540849972,
+      "startTime": 1540849881,
+      "assertionResults": [
+        {
+          "failureMessages": {},
+          "failureDetails": {},
+          "fullName": "adds 1 + 2 to equal 3",
+          "duration": 1,
+          "ancestorTitles": {},
+          "invocations": 1,
+          "status": "passed",
+          "title": "adds 1 + 2 to equal 3",
+          "retryReasons": {},
+          "numPassingAsserts": 1
+        }
+      ],
+      "status": "passed"
+    }
+  ],
+  "startTime": 1540849866,
+  "openHandles": {},
+  "numTotalTests": 1,
+  "success": true,
+  "numTotalTestSuites": 1,
+  "numRuntimeErrorTestSuites": 0,
+  "numPendingTests": 0,
+  "numPassedTests": 1,
+  "wasInterrupted": false
+}
+[debug]: {
+  "status": 0,
+  "stdout": "{\"numFailedTestSuites\":0,\"numFailedTests\":0,\"numPassedTestSuites\":1,\"numPassedTests\":1,\"numPendingTestSuites\":0,\"numPendingTests\":0,\"numRuntimeErrorTestSuites\":0,\"numTodoTests\":0,\"numTotalTestSuites\":1,\"numTotalTests\":1,\"openHandles\":[],\"snapshot\":{\"added\":0,\"didUpdate\":false,\"failure\":false,\"filesAdded\":0,\"filesRemoved\":0,\"filesRemovedList\":[],\"filesUnmatched\":0,\"filesUpdated\":0,\"matched\":0,\"total\":0,\"unchecked\":0,\"uncheckedKeysByFile\":[],\"unmatched\":0,\"updated\":0},\"startTime\":1741002686088,\"success\":true,\"testResults\":[{\"assertionResults\":[{\"ancestorTitles\":[],\"duration\":1,\"failureDetails\":[],\"failureMessages\":[],\"fullName\":\"adds 1 + 2 to equal 3\",\"invocations\":1,\"location\":null,\"numPassingAsserts\":1,\"retryReasons\":[],\"status\":\"passed\",\"title\":\"adds 1 + 2 to equal 3\"}],\"endTime\":1741002686198,\"message\":\"\",\"name\":\"/home/skadewdl3/Projects/flint/sum.test.js\",\"startTime\":1741002686106,\"status\":\"passed\",\"summary\":\"\"}],\"wasInterrupted\":false}\n",
+  "stderr": "PASS ./sum.test.js\n  ✓ adds 1 + 2 to equal 3 (1 ms)\n\nTest Suites: 1 passed, 1 total\nTests:       1 passed, 1 total\nSnapshots:   0 total\nTime:        0.112 s, estimated 1 s\nRan all test suites.\n",
+  "success": true
+}
+[debug]: {
+  "numTodoTests": 0,
+  "numPendingTestSuites": 0,
+  "numFailedTestSuites": 0,
+  "numFailedTests": 0,
+  "numPassedTestSuites": 1,
+  "snapshot": {
+    "total": 0,
+    "filesRemoved": 0,
+    "filesRemovedList": {},
+    "updated": 0,
+    "added": 0,
+    "failure": false,
+    "unchecked": 0,
+    "filesUpdated": 0,
+    "unmatched": 0,
+    "filesUnmatched": 0,
+    "filesAdded": 0,
+    "uncheckedKeysByFile": {},
+    "didUpdate": false,
+    "matched": 0
+  },
+  "testResults": [
+    {
+      "message": "",
+      "name": "/home/skadewdl3/Projects/flint/sum.test.js",
+      "summary": "",
+      "endTime": 1540931318,
+      "startTime": 1540931226,
+      "assertionResults": [
+        {
+          "failureMessages": {},
+          "failureDetails": {},
+          "fullName": "adds 1 + 2 to equal 3",
+          "duration": 1,
+          "ancestorTitles": {},
+          "invocations": 1,
+          "status": "passed",
+          "title": "adds 1 + 2 to equal 3",
+          "retryReasons": {},
+          "numPassingAsserts": 1
+        }
+      ],
+      "status": "passed"
+    }
+  ],
+  "startTime": 1540931208,
+  "openHandles": {},
+  "numTotalTests": 1,
+  "success": true,
+  "numTotalTestSuites": 1,
+  "numRuntimeErrorTestSuites": 0,
+  "numPendingTests": 0,
+  "numPassedTests": 1,
+  "wasInterrupted": false
+}
+[debug]: {
+  "status": 0,
+  "stdout": "{\"numFailedTestSuites\":0,\"numFailedTests\":0,\"numPassedTestSuites\":1,\"numPassedTests\":1,\"numPendingTestSuites\":0,\"numPendingTests\":0,\"numRuntimeErrorTestSuites\":0,\"numTodoTests\":0,\"numTotalTestSuites\":1,\"numTotalTests\":1,\"openHandles\":[],\"snapshot\":{\"added\":0,\"didUpdate\":false,\"failure\":false,\"filesAdded\":0,\"filesRemoved\":0,\"filesRemovedList\":[],\"filesUnmatched\":0,\"filesUpdated\":0,\"matched\":0,\"total\":0,\"unchecked\":0,\"uncheckedKeysByFile\":[],\"unmatched\":0,\"updated\":0},\"startTime\":1741002720177,\"success\":true,\"testResults\":[{\"assertionResults\":[{\"ancestorTitles\":[],\"duration\":1,\"failureDetails\":[],\"failureMessages\":[],\"fullName\":\"adds 1 + 2 to equal 3\",\"invocations\":1,\"location\":null,\"numPassingAsserts\":1,\"retryReasons\":[],\"status\":\"passed\",\"title\":\"adds 1 + 2 to equal 3\"}],\"endTime\":1741002720282,\"message\":\"\",\"name\":\"/home/skadewdl3/Projects/flint/sum.test.js\",\"startTime\":1741002720192,\"status\":\"passed\",\"summary\":\"\"}],\"wasInterrupted\":false}\n",
+  "stderr": "PASS ./sum.test.js\n  ✓ adds 1 + 2 to equal 3 (1 ms)\n\nTest Suites: 1 passed, 1 total\nTests:       1 passed, 1 total\nSnapshots:   0 total\nTime:        0.107 s, estimated 1 s\nRan all test suites.\n",
+  "success": true
+}
+[debug]: {
+  "numTodoTests": 0,
+  "numPendingTestSuites": 0,
+  "numFailedTestSuites": 0,
+  "numFailedTests": 0,
+  "numPassedTestSuites": 1,
+  "snapshot": {
+    "total": 0,
+    "filesRemoved": 0,
+    "filesRemovedList": {},
+    "updated": 0,
+    "added": 0,
+    "failure": false,
+    "unchecked": 0,
+    "filesUpdated": 0,
+    "unmatched": 0,
+    "filesUnmatched": 0,
+    "filesAdded": 0,
+    "uncheckedKeysByFile": {},
+    "didUpdate": false,
+    "matched": 0
+  },
+  "testResults": [
+    {
+      "message": "",
+      "name": "/home/skadewdl3/Projects/flint/sum.test.js",
+      "summary": "",
+      "endTime": 1540965402,
+      "startTime": 1540965312,
+      "assertionResults": [
+        {
+          "failureMessages": {},
+          "failureDetails": {},
+          "fullName": "adds 1 + 2 to equal 3",
+          "duration": 1,
+          "ancestorTitles": {},
+          "invocations": 1,
+          "status": "passed",
+          "title": "adds 1 + 2 to equal 3",
+          "retryReasons": {},
+          "numPassingAsserts": 1
+        }
+      ],
+      "status": "passed"
+    }
+  ],
+  "startTime": 1540965297,
+  "openHandles": {},
+  "numTotalTests": 1,
+  "success": true,
+  "numTotalTestSuites": 1,
+  "numRuntimeErrorTestSuites": 0,
+  "numPendingTests": 0,
+  "numPassedTests": 1,
+  "wasInterrupted": false
+}
+[debug]: {
+  "status": 0,
+  "stdout": "{\"numFailedTestSuites\":0,\"numFailedTests\":0,\"numPassedTestSuites\":1,\"numPassedTests\":1,\"numPendingTestSuites\":0,\"numPendingTests\":0,\"numRuntimeErrorTestSuites\":0,\"numTodoTests\":0,\"numTotalTestSuites\":1,\"numTotalTests\":1,\"openHandles\":[],\"snapshot\":{\"added\":0,\"didUpdate\":false,\"failure\":false,\"filesAdded\":0,\"filesRemoved\":0,\"filesRemovedList\":[],\"filesUnmatched\":0,\"filesUpdated\":0,\"matched\":0,\"total\":0,\"unchecked\":0,\"uncheckedKeysByFile\":[],\"unmatched\":0,\"updated\":0},\"startTime\":1741002909872,\"success\":true,\"testResults\":[{\"assertionResults\":[{\"ancestorTitles\":[],\"duration\":1,\"failureDetails\":[],\"failureMessages\":[],\"fullName\":\"adds 1 + 2 to equal 3\",\"invocations\":1,\"location\":null,\"numPassingAsserts\":1,\"retryReasons\":[],\"status\":\"passed\",\"title\":\"adds 1 + 2 to equal 3\"}],\"endTime\":1741002909980,\"message\":\"\",\"name\":\"/home/skadewdl3/Projects/flint/sum.test.js\",\"startTime\":1741002909887,\"status\":\"passed\",\"summary\":\"\"}],\"wasInterrupted\":false}\n",
+  "stderr": "PASS ./sum.test.js\n  ✓ adds 1 + 2 to equal 3 (1 ms)\n\nTest Suites: 1 passed, 1 total\nTests:       1 passed, 1 total\nSnapshots:   0 total\nTime:        0.111 s, estimated 1 s\nRan all test suites.\n",
+  "success": true
+}
+[debug]: {
+  "numTodoTests": 0,
+  "numPendingTestSuites": 0,
+  "numFailedTestSuites": 0,
+  "numFailedTests": 0,
+  "numPassedTestSuites": 1,
+  "snapshot": {
+    "total": 0,
+    "filesRemoved": 0,
+    "filesRemovedList": {},
+    "updated": 0,
+    "added": 0,
+    "failure": false,
+    "unchecked": 0,
+    "filesUpdated": 0,
+    "unmatched": 0,
+    "filesUnmatched": 0,
+    "filesAdded": 0,
+    "uncheckedKeysByFile": {},
+    "didUpdate": false,
+    "matched": 0
+  },
+  "testResults": [
+    {
+      "message": "",
+      "name": "/home/skadewdl3/Projects/flint/sum.test.js",
+      "summary": "",
+      "endTime": 1541155100,
+      "startTime": 1541155007,
+      "assertionResults": [
+        {
+          "failureMessages": {},
+          "failureDetails": {},
+          "fullName": "adds 1 + 2 to equal 3",
+          "duration": 1,
+          "ancestorTitles": {},
+          "invocations": 1,
+          "status": "passed",
+          "title": "adds 1 + 2 to equal 3",
+          "retryReasons": {},
+          "numPassingAsserts": 1
+        }
+      ],
+      "status": "passed"
+    }
+  ],
+  "startTime": 1541154992,
+  "openHandles": {},
+  "numTotalTests": 1,
+  "success": true,
+  "numTotalTestSuites": 1,
+  "numRuntimeErrorTestSuites": 0,
+  "numPendingTests": 0,
+  "numPassedTests": 1,
+  "wasInterrupted": false
+}
+[debug]: {
+  "status": 0,
+  "stdout": "{\"numFailedTestSuites\":0,\"numFailedTests\":0,\"numPassedTestSuites\":1,\"numPassedTests\":1,\"numPendingTestSuites\":0,\"numPendingTests\":0,\"numRuntimeErrorTestSuites\":0,\"numTodoTests\":0,\"numTotalTestSuites\":1,\"numTotalTests\":1,\"openHandles\":[],\"snapshot\":{\"added\":0,\"didUpdate\":false,\"failure\":false,\"filesAdded\":0,\"filesRemoved\":0,\"filesRemovedList\":[],\"filesUnmatched\":0,\"filesUpdated\":0,\"matched\":0,\"total\":0,\"unchecked\":0,\"uncheckedKeysByFile\":[],\"unmatched\":0,\"updated\":0},\"startTime\":1741002940880,\"success\":true,\"testResults\":[{\"assertionResults\":[{\"ancestorTitles\":[],\"duration\":1,\"failureDetails\":[],\"failureMessages\":[],\"fullName\":\"adds 1 + 2 to equal 3\",\"invocations\":1,\"location\":null,\"numPassingAsserts\":1,\"retryReasons\":[],\"status\":\"passed\",\"title\":\"adds 1 + 2 to equal 3\"}],\"endTime\":1741002940986,\"message\":\"\",\"name\":\"/home/skadewdl3/Projects/flint/sum.test.js\",\"startTime\":1741002940896,\"status\":\"passed\",\"summary\":\"\"}],\"wasInterrupted\":false}\n",
+  "stderr": "PASS ./sum.test.js\n  ✓ adds 1 + 2 to equal 3 (1 ms)\n\nTest Suites: 1 passed, 1 total\nTests:       1 passed, 1 total\nSnapshots:   0 total\nTime:        0.108 s, estimated 1 s\nRan all test suites.\n",
+  "success": true
+}
+[debug]: {
+  "numTodoTests": 0,
+  "numPendingTestSuites": 0,
+  "numFailedTestSuites": 0,
+  "numFailedTests": 0,
+  "numPassedTestSuites": 1,
+  "snapshot": {
+    "total": 0,
+    "filesRemoved": 0,
+    "filesRemovedList": {},
+    "updated": 0,
+    "added": 0,
+    "failure": false,
+    "unchecked": 0,
+    "filesUpdated": 0,
+    "unmatched": 0,
+    "filesUnmatched": 0,
+    "filesAdded": 0,
+    "uncheckedKeysByFile": {},
+    "didUpdate": false,
+    "matched": 0
+  },
+  "testResults": [
+    {
+      "message": "",
+      "name": "/home/skadewdl3/Projects/flint/sum.test.js",
+      "summary": "",
+      "endTime": 1541186106,
+      "startTime": 1541186016,
+      "assertionResults": [
+        {
+          "failureMessages": {},
+          "failureDetails": {},
+          "fullName": "adds 1 + 2 to equal 3",
+          "duration": 1,
+          "ancestorTitles": {},
+          "invocations": 1,
+          "status": "passed",
+          "title": "adds 1 + 2 to equal 3",
+          "retryReasons": {},
+          "numPassingAsserts": 1
+        }
+      ],
+      "status": "passed"
+    }
+  ],
+  "startTime": 1541186000,
+  "openHandles": {},
+  "numTotalTests": 1,
+  "success": true,
+  "numTotalTestSuites": 1,
+  "numRuntimeErrorTestSuites": 0,
+  "numPendingTests": 0,
+  "numPassedTests": 1,
+  "wasInterrupted": false
+}
+[debug]: {
+  "status": 0,
+  "stdout": "{\"numFailedTestSuites\":0,\"numFailedTests\":0,\"numPassedTestSuites\":1,\"numPassedTests\":1,\"numPendingTestSuites\":0,\"numPendingTests\":0,\"numRuntimeErrorTestSuites\":0,\"numTodoTests\":0,\"numTotalTestSuites\":1,\"numTotalTests\":1,\"openHandles\":[],\"snapshot\":{\"added\":0,\"didUpdate\":false,\"failure\":false,\"filesAdded\":0,\"filesRemoved\":0,\"filesRemovedList\":[],\"filesUnmatched\":0,\"filesUpdated\":0,\"matched\":0,\"total\":0,\"unchecked\":0,\"uncheckedKeysByFile\":[],\"unmatched\":0,\"updated\":0},\"startTime\":1741002982473,\"success\":true,\"testResults\":[{\"assertionResults\":[{\"ancestorTitles\":[],\"duration\":2,\"failureDetails\":[],\"failureMessages\":[],\"fullName\":\"adds 1 + 2 to equal 3\",\"invocations\":1,\"location\":null,\"numPassingAsserts\":1,\"retryReasons\":[],\"status\":\"passed\",\"title\":\"adds 1 + 2 to equal 3\"}],\"endTime\":1741002982575,\"message\":\"\",\"name\":\"/home/skadewdl3/Projects/flint/sum.test.js\",\"startTime\":1741002982486,\"status\":\"passed\",\"summary\":\"\"}],\"wasInterrupted\":false}\n",
+  "stderr": "PASS ./sum.test.js\n  ✓ adds 1 + 2 to equal 3 (2 ms)\n\nTest Suites: 1 passed, 1 total\nTests:       1 passed, 1 total\nSnapshots:   0 total\nTime:        0.105 s, estimated 1 s\nRan all test suites.\n",
+  "success": true
+}
+[debug]: {
+  "numTodoTests": 0,
+  "numPendingTestSuites": 0,
+  "numFailedTestSuites": 0,
+  "numFailedTests": 0,
+  "numPassedTestSuites": 1,
+  "snapshot": {
+    "total": 0,
+    "filesRemoved": 0,
+    "filesRemovedList": {},
+    "updated": 0,
+    "added": 0,
+    "failure": false,
+    "unchecked": 0,
+    "filesUpdated": 0,
+    "unmatched": 0,
+    "filesUnmatched": 0,
+    "filesAdded": 0,
+    "uncheckedKeysByFile": {},
+    "didUpdate": false,
+    "matched": 0
+  },
+  "testResults": [
+    {
+      "message": "",
+      "name": "/home/skadewdl3/Projects/flint/sum.test.js",
+      "summary": "",
+      "endTime": 1541227695,
+      "startTime": 1541227606,
+      "assertionResults": [
+        {
+          "failureMessages": {},
+          "failureDetails": {},
+          "fullName": "adds 1 + 2 to equal 3",
+          "duration": 2,
+          "ancestorTitles": {},
+          "invocations": 1,
+          "status": "passed",
+          "title": "adds 1 + 2 to equal 3",
+          "retryReasons": {},
+          "numPassingAsserts": 1
+        }
+      ],
+      "status": "passed"
+    }
+  ],
+  "startTime": 1541227593,
+  "openHandles": {},
+  "numTotalTests": 1,
+  "success": true,
+  "numTotalTestSuites": 1,
+  "numRuntimeErrorTestSuites": 0,
+  "numPendingTests": 0,
+  "numPassedTests": 1,
+  "wasInterrupted": false
+}
+[debug]: {
+  "status": 0,
+  "stdout": "{\"numFailedTestSuites\":0,\"numFailedTests\":0,\"numPassedTestSuites\":1,\"numPassedTests\":1,\"numPendingTestSuites\":0,\"numPendingTests\":0,\"numRuntimeErrorTestSuites\":0,\"numTodoTests\":0,\"numTotalTestSuites\":1,\"numTotalTests\":1,\"openHandles\":[],\"snapshot\":{\"added\":0,\"didUpdate\":false,\"failure\":false,\"filesAdded\":0,\"filesRemoved\":0,\"filesRemovedList\":[],\"filesUnmatched\":0,\"filesUpdated\":0,\"matched\":0,\"total\":0,\"unchecked\":0,\"uncheckedKeysByFile\":[],\"unmatched\":0,\"updated\":0},\"startTime\":1741003058173,\"success\":true,\"testResults\":[{\"assertionResults\":[{\"ancestorTitles\":[],\"duration\":1,\"failureDetails\":[],\"failureMessages\":[],\"fullName\":\"adds 1 + 2 to equal 3\",\"invocations\":1,\"location\":null,\"numPassingAsserts\":1,\"retryReasons\":[],\"status\":\"passed\",\"title\":\"adds 1 + 2 to equal 3\"}],\"endTime\":1741003058282,\"message\":\"\",\"name\":\"/home/skadewdl3/Projects/flint/sum.test.js\",\"startTime\":1741003058189,\"status\":\"passed\",\"summary\":\"\"}],\"wasInterrupted\":false}\n",
+  "stderr": "PASS ./sum.test.js\n  ✓ adds 1 + 2 to equal 3 (1 ms)\n\nTest Suites: 1 passed, 1 total\nTests:       1 passed, 1 total\nSnapshots:   0 total\nTime:        0.111 s, estimated 1 s\nRan all test suites.\n",
+  "success": true
+}
+[debug]: {
+  "numTodoTests": 0,
+  "numPendingTestSuites": 0,
+  "numFailedTestSuites": 0,
+  "numFailedTests": 0,
+  "numPassedTestSuites": 1,
+  "snapshot": {
+    "total": 0,
+    "filesRemoved": 0,
+    "filesRemovedList": {},
+    "updated": 0,
+    "added": 0,
+    "failure": false,
+    "unchecked": 0,
+    "filesUpdated": 0,
+    "unmatched": 0,
+    "filesUnmatched": 0,
+    "filesAdded": 0,
+    "uncheckedKeysByFile": {},
+    "didUpdate": false,
+    "matched": 0
+  },
+  "testResults": [
+    {
+      "message": "",
+      "name": "/home/skadewdl3/Projects/flint/sum.test.js",
+      "summary": "",
+      "endTime": 1541303402,
+      "startTime": 1541303309,
+      "assertionResults": [
+        {
+          "failureMessages": {},
+          "failureDetails": {},
+          "fullName": "adds 1 + 2 to equal 3",
+          "duration": 1,
+          "ancestorTitles": {},
+          "invocations": 1,
+          "status": "passed",
+          "title": "adds 1 + 2 to equal 3",
+          "retryReasons": {},
+          "numPassingAsserts": 1
+        }
+      ],
+      "status": "passed"
+    }
+  ],
+  "startTime": 1541303293,
+  "openHandles": {},
+  "numTotalTests": 1,
+  "success": true,
+  "numTotalTestSuites": 1,
+  "numRuntimeErrorTestSuites": 0,
+  "numPendingTests": 0,
+  "numPassedTests": 1,
+  "wasInterrupted": false
+}
+[debug]: {
+  "status": 0,
+  "stdout": "{\"numFailedTestSuites\":0,\"numFailedTests\":0,\"numPassedTestSuites\":1,\"numPassedTests\":1,\"numPendingTestSuites\":0,\"numPendingTests\":0,\"numRuntimeErrorTestSuites\":0,\"numTodoTests\":0,\"numTotalTestSuites\":1,\"numTotalTests\":1,\"openHandles\":[],\"snapshot\":{\"added\":0,\"didUpdate\":false,\"failure\":false,\"filesAdded\":0,\"filesRemoved\":0,\"filesRemovedList\":[],\"filesUnmatched\":0,\"filesUpdated\":0,\"matched\":0,\"total\":0,\"unchecked\":0,\"uncheckedKeysByFile\":[],\"unmatched\":0,\"updated\":0},\"startTime\":1741003070069,\"success\":true,\"testResults\":[{\"assertionResults\":[{\"ancestorTitles\":[],\"duration\":1,\"failureDetails\":[],\"failureMessages\":[],\"fullName\":\"adds 1 + 2 to equal 3\",\"invocations\":1,\"location\":null,\"numPassingAsserts\":1,\"retryReasons\":[],\"status\":\"passed\",\"title\":\"adds 1 + 2 to equal 3\"}],\"endTime\":1741003070166,\"message\":\"\",\"name\":\"/home/skadewdl3/Projects/flint/sum.test.js\",\"startTime\":1741003070083,\"status\":\"passed\",\"summary\":\"\"}],\"wasInterrupted\":false}\n",
+  "stderr": "PASS ./sum.test.js\n  ✓ adds 1 + 2 to equal 3 (1 ms)\n\nTest Suites: 1 passed, 1 total\nTests:       1 passed, 1 total\nSnapshots:   0 total\nTime:        0.1 s, estimated 1 s\nRan all test suites.\n",
+  "success": true
+}
+[debug]: {
+  "numTodoTests": 0,
+  "numPendingTestSuites": 0,
+  "numFailedTestSuites": 0,
+  "numFailedTests": 0,
+  "numPassedTestSuites": 1,
+  "snapshot": {
+    "total": 0,
+    "filesRemoved": 0,
+    "filesRemovedList": {},
+    "updated": 0,
+    "added": 0,
+    "failure": false,
+    "unchecked": 0,
+    "filesUpdated": 0,
+    "unmatched": 0,
+    "filesUnmatched": 0,
+    "filesAdded": 0,
+    "uncheckedKeysByFile": {},
+    "didUpdate": false,
+    "matched": 0
+  },
+  "testResults": [
+    {
+      "message": "",
+      "name": "/home/skadewdl3/Projects/flint/sum.test.js",
+      "summary": "",
+      "endTime": 1541315286,
+      "startTime": 1541315203,
+      "assertionResults": [
+        {
+          "failureMessages": {},
+          "failureDetails": {},
+          "fullName": "adds 1 + 2 to equal 3",
+          "duration": 1,
+          "ancestorTitles": {},
+          "invocations": 1,
+          "status": "passed",
+          "title": "adds 1 + 2 to equal 3",
+          "retryReasons": {},
+          "numPassingAsserts": 1
+        }
+      ],
+      "status": "passed"
+    }
+  ],
+  "startTime": 1541315189,
+  "openHandles": {},
+  "numTotalTests": 1,
+  "success": true,
+  "numTotalTestSuites": 1,
+  "numRuntimeErrorTestSuites": 0,
+  "numPendingTests": 0,
+  "numPassedTests": 1,
+  "wasInterrupted": false
+}
+[debug]: {
+  "status": 0,
+  "stdout": "{\"numFailedTestSuites\":0,\"numFailedTests\":0,\"numPassedTestSuites\":1,\"numPassedTests\":1,\"numPendingTestSuites\":0,\"numPendingTests\":0,\"numRuntimeErrorTestSuites\":0,\"numTodoTests\":0,\"numTotalTestSuites\":1,\"numTotalTests\":1,\"openHandles\":[],\"snapshot\":{\"added\":0,\"didUpdate\":false,\"failure\":false,\"filesAdded\":0,\"filesRemoved\":0,\"filesRemovedList\":[],\"filesUnmatched\":0,\"filesUpdated\":0,\"matched\":0,\"total\":0,\"unchecked\":0,\"uncheckedKeysByFile\":[],\"unmatched\":0,\"updated\":0},\"startTime\":1741003090924,\"success\":true,\"testResults\":[{\"assertionResults\":[{\"ancestorTitles\":[],\"duration\":1,\"failureDetails\":[],\"failureMessages\":[],\"fullName\":\"adds 1 + 2 to equal 3\",\"invocations\":1,\"location\":null,\"numPassingAsserts\":1,\"retryReasons\":[],\"status\":\"passed\",\"title\":\"adds 1 + 2 to equal 3\"}],\"endTime\":1741003091025,\"message\":\"\",\"name\":\"/home/skadewdl3/Projects/flint/sum.test.js\",\"startTime\":1741003090937,\"status\":\"passed\",\"summary\":\"\"}],\"wasInterrupted\":false}\n",
+  "stderr": "PASS ./sum.test.js\n  ✓ adds 1 + 2 to equal 3 (1 ms)\n\nTest Suites: 1 passed, 1 total\nTests:       1 passed, 1 total\nSnapshots:   0 total\nTime:        0.104 s, estimated 1 s\nRan all test suites.\n",
+  "success": true
+}
+[debug]: {
+  "numTodoTests": 0,
+  "numPendingTestSuites": 0,
+  "numFailedTestSuites": 0,
+  "numFailedTests": 0,
+  "numPassedTestSuites": 1,
+  "snapshot": {
+    "total": 0,
+    "filesRemoved": 0,
+    "filesRemovedList": {},
+    "updated": 0,
+    "added": 0,
+    "failure": false,
+    "unchecked": 0,
+    "filesUpdated": 0,
+    "unmatched": 0,
+    "filesUnmatched": 0,
+    "filesAdded": 0,
+    "uncheckedKeysByFile": {},
+    "didUpdate": false,
+    "matched": 0
+  },
+  "testResults": [
+    {
+      "message": "",
+      "name": "/home/skadewdl3/Projects/flint/sum.test.js",
+      "summary": "",
+      "endTime": 1541336145,
+      "startTime": 1541336057,
+      "assertionResults": [
+        {
+          "failureMessages": {},
+          "failureDetails": {},
+          "fullName": "adds 1 + 2 to equal 3",
+          "duration": 1,
+          "ancestorTitles": {},
+          "invocations": 1,
+          "status": "passed",
+          "title": "adds 1 + 2 to equal 3",
+          "retryReasons": {},
+          "numPassingAsserts": 1
+        }
+      ],
+      "status": "passed"
+    }
+  ],
+  "startTime": 1541336044,
+  "openHandles": {},
+  "numTotalTests": 1,
+  "success": true,
+  "numTotalTestSuites": 1,
+  "numRuntimeErrorTestSuites": 0,
+  "numPendingTests": 0,
+  "numPassedTests": 1,
+  "wasInterrupted": false
+}
+[debug]: {
+  "status": 0,
+  "stdout": "{\"numFailedTestSuites\":0,\"numFailedTests\":0,\"numPassedTestSuites\":1,\"numPassedTests\":1,\"numPendingTestSuites\":0,\"numPendingTests\":0,\"numRuntimeErrorTestSuites\":0,\"numTodoTests\":0,\"numTotalTestSuites\":1,\"numTotalTests\":1,\"openHandles\":[],\"snapshot\":{\"added\":0,\"didUpdate\":false,\"failure\":false,\"filesAdded\":0,\"filesRemoved\":0,\"filesRemovedList\":[],\"filesUnmatched\":0,\"filesUpdated\":0,\"matched\":0,\"total\":0,\"unchecked\":0,\"uncheckedKeysByFile\":[],\"unmatched\":0,\"updated\":0},\"startTime\":1741003098636,\"success\":true,\"testResults\":[{\"assertionResults\":[{\"ancestorTitles\":[],\"duration\":1,\"failureDetails\":[],\"failureMessages\":[],\"fullName\":\"adds 1 + 2 to equal 3\",\"invocations\":1,\"location\":null,\"numPassingAsserts\":1,\"retryReasons\":[],\"status\":\"passed\",\"title\":\"adds 1 + 2 to equal 3\"}],\"endTime\":1741003098738,\"message\":\"\",\"name\":\"/home/skadewdl3/Projects/flint/sum.test.js\",\"startTime\":1741003098649,\"status\":\"passed\",\"summary\":\"\"}],\"wasInterrupted\":false}\n",
+  "stderr": "PASS ./sum.test.js\n  ✓ adds 1 + 2 to equal 3 (1 ms)\n\nTest Suites: 1 passed, 1 total\nTests:       1 passed, 1 total\nSnapshots:   0 total\nTime:        0.104 s, estimated 1 s\nRan all test suites.\n",
+  "success": true
+}
+[debug]: {
+  "numTodoTests": 0,
+  "numPendingTestSuites": 0,
+  "numFailedTestSuites": 0,
+  "numFailedTests": 0,
+  "numPassedTestSuites": 1,
+  "snapshot": {
+    "total": 0,
+    "filesRemoved": 0,
+    "filesRemovedList": {},
+    "updated": 0,
+    "added": 0,
+    "failure": false,
+    "unchecked": 0,
+    "filesUpdated": 0,
+    "unmatched": 0,
+    "filesUnmatched": 0,
+    "filesAdded": 0,
+    "uncheckedKeysByFile": {},
+    "didUpdate": false,
+    "matched": 0
+  },
+  "testResults": [
+    {
+      "message": "",
+      "name": "/home/skadewdl3/Projects/flint/sum.test.js",
+      "summary": "",
+      "endTime": 1541343858,
+      "startTime": 1541343769,
+      "assertionResults": [
+        {
+          "failureMessages": {},
+          "failureDetails": {},
+          "fullName": "adds 1 + 2 to equal 3",
+          "duration": 1,
+          "ancestorTitles": {},
+          "invocations": 1,
+          "status": "passed",
+          "title": "adds 1 + 2 to equal 3",
+          "retryReasons": {},
+          "numPassingAsserts": 1
+        }
+      ],
+      "status": "passed"
+    }
+  ],
+  "startTime": 1541343756,
+  "openHandles": {},
+  "numTotalTests": 1,
+  "success": true,
+  "numTotalTestSuites": 1,
+  "numRuntimeErrorTestSuites": 0,
+  "numPendingTests": 0,
+  "numPassedTests": 1,
+  "wasInterrupted": false
+}
+[debug]: {
+  "status": 0,
+  "stdout": "{\"numFailedTestSuites\":0,\"numFailedTests\":0,\"numPassedTestSuites\":1,\"numPassedTests\":1,\"numPendingTestSuites\":0,\"numPendingTests\":0,\"numRuntimeErrorTestSuites\":0,\"numTodoTests\":0,\"numTotalTestSuites\":1,\"numTotalTests\":1,\"openHandles\":[],\"snapshot\":{\"added\":0,\"didUpdate\":false,\"failure\":false,\"filesAdded\":0,\"filesRemoved\":0,\"filesRemovedList\":[],\"filesUnmatched\":0,\"filesUpdated\":0,\"matched\":0,\"total\":0,\"unchecked\":0,\"uncheckedKeysByFile\":[],\"unmatched\":0,\"updated\":0},\"startTime\":1741003158753,\"success\":true,\"testResults\":[{\"assertionResults\":[{\"ancestorTitles\":[],\"duration\":2,\"failureDetails\":[],\"failureMessages\":[],\"fullName\":\"adds 1 + 2 to equal 3\",\"invocations\":1,\"location\":null,\"numPassingAsserts\":1,\"retryReasons\":[],\"status\":\"passed\",\"title\":\"adds 1 + 2 to equal 3\"}],\"endTime\":1741003158859,\"message\":\"\",\"name\":\"/home/skadewdl3/Projects/flint/sum.test.js\",\"startTime\":1741003158769,\"status\":\"passed\",\"summary\":\"\"}],\"wasInterrupted\":false}\n",
+  "stderr": "PASS ./sum.test.js\n  ✓ adds 1 + 2 to equal 3 (2 ms)\n\nTest Suites: 1 passed, 1 total\nTests:       1 passed, 1 total\nSnapshots:   0 total\nTime:        0.108 s, estimated 1 s\nRan all test suites.\n",
+  "success": true
+}
+[debug]: {
+  "numTodoTests": 0,
+  "numPendingTestSuites": 0,
+  "numFailedTestSuites": 0,
+  "numFailedTests": 0,
+  "numPassedTestSuites": 1,
+  "snapshot": {
+    "total": 0,
+    "filesRemoved": 0,
+    "filesRemovedList": {},
+    "updated": 0,
+    "added": 0,
+    "failure": false,
+    "unchecked": 0,
+    "filesUpdated": 0,
+    "unmatched": 0,
+    "filesUnmatched": 0,
+    "filesAdded": 0,
+    "uncheckedKeysByFile": {},
+    "didUpdate": false,
+    "matched": 0
+  },
+  "testResults": [
+    {
+      "message": "",
+      "name": "/home/skadewdl3/Projects/flint/sum.test.js",
+      "summary": "",
+      "endTime": 1541403979,
+      "startTime": 1541403889,
+      "assertionResults": [
+        {
+          "failureMessages": {},
+          "failureDetails": {},
+          "fullName": "adds 1 + 2 to equal 3",
+          "duration": 2,
+          "ancestorTitles": {},
+          "invocations": 1,
+          "status": "passed",
+          "title": "adds 1 + 2 to equal 3",
+          "retryReasons": {},
+          "numPassingAsserts": 1
+        }
+      ],
+      "status": "passed"
+    }
+  ],
+  "startTime": 1541403873,
+  "openHandles": {},
+  "numTotalTests": 1,
+  "success": true,
+  "numTotalTestSuites": 1,
+  "numRuntimeErrorTestSuites": 0,
+  "numPendingTests": 0,
+  "numPassedTests": 1,
+  "wasInterrupted": false
+}
+[debug]: {
+  "status": 0,
+  "stdout": "{\"numFailedTestSuites\":0,\"numFailedTests\":0,\"numPassedTestSuites\":1,\"numPassedTests\":1,\"numPendingTestSuites\":0,\"numPendingTests\":0,\"numRuntimeErrorTestSuites\":0,\"numTodoTests\":0,\"numTotalTestSuites\":1,\"numTotalTests\":1,\"openHandles\":[],\"snapshot\":{\"added\":0,\"didUpdate\":false,\"failure\":false,\"filesAdded\":0,\"filesRemoved\":0,\"filesRemovedList\":[],\"filesUnmatched\":0,\"filesUpdated\":0,\"matched\":0,\"total\":0,\"unchecked\":0,\"uncheckedKeysByFile\":[],\"unmatched\":0,\"updated\":0},\"startTime\":1741003262950,\"success\":true,\"testResults\":[{\"assertionResults\":[{\"ancestorTitles\":[],\"duration\":1,\"failureDetails\":[],\"failureMessages\":[],\"fullName\":\"adds 1 + 2 to equal 3\",\"invocations\":1,\"location\":null,\"numPassingAsserts\":1,\"retryReasons\":[],\"status\":\"passed\",\"title\":\"adds 1 + 2 to equal 3\"}],\"endTime\":1741003263057,\"message\":\"\",\"name\":\"/home/skadewdl3/Projects/flint/sum.test.js\",\"startTime\":1741003262968,\"status\":\"passed\",\"summary\":\"\"}],\"wasInterrupted\":false}\n",
+  "stderr": "PASS ./sum.test.js\n  ✓ adds 1 + 2 to equal 3 (1 ms)\n\nTest Suites: 1 passed, 1 total\nTests:       1 passed, 1 total\nSnapshots:   0 total\nTime:        0.109 s, estimated 1 s\nRan all test suites.\n",
+  "success": true
+}
+[debug]: {
+  "numTodoTests": 0,
+  "numPendingTestSuites": 0,
+  "numFailedTestSuites": 0,
+  "numFailedTests": 0,
+  "numPassedTestSuites": 1,
+  "snapshot": {
+    "total": 0,
+    "filesRemoved": 0,
+    "filesRemovedList": {},
+    "updated": 0,
+    "added": 0,
+    "failure": false,
+    "unchecked": 0,
+    "filesUpdated": 0,
+    "unmatched": 0,
+    "filesUnmatched": 0,
+    "filesAdded": 0,
+    "uncheckedKeysByFile": {},
+    "didUpdate": false,
+    "matched": 0
+  },
+  "testResults": [
+    {
+      "message": "",
+      "name": "/home/skadewdl3/Projects/flint/sum.test.js",
+      "summary": "",
+      "endTime": 1541508177,
+      "startTime": 1541508088,
+      "assertionResults": [
+        {
+          "failureMessages": {},
+          "failureDetails": {},
+          "fullName": "adds 1 + 2 to equal 3",
+          "duration": 1,
+          "ancestorTitles": {},
+          "invocations": 1,
+          "status": "passed",
+          "title": "adds 1 + 2 to equal 3",
+          "retryReasons": {},
+          "numPassingAsserts": 1
+        }
+      ],
+      "status": "passed"
+    }
+  ],
+  "startTime": 1541508070,
+  "openHandles": {},
+  "numTotalTests": 1,
+  "success": true,
+  "numTotalTestSuites": 1,
+  "numRuntimeErrorTestSuites": 0,
+  "numPendingTests": 0,
+  "numPassedTests": 1,
+  "wasInterrupted": false
+}

@@ -17,3 +17,13 @@ pub fn handle_key_events(
     }
     Ok(())
 }
+
+pub fn handle_mouse_event(
+    event: Event,
+    callback: impl FnOnce(crossterm::event::MouseEventKind) -> AppResult<()>,
+) -> AppResult<()> {
+    if let Event::Mouse(mouse_event) = event {
+        return callback(mouse_event.kind);
+    }
+    Ok(())
+}
