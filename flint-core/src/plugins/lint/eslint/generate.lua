@@ -210,6 +210,6 @@ function Generate(config)
     -- Convert the table to a JSON string
     return {
         ["eslint.config.js"] = importStatements ..
-            "\nexport default " .. to_json(eslintConfig) .. ";"
+            "\nexport default " .. json.stringify(eslintConfig) .. ";"
     }
 end

@@ -4,11 +4,10 @@ use flint_macros::ui;
 use ratatui::prelude::*;
 use ratatui::widgets::WidgetRef;
 use threadpool::ThreadPool;
-use throbber_widgets_tui::ThrobberState;
 
 use crate::{
     util::{
-        plugin::{self, Plugin, PluginKind},
+        plugin::{self, PluginKind},
         toml::Config,
     },
     widgets::logs::{add_log, LogKind, LogsWidget},
@@ -38,31 +37,42 @@ impl AppWidget for TestWidget {
 
         for plugin in plugins
             .into_iter()
-            .filter(|plugin| plugin.kind == PluginKind::Lint)
+            .filter(|plugin| plugin.kind == PluginKind::Test)
         {
             let plugin = plugin.clone();
             let toml_clone = toml.clone();
             self.thread_pool.execute(move || {
                 let result = plugin.run(&toml_clone);
-                match result {
-                    Ok(command) => {
-                        match std::process::Command::new(&command[0])
-                            .args(&command[1..])
-                            .output()
-                        {
-                            Ok(_) => add_log(
-                                LogKind::Success,
-                                format!("Successfully executed command '{}'", command[0]),
-                            ),
-                            Err(e) => add_log(
-                                LogKind::Error,
-                                format!("Failed to execute command '{}': {}", command[0], e),
-                            ),
-                        };
-                    }
-                    Err(err) => {
-                        add_log(LogKind::Error, err.to_string());
-                    }
+
+                if let Err(err) = result {
+                    add_log(LogKind::Error, err.to_string());
+                    return;
+                }
+
+                let command = result.unwrap();
+
+                let cmd_output = std::process::Command::new(&command[0])
+                    .args(&command[1..])
+                    .output();
+
+                if let Err(e) = cmd_output {
+                    add_log(
+                        LogKind::Error,
+                        format!("Failed to execute command '{}': {}", command[0], e),
+                    );
+                    return;
+                }
+
+                let output = cmd_output.unwrap();
+
+                let eval_result = plugin.eval(output);
+
+                if let Err(eval) = eval_result {
+                    add_log(
+                        LogKind::Error,
+                        format!("Failed to evaluate plugin: {}", eval),
+                    );
+                    return;
                 }
             });
         }

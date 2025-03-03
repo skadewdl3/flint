@@ -9,7 +9,7 @@ use crate::{
 use flint_macros::ui;
 use ratatui::prelude::*;
 use ratatui::widgets::WidgetRef;
-use std::{collections::BTreeSet, path::PathBuf, sync::Arc};
+use std::{path::PathBuf, sync::Arc};
 use threadpool::ThreadPool;
 
 pub struct GenerateWidget {
@@ -33,10 +33,8 @@ impl AppWidget for GenerateWidget {
         let toml = Arc::new(Config::load(PathBuf::from("./flint.toml")).unwrap());
         let plugin_ids = toml.rules.keys().collect::<Vec<&String>>();
 
-        self.plugins = plugin::map()
-            .values()
-            .flat_map(|plugin_set| plugin_set.iter())
-            .collect::<BTreeSet<&Plugin>>()
+        self.plugins = plugin::list()
+            .unwrap()
             .into_iter()
             .filter(|plugin| plugin_ids.contains(&&plugin.details.id))
             .cloned()
