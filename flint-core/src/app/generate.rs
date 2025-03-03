@@ -9,7 +9,7 @@ use crate::{
 use flint_macros::ui;
 use ratatui::prelude::*;
 use ratatui::widgets::WidgetRef;
-use std::{collections::BTreeSet, path::PathBuf, sync::Arc};
+use std::{path::PathBuf, sync::Arc};
 use threadpool::ThreadPool;
 
 pub struct GenerateWidget {

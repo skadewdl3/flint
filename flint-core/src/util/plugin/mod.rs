@@ -1,10 +1,8 @@
 use super::toml::Config;
-use crate::app::AppResult;
+use crate::app::{AppError, AppResult};
 
 pub mod find;
 pub mod helpers;
-pub mod lint;
-pub mod test;
 pub use find::*;
 
 use helpers::add_helper_globals;
@@ -14,6 +12,7 @@ use serde::{Deserialize, Serialize};
 use std::{
     collections::{HashMap, HashSet},
     path::PathBuf,
+    process::Output,
     sync::Arc,
 };
 
@@ -160,6 +159,52 @@ impl Plugin {
             .expect("unable to parse run command");
 
         Ok(run_command)
+    }
+
+    pub fn eval(&self, toml: &Arc<Config>, output: Output) -> AppResult<()> {
+        let lua = Lua::new();
+        add_helper_globals(&lua);
+
+        let eval: Result<Function, Error> = {
+            let contents = std::fs::read_to_string(&self.path.join("run.lua"))
+                .expect("Error reading plugin code");
+
+            lua.load(contents)
+                .exec()
+                .map(|_| lua.globals().get("Eval").unwrap())
+        };
+
+        let evaluation_state = lua.create_table().unwrap();
+        evaluation_state
+            .set("stdout", String::from_utf8_lossy(&output.stdout))
+            .unwrap();
+        evaluation_state
+            .set("stderr", String::from_utf8_lossy(&output.stderr))
+            .unwrap();
+        evaluation_state
+            .set("status", output.status.code())
+            .unwrap();
+
+        evaluation_state
+            .set("success", output.status.success())
+            .unwrap();
+
+        let eval_success = eval
+            .expect("error reading run.lua")
+            .call::<mlua::Value>(evaluation_state)
+            .expect("error running eval function");
+
+        let eval_success: bool = lua
+            .from_value(eval_success)
+            .expect("unable to parse eval success");
+
+        if eval_success {
+            Ok(())
+        } else {
+            Err(AppError::Err(
+                "unknown error while running eval function".to_string(),
+            ))
+        }
     }
 
     pub fn list_from_config(config: &Config) -> Vec<&Plugin> {

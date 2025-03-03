@@ -43,25 +43,36 @@ impl AppWidget for TestWidget {
             let toml_clone = toml.clone();
             self.thread_pool.execute(move || {
                 let result = plugin.run(&toml_clone);
-                match result {
-                    Ok(command) => {
-                        match std::process::Command::new(&command[0])
-                            .args(&command[1..])
-                            .output()
-                        {
-                            Ok(_) => add_log(
-                                LogKind::Success,
-                                format!("Successfully executed command '{}'", command[0]),
-                            ),
-                            Err(e) => add_log(
-                                LogKind::Error,
-                                format!("Failed to execute command '{}': {}", command[0], e),
-                            ),
-                        };
-                    }
-                    Err(err) => {
-                        add_log(LogKind::Error, err.to_string());
-                    }
+
+                if let Err(err) = result {
+                    add_log(LogKind::Error, err.to_string());
+                    return;
+                }
+
+                let command = result.unwrap();
+
+                let cmd_output = std::process::Command::new(&command[0])
+                    .args(&command[1..])
+                    .output();
+
+                if let Err(e) = cmd_output {
+                    add_log(
+                        LogKind::Error,
+                        format!("Failed to execute command '{}': {}", command[0], e),
+                    );
+                    return;
+                }
+
+                let output = cmd_output.unwrap();
+
+                let eval_result = plugin.eval(&toml_clone, output);
+
+                if let Err(eval) = eval_result {
+                    add_log(
+                        LogKind::Error,
+                        format!("Failed to evaluate plugin: {}", eval),
+                    );
+                    return;
                 }
             });
         }

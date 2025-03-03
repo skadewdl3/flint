@@ -112,7 +112,7 @@ impl<'a> AppWidget for InitWidget<'a> {
                     match input.as_str() {
                         "n" => return Err(AppError::Exit),
                         "y" => {
-                            Config::create_default(PathBuf::from("./flint.toml"));
+                            Config::create_default(PathBuf::from("./flint.toml")).unwrap();
                             self.created_config = true;
                         }
                         _ => (),
