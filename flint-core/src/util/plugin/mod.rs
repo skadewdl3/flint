@@ -358,19 +358,41 @@ fn yaml_value_to_lua_value<'lua>(
         serde_yaml::Value::Mapping(map) => {
             let lua_table = lua.create_table()?;
             for (k, v) in map.iter() {
-                // Keys in YAML can be complex types, so we need to convert them to strings
-                // for Lua table keys in some cases
-                match yaml_value_to_lua_value(lua, k)? {
-                    Value::String(key_str) => {
-                        lua_table.set(key_str, yaml_value_to_lua_value(lua, v)?)?;
+                // Handle different key types for YAML mappings
+                match k {
+                    serde_yaml::Value::String(key_str) => {
+                        lua_table.set(key_str.clone(), yaml_value_to_lua_value(lua, v)?)?;
                     }
-                    Value::Integer(key_int) => {
-                        lua_table.set(key_int, yaml_value_to_lua_value(lua, v)?)?;
+                    serde_yaml::Value::Number(n) => {
+                        if let Some(i) = n.as_i64() {
+                            lua_table.set(i, yaml_value_to_lua_value(lua, v)?)?;
+                        } else if let Some(f) = n.as_f64() {
+                            // Convert float keys to strings
+                            let key_str = lua.create_string(&f.to_string())?;
+                            lua_table.set(key_str, yaml_value_to_lua_value(lua, v)?)?;
+                        }
+                    }
+                    serde_yaml::Value::Bool(b) => {
+                        // Convert boolean keys to strings
+                        let key_str = lua.create_string(if *b { "true" } else { "false" })?;
+                        lua_table.set(key_str, yaml_value_to_lua_value(lua, v)?)?;
                     }
                     _ => {
-                        // For complex keys, convert to string representation
-                        let key_str = lua.create_string(&k.to_string())?;
-                        lua_table.set(key_str, yaml_value_to_lua_value(lua, v)?)?;
+                        // For complex keys, serialize them to YAML and use that as the key
+                        // This is a fallback for complex types
+                        match serde_yaml::to_string(k) {
+                            Ok(key_str) => {
+                                // Trim the trailing newline that serde_yaml adds
+                                let key_str = key_str.trim_end();
+                                let lua_str = lua.create_string(key_str)?;
+                                lua_table.set(lua_str, yaml_value_to_lua_value(lua, v)?)?;
+                            }
+                            Err(_) => {
+                                // If serialization fails, use a placeholder
+                                let key_str = lua.create_string("complex_key")?;
+                                lua_table.set(key_str, yaml_value_to_lua_value(lua, v)?)?;
+                            }
+                        }
                     }
                 }
             }
