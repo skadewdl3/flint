@@ -1,6 +1,6 @@
 use std::{cell::RefCell, path::PathBuf, sync::Arc};
 
-use crossterm::event::KeyCode;
+use crossterm::event::{KeyCode, MouseButton, MouseEvent, MouseEventKind};
 use flint_macros::ui;
 use ratatui::prelude::*;
 use ratatui::widgets::WidgetRef;
@@ -8,7 +8,7 @@ use threadpool::ThreadPool;
 
 use crate::{
     util::{
-        handle_key_events,
+        handle_key_events, handle_mouse_event,
         plugin::{self, PluginKind},
         toml::Config,
     },
@@ -85,12 +85,25 @@ impl AppWidget for TestWidget {
     }
 
     fn handle_events(&mut self, event: crossterm::event::Event) -> AppResult<()> {
-        handle_key_events(event.clone(), |_, key_code| match key_code {
+        let _ = handle_key_events(event.clone(), |_, key_code| match key_code {
             KeyCode::Up => {
                 self.logs_state.borrow_mut().scroll_up(1);
                 Ok(())
             }
             KeyCode::Down => {
+                self.logs_state.borrow_mut().scroll_down(1);
+                Ok(())
+            }
+            _ => Ok(()),
+        });
+
+        handle_mouse_event(event.clone(), |mouse_event| match mouse_event {
+            MouseEventKind::ScrollUp => {
+                add_log(LogKind::Info, "Scroll up".to_string());
+                self.logs_state.borrow_mut().scroll_up(1);
+                Ok(())
+            }
+            MouseEventKind::ScrollDown => {
                 self.logs_state.borrow_mut().scroll_down(1);
                 Ok(())
             }
