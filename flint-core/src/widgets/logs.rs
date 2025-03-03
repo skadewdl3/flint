@@ -142,7 +142,18 @@ impl StatefulWidget for LogsWidget {
         };
 
         let text = Text::from(visible_log_lines);
-        let block = widget!({ Block::bordered(title: format!("Logs [{}-{}/{}]", state.scroll + 1, state.scroll + max_visible_lines.min(total_lines), total_lines), padding: Padding::horizontal(1)) });
+        let block = widget!({
+            Block::bordered(
+                title: format!(
+                    "Logs [{}-{}/{}]",
+                    state.scroll + 1, state.scroll + max_visible_lines.min(total_lines),
+                    total_lines),
+
+                title: Line::from("[Scroll up/down using mouse or arrow keys]").right_aligned(),
+
+                padding: Padding::horizontal(1)
+            )
+        });
 
         ui!((area, buffer) => {
            Paragraph::new(text, block: block)
