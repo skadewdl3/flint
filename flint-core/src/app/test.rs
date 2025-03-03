@@ -1,5 +1,6 @@
-use std::{path::PathBuf, sync::Arc};
+use std::{cell::RefCell, path::PathBuf, sync::Arc};
 
+use crossterm::event::KeyCode;
 use flint_macros::ui;
 use ratatui::prelude::*;
 use ratatui::widgets::WidgetRef;
@@ -7,10 +8,11 @@ use threadpool::ThreadPool;
 
 use crate::{
     util::{
+        handle_key_events,
         plugin::{self, PluginKind},
         toml::Config,
     },
-    widgets::logs::{add_log, LogKind, LogsWidget},
+    widgets::logs::{add_log, LogKind, LogsState, LogsWidget},
 };
 
 use super::{AppResult, AppWidget};
@@ -19,6 +21,7 @@ use super::{AppResult, AppWidget};
 pub struct TestWidget {
     logs: LogsWidget,
     thread_pool: ThreadPool,
+    logs_state: RefCell<LogsState>,
 }
 
 impl Default for TestWidget {
@@ -26,6 +29,7 @@ impl Default for TestWidget {
         Self {
             thread_pool: ThreadPool::new(16),
             logs: LogsWidget::default(),
+            logs_state: RefCell::new(LogsState::default()),
         }
     }
 }
@@ -79,11 +83,29 @@ impl AppWidget for TestWidget {
 
         Ok(())
     }
+
+    fn handle_events(&mut self, event: crossterm::event::Event) -> AppResult<()> {
+        handle_key_events(event.clone(), |_, key_code| match key_code {
+            KeyCode::Up => {
+                self.logs_state.borrow_mut().scroll_up(1);
+                Ok(())
+            }
+            KeyCode::Down => {
+                self.logs_state.borrow_mut().scroll_down(1);
+                Ok(())
+            }
+            _ => Ok(()),
+        })
+    }
 }
+
 impl WidgetRef for TestWidget {
     fn render_ref(&self, area: Rect, buf: &mut Buffer) {
+        let mut logs_state = self.logs_state.borrow_mut();
         ui!((area, buf) => {
-            { self.logs }
+            Stateful(&mut logs_state) {
+                { self.logs }
+            }
         });
     }
 }
