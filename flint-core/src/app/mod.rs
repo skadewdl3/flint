@@ -4,6 +4,7 @@ pub mod app;
 pub mod generate;
 pub mod help;
 pub mod init;
+pub mod install;
 pub mod test;
 
 use crossterm::event::Event;
