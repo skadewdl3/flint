@@ -1,6 +1,6 @@
 use std::{cell::RefCell, path::PathBuf, sync::Arc};
 
-use crossterm::event::{KeyCode, MouseButton, MouseEvent, MouseEventKind};
+use crossterm::event::{KeyCode, MouseEventKind};
 use flint_macros::ui;
 use ratatui::prelude::*;
 use ratatui::widgets::WidgetRef;

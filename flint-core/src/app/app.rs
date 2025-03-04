@@ -1,6 +1,7 @@
 use super::generate::GenerateWidget;
 use super::help::HelpWidget;
 use super::init::InitWidget;
+use super::install::InstallWidget;
 use super::test::TestWidget;
 use super::AppWidget;
 use crate::util::handle_key_events;
@@ -39,6 +40,7 @@ impl App {
                 "init" => Box::new(InitWidget::default()),
                 "generate" => Box::new(GenerateWidget::default()),
                 "test" => Box::new(TestWidget::default()),
+                "install" => Box::new(InstallWidget::default()),
                 _ => Box::new(HelpWidget::default()),
             };
         } else {

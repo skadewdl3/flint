@@ -1,9 +1,13 @@
-use reqwest::{blocking::Client, ClientBuilder};
+use reqwest::blocking::Client;
 use serde::{Deserialize, Serialize};
-use std::error::Error;
 use std::fs;
 use std::io::Write;
 use std::path::Path;
+use std::str::FromStr;
+use std::{error::Error, path::PathBuf};
+
+use crate::util::plugin;
+use crate::widgets::logs::{add_log, LogKind};
 
 use super::{Plugin, PluginKind};
 
@@ -17,8 +21,7 @@ struct GitHubItem {
     url: String,
 }
 
-fn download_plugin(kind: PluginKind, id: &str) -> Result<(), Box<dyn Error>> {
-    // Configuration - only folder path is variable now
+pub fn download_plugin(kind: PluginKind, id: &str) -> Result<(), Box<dyn Error>> {
     let folder_path = format!(
         "flint-plugins/{}/{}",
         match kind {
@@ -27,7 +30,13 @@ fn download_plugin(kind: PluginKind, id: &str) -> Result<(), Box<dyn Error>> {
         },
         id
     );
-    let local_path = "./downloaded_folder";
+    add_log(LogKind::Info, format!("Trying to download {}", folder_path));
+    let local_path = if cfg!(debug_assertions) {
+        Path::new("./downloaded-plugins").to_path_buf()
+    } else {
+        plugin::dir()
+    };
+    let local_path = local_path.to_str().unwrap();
 
     // Set up the HTTP client with headers
     let client = setup_client()?;
