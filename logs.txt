@@ -1,1 +1,143 @@
 [info]: Trying to download flint-plugins/lint/sqlfluff
+[info]: Trying to download flint-plugins/lint/eslint
+[info]: Trying to download flint-plugins/lint/sqlfluff
+[info]: Trying to download flint-plugins/test/jest
+[info]: Trying to download flint-plugins/lint/eslint
+[info]: Trying to download flint-plugins/lint/sqlfluff
+[info]: Trying to download flint-plugins/test/jest
+[info]: Trying to download flint-plugins/lint/eslint
+[info]: Trying to download flint-plugins/lint/sqlfluff
+[info]: Trying to download flint-plugins/test/jest
+[info]: Trying to download flint-plugins/lint/eslint
+[info]: Trying to download flint-plugins/lint/sqlfluff
+[info]: Trying to download flint-plugins/test/jest
+[info]: Trying to download flint-plugins/lint/sqlfluff
+[info]: Trying to download flint-plugins/lint/eslint
+[info]: Trying to download flint-plugins/test/jest
+[info]: Trying to download flint-plugins/lint/sqlfluff
+[info]: Trying to download flint-plugins/lint/eslint
+[info]: Trying to download flint-plugins/test/jest
+[info]: Trying to download flint-plugins/lint/eslint
+[info]: Trying to download flint-plugins/lint/sqlfluff
+[info]: Trying to download flint-plugins/test/jest
+[info]: Trying to download flint-plugins/lint/sqlfluff
+[info]: Trying to download flint-plugins/lint/eslint
+[info]: Trying to download flint-plugins/test/jest
+[info]: Trying to download flint-plugins/lint/sqlfluff
+[info]: Trying to download flint-plugins/lint/eslint
+[info]: Trying to download flint-plugins/test/jest
+[info]: Trying to download flint-plugins/lint/sqlfluff
+[info]: Trying to download flint-plugins/lint/eslint
+[info]: Trying to download flint-plugins/test/jest
+[info]: Trying to download flint-plugins/lint/eslint
+[info]: Trying to download flint-plugins/lint/sqlfluff
+[info]: Trying to download flint-plugins/test/jest
+[info]: Trying to download flint-plugins/lint/eslint
+[info]: Trying to download flint-plugins/lint/sqlfluff
+[info]: Trying to download flint-plugins/test/jest
+[info]: Trying to download flint-plugins/lint/sqlfluff
+[info]: Trying to download flint-plugins/lint/eslint
+[info]: Trying to download flint-plugins/test/jest
+[info]: Trying to download flint-plugins/lint/sqlfluff
+[info]: Trying to download flint-plugins/lint/eslint
+[info]: Trying to download flint-plugins/test/jest
+[info]: Trying to download flint-plugins/lint/sqlfluff
+[info]: Trying to download flint-plugins/lint/eslint
+[info]: Trying to download flint-plugins/test/jest
+[info]: Trying to download flint-plugins/lint/sqlfluff
+[info]: Trying to download flint-plugins/lint/eslint
+[info]: Trying to download flint-plugins/test/jest
+[info]: Trying to download flint-plugins/lint/sqlfluff
+[info]: Trying to download flint-plugins/lint/eslint
+[info]: Trying to download flint-plugins/test/jest
+[info]: Trying to download flint-plugins/lint/eslint
+[info]: Trying to download flint-plugins/lint/sqlfluff
+[info]: [git clone]: 
+[error]: [git clone]: fatal: destination path './downloaded-plugins' already exists and is not an empty directory.
+
+[info]: [git clone]: 
+[error]: [git clone]: fatal: destination path './downloaded-plugins' already exists and is not an empty directory.
+
+[info]: [git clone]: 
+[error]: [git clone]: fatal: destination path './downloaded-plugins' already exists and is not an empty directory.
+
+[info]: [git clone]: 
+[error]: [git clone]: fatal: destination path './downloaded-plugins' already exists and is not an empty directory.
+
+[info]: [git clone]: 
+[error]: [git clone]: fatal: destination path './downloaded-plugins' already exists and is not an empty directory.
+
+[info]: [git clone]: 
+[error]: [git clone]: fatal: destination path './downloaded-plugins' already exists and is not an empty directory.
+
+[info]: [git clone]: 
+[error]: [git clone]: fatal: destination path './downloaded-plugins' already exists and is not an empty directory.
+
+[info]: [git clone]: 
+[error]: [git clone]: fatal: destination path './downloaded-plugins' already exists and is not an empty directory.
+
+[info]: [git clone]: 
+[error]: [git clone]: fatal: destination path './downloaded-plugins' already exists and is not an empty directory.
+
+[info]: [git clone]: 
+[error]: [git clone]: fatal: destination path './downloaded-plugins' already exists and is not an empty directory.
+
+[info]: [git clone]: 
+[error]: [git clone]: fatal: destination path './downloaded-plugins' already exists and is not an empty directory.
+
+[info]: [git clone]: 
+[error]: [git clone]: fatal: destination path './downloaded-plugins' already exists and is not an empty directory.
+
+[info]: [git clone]: 
+[error]: [git clone]: fatal: destination path './downloaded-plugins' already exists and is not an empty directory.
+
+[info]: [git clone]: 
+[error]: [git clone]: fatal: destination path './downloaded-plugins' already exists and is not an empty directory.
+
+[info]: [git clone]: 
+[error]: [git clone]: fatal: destination path './downloaded-plugins' already exists and is not an empty directory.
+
+[info]: [git clone]: 
+[error]: [git clone]: fatal: destination path './downloaded-plugins' already exists and is not an empty directory.
+
+[info]: [git clone]: 
+[error]: [git clone]: fatal: destination path './downloaded-plugins' already exists and is not an empty directory.
+
+[info]: [git clone]: 
+[error]: [git clone]: fatal: destination path './downloaded-plugins' already exists and is not an empty directory.
+
+[info]: [git clone]: 
+[error]: [git clone]: fatal: destination path './downloaded-plugins' already exists and is not an empty directory.
+
+[info]: [git clone]: 
+[error]: [git clone]: fatal: destination path './downloaded-plugins' already exists and is not an empty directory.
+
+[info]: [git clone]: 
+[error]: [git clone]: fatal: destination path './downloaded-plugins' already exists and is not an empty directory.
+
+[error]: [git clone]: fatal: destination path './downloaded-plugins' already exists and is not an empty directory.
+
+[error]: [git clone]: fatal: destination path './downloaded-plugins' already exists and is not an empty directory.
+
+[error]: [git clone]: Cloning into './downloaded-plugins'...
+
+[error]: [git clone]: fatal: destination path './downloaded-plugins' already exists and is not an empty directory.
+
+[error]: [git clone]: Cloning into './downloaded-plugins'...
+
+[error]: [git clone]: Cloning into './downloaded-plugins'...
+
+[error]: [git clone]: Cloning into './downloaded-plugins'...
+
+[error]: [git clone]: Cloning into './downloaded-plugins'...
+
+[error]: [git clone]: Cloning into './downloaded-plugins'...
+
+[error]: [git clone]: Cloning into './downloaded-plugins'...
+
+[info]: Destination directory ./downloaded-plugins already exists
+[info]: Created temporary directory: /tmp/flint-plugins-temp
+[error]: [git clone]: Cloning into '/tmp/flint-plugins-temp'...
+
+[info]: Copied plugin from /tmp/flint-plugins-temp/flint-plugins/test/jest to ./downloaded-plugins/test/jest
+[info]: Removed temporary directory: /tmp/flint-plugins-temp
