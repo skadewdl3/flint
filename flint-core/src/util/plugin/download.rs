@@ -5,6 +5,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use crate::util::plugin;
+use crate::util::toml::Config;
 use crate::widgets::logs::{add_log, LogKind};
 
 use super::PluginKind;
@@ -190,5 +191,16 @@ fn copy_dir_all(src: &Path, dst: &Path) -> Result<(), Box<dyn Error>> {
 pub fn download_plugins(kind: PluginKind, ids: Vec<&String>) -> Result<(), Box<dyn Error>> {
     let repo_url = "https://github.com/skadewdl3/flint";
     clone_plugin_folders(repo_url, kind, ids, None)?;
+    Ok(())
+}
+
+pub fn download_plugins_from_config(config: &Config) -> Result<(), Box<dyn Error>> {
+    let toml = Config::load(std::env::current_dir().unwrap().join("flint.toml")).unwrap();
+
+    let linter_ids: Vec<&String> = toml.rules.keys().collect();
+    let tester_ids: Vec<&String> = toml.tests.keys().collect();
+
+    download_plugins(PluginKind::Test, tester_ids)?;
+    download_plugins(PluginKind::Lint, linter_ids)?;
     Ok(())
 }

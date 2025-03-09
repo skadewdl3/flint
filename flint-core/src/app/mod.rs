@@ -9,6 +9,7 @@ pub mod test;
 
 use crossterm::event::Event;
 use ratatui::widgets::WidgetRef;
+use std::error::Error as ErrorTrait;
 use std::io;
 use thiserror::Error;
 
@@ -40,6 +41,19 @@ pub enum AppError {
 
     #[error("User requested exit")]
     Exit,
+}
+
+// Convert Box<dyn Error> to AppError using a catch-all approach
+impl From<Box<dyn ErrorTrait>> for AppError {
+    fn from(error: Box<dyn ErrorTrait>) -> Self {
+        // Try to downcast to AppError first
+        let str_err = error.to_string();
+        if let Ok(app_error) = error.downcast::<AppError>() {
+            return *app_error;
+        } else {
+            return AppError::Err(str_err);
+        }
+    }
 }
 
 // Create type alias for Result with AppError as default error type

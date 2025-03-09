@@ -1,9 +1,9 @@
-use std::{cell::RefCell, path::PathBuf, sync::Arc};
-
+use clap::Parser;
 use crossterm::event::{KeyCode, MouseEventKind};
 use flint_macros::ui;
 use ratatui::prelude::*;
 use ratatui::widgets::WidgetRef;
+use std::{cell::RefCell, path::PathBuf, sync::Arc};
 use threadpool::ThreadPool;
 
 use crate::{
@@ -22,14 +22,23 @@ pub struct TestWidget {
     logs: LogsWidget,
     thread_pool: ThreadPool,
     logs_state: RefCell<LogsState>,
+    args: TestArgs,
 }
 
-impl Default for TestWidget {
-    fn default() -> Self {
+#[derive(Parser, Debug)]
+pub struct TestArgs {
+    /// Show help for the test command
+    #[clap(short, long)]
+    help: bool,
+}
+
+impl TestWidget {
+    pub fn new(args: TestArgs) -> Self {
         Self {
             thread_pool: ThreadPool::new(16),
             logs: LogsWidget::default(),
             logs_state: RefCell::new(LogsState::default()),
+            args,
         }
     }
 }

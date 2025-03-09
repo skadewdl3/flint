@@ -3,6 +3,7 @@ use crate::{
     util::{handle_key_events, lang::Language, toml::Config},
     widgets::logs::{add_log, LogKind},
 };
+use clap::Parser;
 use crossterm::event::{Event, KeyCode};
 use flint_macros::{ui, widget as w};
 use ratatui::{
@@ -13,13 +14,34 @@ use ratatui::{
 use std::{collections::BTreeSet, path::PathBuf};
 use tui_textarea::TextArea;
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct InitWidget<'a> {
     textarea: TextArea<'a>,
     langs: BTreeSet<Language>,
     created_config: bool,
     config_exists: bool,
+    args: InitWidgetArgs,
     cwd: PathBuf,
+}
+
+#[derive(Parser, Debug)]
+pub struct InitWidgetArgs {
+    /// Show help for the init command
+    #[clap(short, long)]
+    help: bool,
+}
+
+impl<'a> InitWidget<'a> {
+    pub fn new(args: InitWidgetArgs) -> Self {
+        Self {
+            textarea: TextArea::default(),
+            langs: BTreeSet::new(),
+            created_config: false,
+            config_exists: false,
+            args,
+            cwd: std::env::current_dir().unwrap_or_default(),
+        }
+    }
 }
 
 impl<'a> WidgetRef for InitWidget<'a> {

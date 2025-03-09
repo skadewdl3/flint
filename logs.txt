@@ -141,3 +141,28 @@
 
 [info]: Copied plugin from /tmp/flint-plugins-temp/flint-plugins/test/jest to ./downloaded-plugins/test/jest
 [info]: Removed temporary directory: /tmp/flint-plugins-temp
+[info]: Determined current directory: /home/skadewdl3/Projects/flint
+[info]: Determined current directory: /home/skadewdl3/Projects/flint
+[info]: Created temporary directory: /tmp/flint-plugins-temp
+[error]: [git clone]: Cloning into '/tmp/flint-plugins-temp'...
+
+[info]: Removed existing plugin: ./downloaded-plugins/test/jest
+[info]: Copied plugin from /tmp/flint-plugins-temp/flint-plugins/test/jest to ./downloaded-plugins/test/jest
+[info]: Removed temporary directory: /tmp/flint-plugins-temp
+[info]: Created temporary directory: /tmp/flint-plugins-temp
+[error]: [git clone]: Cloning into '/tmp/flint-plugins-temp'...
+Updating files:  28% (2/7)Updating files:  42% (3/7)Updating files:  57% (4/7)Updating files:  71% (5/7)Updating files:  85% (6/7)Updating files: 100% (7/7)Updating files: 100% (7/7), done.
+
+[info]: Removed existing plugin: ./downloaded-plugins/lint/eslint
+[info]: Copied plugin from /tmp/flint-plugins-temp/flint-plugins/lint/eslint to ./downloaded-plugins/lint/eslint
+[info]: Removed existing plugin: ./downloaded-plugins/lint/sqlfluff
+[info]: Copied plugin from /tmp/flint-plugins-temp/flint-plugins/lint/sqlfluff to ./downloaded-plugins/lint/sqlfluff
+[info]: Removed temporary directory: /tmp/flint-plugins-temp
+[debug]: InstallArgs {
+    plugins: [],
+    lint: false,
+    test: false,
+    all: true,
+    help: false,
+    logs: false,
+}

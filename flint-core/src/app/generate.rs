@@ -6,6 +6,7 @@ use crate::{
     },
     widgets::logs::{add_log, LogKind, LogsWidget},
 };
+use clap::Parser;
 use flint_macros::ui;
 use ratatui::prelude::*;
 use ratatui::widgets::WidgetRef;
@@ -16,14 +17,23 @@ pub struct GenerateWidget {
     plugins: Vec<Plugin>,
     thread_pool: ThreadPool,
     logs_widget: LogsWidget,
+    args: GenerateWidgetArgs,
 }
 
-impl Default for GenerateWidget {
-    fn default() -> Self {
+#[derive(Parser)]
+pub struct GenerateWidgetArgs {
+    /// Show help for the generate command
+    #[clap(short, long)]
+    help: bool,
+}
+
+impl GenerateWidget {
+    pub fn new(args: GenerateWidgetArgs) -> Self {
         Self {
             plugins: Vec::new(),
             thread_pool: ThreadPool::new(16),
             logs_widget: LogsWidget::default(),
+            args,
         }
     }
 }

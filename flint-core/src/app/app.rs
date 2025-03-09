@@ -1,11 +1,13 @@
-use super::generate::GenerateWidget;
+use super::generate::{GenerateWidget, GenerateWidgetArgs};
 use super::help::HelpWidget;
-use super::init::InitWidget;
-use super::install::InstallWidget;
-use super::test::TestWidget;
+use super::init::{InitWidget, InitWidgetArgs};
+use super::install::{InstallArgs, InstallWidget};
+use super::test::{TestArgs, TestWidget};
 use super::AppWidget;
+use super::{AppError, AppResult};
 use crate::util::handle_key_events;
 use crate::widgets::logs::{add_log, LogKind};
+use clap::{Parser, Subcommand};
 use crossterm::event;
 use crossterm::event::KeyCode;
 use flint_macros::{ui, widget};
@@ -15,12 +17,33 @@ use std::io;
 use std::time::Duration;
 use tui_popup::Popup;
 
-use super::{AppError, AppResult};
-
 pub struct App {
     exit: bool,
     active_widget: Box<dyn AppWidget>,
     error: Option<String>,
+}
+
+#[derive(Parser)]
+#[command(version, about, long_about = None, disable_help_subcommand = true, disable_help_flag = true)]
+struct Args {
+    #[command(subcommand)]
+    command: Option<AppWidgetArgs>,
+    // #[clap(short, long)]
+    // help: bool,
+}
+
+#[derive(Subcommand)]
+#[command(version, about, long_about = None, disable_help_subcommand = true, disable_help_flag = true)]
+enum AppWidgetArgs {
+    /// Initializes a flint.toml file
+    Init(InitWidgetArgs),
+    /// Generates linter and testing library configuration files
+    Generate(GenerateWidgetArgs),
+    /// Tests a flint project
+    Test(TestArgs),
+    /// Installs the given list of plugins
+    Install(InstallArgs),
+    Help,
 }
 
 impl App {
@@ -33,19 +56,15 @@ impl App {
     }
 
     pub fn run(&mut self, terminal: &mut DefaultTerminal) -> io::Result<()> {
-        let args: Vec<String> = std::env::args().collect();
+        let args = Args::parse();
 
-        if let Some(arg) = args.get(1) {
-            self.active_widget = match arg.as_str() {
-                "init" => Box::new(InitWidget::default()),
-                "generate" => Box::new(GenerateWidget::default()),
-                "test" => Box::new(TestWidget::default()),
-                "install" => Box::new(InstallWidget::default()),
-                _ => Box::new(HelpWidget::default()),
-            };
-        } else {
-            self.active_widget = Box::new(HelpWidget::default());
-        }
+        self.active_widget = match args.command.unwrap() {
+            AppWidgetArgs::Install(args) => Box::new(InstallWidget::new(args)),
+            AppWidgetArgs::Generate(args) => Box::new(GenerateWidget::new(args)),
+            AppWidgetArgs::Test(args) => Box::new(TestWidget::new(args)),
+            AppWidgetArgs::Init(args) => Box::new(InitWidget::new(args)),
+            _ => Box::new(HelpWidget::default()),
+        };
 
         match self.active_widget.setup() {
             Ok(_) => (),
