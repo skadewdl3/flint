@@ -58,7 +58,7 @@ impl AppWidget for TestWidget {
         let plugins = plugin::list_from_config(&toml);
 
         let plugins = plugins.into_iter().filter(|plugin| {
-            if self.args.all {
+            if !self.args.lint && !self.args.test && self.args.all {
                 true
             } else if self.args.lint {
                 plugin.kind == PluginKind::Lint
@@ -100,12 +100,12 @@ impl AppWidget for TestWidget {
 
                 let eval_result = plugin.eval(output);
 
-                if let Err(eval) = eval_result {
-                    add_log(
-                        LogKind::Error,
-                        format!("Failed to evaluate plugin: {}", eval),
-                    );
-                    return;
+                match eval_result {
+                    Err(e) => add_log(LogKind::Error, format!("Failed to evaluate plugin: {}", e)),
+                    Ok(res) => add_log(
+                        LogKind::Debug,
+                        format!("Plugin evaluated successfully\n{:#?}", res),
+                    ),
                 }
             });
         }
