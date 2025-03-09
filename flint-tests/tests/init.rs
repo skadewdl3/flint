@@ -62,7 +62,7 @@ fn test_config_generate() {
 
     let output = std::thread::spawn(move || {
         std::env::set_current_dir(js_path).unwrap();
-        cmd![flint(), "--headless", "help"]
+        cmd![flint(), "generate"]
             .output()
             .expect("Failed to execute Flint CLI")
     })
@@ -72,6 +72,4 @@ fn test_config_generate() {
     info!("{:#?}", output);
 
     assert!(output.status.success());
-    // let stdout = String::from_utf8_lossy(&output.stdout);
-    // assert!(stdout.contains("Usage: flint"));
 }

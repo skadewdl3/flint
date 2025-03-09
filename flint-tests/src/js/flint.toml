@@ -2,25 +2,46 @@
 version = 1
 
 [common]
-# Common configuration shared across plugins
-projectName = "js-sample-project"
-nodeVersion = "16.x"
+# Basic style settings
+indent_style = "spaces"
+indent_size = 2
+max_line_length = 100
+quote_style = "double"
+require_semicolons = true
 
-# ESLint configuration
-[rules.eslint]
-useTypescript = false
+# Naming conventions
+variable_case = "camelCase"
+function_case = "camelCase"
+class_case = "PascalCase"
+constant_case = "UPPER_CASE"
+
+# Code quality
+max_function_length = 30
+max_nesting_depth = 2
+detect_unused_variables = true
+require_const_for_immutable = true
+
+[rules.eslint.rules]
+"no-console" = "warn"
+"semi" = ["error", "always"]
+"quotes" = ["error", "double"]
+"indent" = ["error", 2]
+
 env = { browser = true, node = true, es6 = true }
 extends = ["eslint:recommended"]
-rules = { "no-console" = "warn", "semi" = ["error", "always"] }
+"prefer-const" = "error"
+[config.eslint]
+root = "./flint-tests/src/js"
+ignore = ["node_modules", "coverage"]
 
-# Jest configuration
 [tests.jest]
 testEnvironment = "node"
 testMatch = ["**/tests/**/*.test.js"]
-verbose = true
 collectCoverage = true
-coverageDirectory = "coverage"
 
-# Additional config for ESLint
-[config.eslint]
-ignorePatterns = ["node_modules/", "coverage/"]
+[ci.github-actions]
+branches = ["main"]
+node_version = ["16.x"]
+
+[report.json]
+outputPath = "./lint-report.json"
