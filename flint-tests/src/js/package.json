@@ -1,0 +1,23 @@
+{
+  "name": "js",
+  "version": "1.0.0",
+  "description": "Test project for testing eslint and jest configurations",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/skadewdl3/flint.git"
+  },
+  "author": "Soham Karandikar",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/skadewdl3/flint/issues"
+  },
+  "homepage": "https://github.com/skadewdl3/flint#readme",
+  "devDependencies": {
+    "eslint": "^9.22.0",
+    "jest": "^29.7.0"
+  }
+}

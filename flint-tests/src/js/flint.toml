@@ -1,0 +1,26 @@
+[flint]
+version = 1
+
+[common]
+# Common configuration shared across plugins
+projectName = "js-sample-project"
+nodeVersion = "16.x"
+
+# ESLint configuration
+[rules.eslint]
+useTypescript = false
+env = { browser = true, node = true, es6 = true }
+extends = ["eslint:recommended"]
+rules = { "no-console" = "warn", "semi" = ["error", "always"] }
+
+# Jest configuration
+[tests.jest]
+testEnvironment = "node"
+testMatch = ["**/tests/**/*.test.js"]
+verbose = true
+collectCoverage = true
+coverageDirectory = "coverage"
+
+# Additional config for ESLint
+[config.eslint]
+ignorePatterns = ["node_modules/", "coverage/"]

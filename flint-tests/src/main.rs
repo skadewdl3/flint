@@ -1,3 +1,1 @@
-fn main() {
-    println!("Running integration tests");
-}
+fn main() {}
