@@ -129,12 +129,11 @@ pub fn list<'a>() -> Option<&'a BTreeSet<Plugin>> {
     Some(x)
 }
 
-pub fn list_from_config<'a>() -> Vec<&'a Plugin> {
-    let cwd = std::env::current_dir().unwrap();
-    let config = Config::load(cwd.join("flint.toml")).unwrap();
+pub fn list_from_config<'a>(config: &Config) -> Vec<&'a Plugin> {
     let linter_ids = config.rules.keys().collect::<HashSet<&String>>();
     let tester_ids = config.tests.keys().collect::<HashSet<&String>>();
     let plugins = list().unwrap();
+    add_log(LogKind::Debug, format!("Loaded plugins: {:?}", plugins));
 
     plugins
         .iter()

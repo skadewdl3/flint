@@ -5,3 +5,4 @@ logs.txt
 *.test.js
 **/node_modules
 **/downloaded-plugins
+flint-tests/**/plugins

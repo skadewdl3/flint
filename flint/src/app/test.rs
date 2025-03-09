@@ -55,7 +55,8 @@ impl TestWidget {
 impl AppWidget for TestWidget {
     fn setup(&mut self) -> AppResult<()> {
         let toml = Arc::new(Config::load(PathBuf::from("./flint.toml")).unwrap());
-        let plugins = plugin::list_from_config();
+        let plugins = plugin::list_from_config(&toml);
+
         let plugins = plugins.into_iter().filter(|plugin| {
             if self.args.all {
                 true
@@ -67,8 +68,6 @@ impl AppWidget for TestWidget {
                 false
             }
         });
-
-        add_log(LogKind::Debug, format!("{:#?}", plugins));
 
         for plugin in plugins {
             let plugin = plugin.clone();
@@ -86,6 +85,8 @@ impl AppWidget for TestWidget {
                 let cmd_output = std::process::Command::new(&command[0])
                     .args(&command[1..])
                     .output();
+
+                add_log(LogKind::Info, format!("Running command: {:#?}", command));
 
                 if let Err(e) = cmd_output {
                     add_log(

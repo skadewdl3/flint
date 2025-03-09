@@ -34,7 +34,7 @@ pub fn clone_plugin_folders(
                 LogKind::Info,
                 "Using debug path for plugins: ./downloaded-plugins".to_string(),
             );
-            Path::new("./downloaded-plugins").to_path_buf()
+            Path::new("./plugins").to_path_buf()
         } else {
             add_log(
                 LogKind::Info,
