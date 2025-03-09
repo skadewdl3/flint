@@ -32,11 +32,6 @@ impl Parse for Arg {
     /// - A shorthand named argument which is just an identifier (treated as `ident: ident`)
     /// - A positional argument which is any other expression
     ///
-    /// # Examples:
-    /// ```rust
-    /// Widget("arg1", name: "value", shorthand, some_func())
-    /// ```
-    ///
     /// # Returns
     /// - `Ok(Arg)` if parsing succeeds
     /// - `Err(Error)` if parsing fails

@@ -141,3 +141,118 @@
 
 [info]: Copied plugin from /tmp/flint-plugins-temp/flint-plugins/test/jest to ./downloaded-plugins/test/jest
 [info]: Removed temporary directory: /tmp/flint-plugins-temp
+[info]: Determined current directory: /home/skadewdl3/Projects/flint
+[info]: Determined current directory: /home/skadewdl3/Projects/flint
+[info]: Created temporary directory: /tmp/flint-plugins-temp
+[error]: [git clone]: Cloning into '/tmp/flint-plugins-temp'...
+
+[info]: Removed existing plugin: ./downloaded-plugins/test/jest
+[info]: Copied plugin from /tmp/flint-plugins-temp/flint-plugins/test/jest to ./downloaded-plugins/test/jest
+[info]: Removed temporary directory: /tmp/flint-plugins-temp
+[info]: Created temporary directory: /tmp/flint-plugins-temp
+[error]: [git clone]: Cloning into '/tmp/flint-plugins-temp'...
+Updating files:  28% (2/7)Updating files:  42% (3/7)Updating files:  57% (4/7)Updating files:  71% (5/7)Updating files:  85% (6/7)Updating files: 100% (7/7)Updating files: 100% (7/7), done.
+
+[info]: Removed existing plugin: ./downloaded-plugins/lint/eslint
+[info]: Copied plugin from /tmp/flint-plugins-temp/flint-plugins/lint/eslint to ./downloaded-plugins/lint/eslint
+[info]: Removed existing plugin: ./downloaded-plugins/lint/sqlfluff
+[info]: Copied plugin from /tmp/flint-plugins-temp/flint-plugins/lint/sqlfluff to ./downloaded-plugins/lint/sqlfluff
+[info]: Removed temporary directory: /tmp/flint-plugins-temp
+[debug]: InstallArgs {
+    plugins: [],
+    lint: false,
+    test: false,
+    all: true,
+    help: false,
+    logs: false,
+}
+[info]: Validating sqlfluff config
+[info]: Generating ESLint configuration
+[info]: Validating sqlfluff config
+[info]: Generating ESLint configuration
+[info]: Validating sqlfluff config
+[info]: Generating ESLint configuration
+[success]: Generated eslint config successfully
+[success]: Generated sqlfluff config successfully
+[info]: Validating sqlfluff config
+[error]: Error reading plugin code
+[info]: Generating ESLint configuration
+[success]: Generated sqlfluff config successfully
+[success]: Generated eslint config successfully
+[error]: Error reading plugin code
+[info]: Validating sqlfluff config
+[info]: Generating ESLint configuration
+[success]: Generated sqlfluff config successfully
+[success]: Generated eslint config successfully
+[error]: Error reading plugin code
+[info]: Validating sqlfluff config
+[info]: Generating ESLint configuration
+[success]: Generated eslint config successfully
+[success]: Generated github-actions config successfully
+[success]: Generated sqlfluff config successfully
+[debug]: Filter {
+    iter: IntoIter(
+        [],
+    ),
+}
+[debug]: Filter {
+    iter: IntoIter(
+        [
+            Plugin {
+                details: PluginDetails {
+                    id: "eslint",
+                    extensions: [
+                        "js",
+                        "ts",
+                        "mjs",
+                        "cjs",
+                    ],
+                    version: "0.0.1",
+                    author: "Onkar Kapuskari",
+                },
+                path: "./plugins/lint/eslint",
+                kind: Lint,
+            },
+            Plugin {
+                details: PluginDetails {
+                    id: "jest",
+                    extensions: [
+                        "js",
+                        "ts",
+                        "mjs",
+                        "cjs",
+                    ],
+                    version: "0.0.1",
+                    author: "Soham Karandikar",
+                },
+                path: "./plugins/test/jest",
+                kind: Test,
+            },
+            Plugin {
+                details: PluginDetails {
+                    id: "sqlfluff",
+                    extensions: [
+                        "sql",
+                    ],
+                    version: "0.0.1",
+                    author: "Onkar Kapuskari",
+                },
+                path: "./plugins/lint/sqlfluff",
+                kind: Lint,
+            },
+        ],
+    ),
+}
+[error]: Failed to execute command 'eslint': No such file or directory (os error 2)
+[debug]: {
+  "status": 1,
+  "stdout": "",
+  "stderr": "Error: Could not find a config file based on provided values:\npath: \"/home/skadewdl3/Projects/flint\"\ncwd: \"/home/skadewdl3/Projects/flint\"\nConfig paths must be specified by either a direct path to a config\nfile, or a path to a directory. If directory is given, Jest will try to\ntraverse directory tree up, until it finds one of those files in exact order: \"jest.config.js\" or \"jest.config.ts\" or \"jest.config.mjs\" or \"jest.config.cjs\" or \"jest.config.json\".\n    at resolveConfigPathByTraversing (/home/skadewdl3/.bun/install/global/node_modules/jest-config/build/resolveConfigPath.js:161:11)\n    at resolveConfigPathByTraversing (/home/skadewdl3/.bun/install/global/node_modules/jest-config/build/resolveConfigPath.js:165:10)\n    at resolveConfigPathByTraversing (/home/skadewdl3/.bun/install/global/node_modules/jest-config/build/resolveConfigPath.js:165:10)\n    at resolveConfigPathByTraversing (/home/skadewdl3/.bun/install/global/node_modules/jest-config/build/resolveConfigPath.js:165:10)\n    at resolveConfigPathByTraversing (/home/skadewdl3/.bun/install/global/node_modules/jest-config/build/resolveConfigPath.js:165:10)\n    at resolveConfigPath (/home/skadewdl3/.bun/install/global/node_modules/jest-config/build/resolveConfigPath.js:129:10)\n    at readInitialOptions (/home/skadewdl3/.bun/install/global/node_modules/jest-config/build/index.js:397:53)\n    at readConfig (/home/skadewdl3/.bun/install/global/node_modules/jest-config/build/index.js:147:54)\n    at readConfigs (/home/skadewdl3/.bun/install/global/node_modules/jest-config/build/index.js:424:32)\n    at runCLI (/home/skadewdl3/.bun/install/global/node_modules/@jest/core/build/cli/index.js:152:29)\n",
+  "success": false
+}
+[debug]: {
+  "status": 0,
+  "stdout": "Run a command from a local or remote npm package\n\nUsage:\nnpm exec -- <pkg>[@<version>] [args...]\nnpm exec --package=<pkg>[@<version>] -- <cmd> [args...]\nnpm exec -c '<cmd> [args...]'\nnpm exec --package=foo -c '<cmd> [args...]'\n\nOptions:\n[--package <package-spec> [--package <package-spec> ...]] [-c|--call <call>]\n[-w|--workspace <workspace-name> [-w|--workspace <workspace-name> ...]]\n[-ws|--workspaces] [--include-workspace-root]\n\nalias: x\n\nRun \"npm help exec\" for more info\n",
+  "stderr": "",
+  "success": true
+}

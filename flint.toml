@@ -65,3 +65,9 @@ templater.unwrap_wrapped_queries = true
 [tests.jest]
 enabled = false
 config_path = "src/jest.config.ts"
+
+[ci.github-actions]
+branches = ["main", "develop"]
+pr_branches = ["main"]
+
+[report.json]
