@@ -54,80 +54,84 @@ pub fn list<'a>() -> Option<&'a BTreeSet<Plugin>> {
         return PLUGINS.get();
     }
 
-    let plugins = ["lint", "test"].iter().flat_map(|dir_name| {
-        let plugins_dir = dir().join(dir_name);
-        if let Err(err) = std::fs::create_dir_all(&plugins_dir) {
-            add_log(
-                LogKind::Error,
-                format!("Failed to create {} directory: {}", dir_name, err),
-            );
-            return Vec::new();
-        }
-
-        let entries = match std::fs::read_dir(&plugins_dir) {
-            Err(err) => {
+    let plugins = ["lint", "test", "ci", "report"]
+        .iter()
+        .flat_map(|dir_name| {
+            let plugins_dir = dir().join(dir_name);
+            if let Err(err) = std::fs::create_dir_all(&plugins_dir) {
                 add_log(
                     LogKind::Error,
-                    format!("Failed to read {} directory: {}", dir_name, err),
+                    format!("Failed to create {} directory: {}", dir_name, err),
                 );
                 return Vec::new();
             }
-            Ok(entries) => entries,
-        };
 
-        entries
-            .filter_map(|entry| {
-                let entry = match entry {
-                    Ok(entry) => entry,
-                    Err(err) => {
-                        add_log(
-                            LogKind::Error,
-                            format!("Error reading directory entry: {}", err),
-                        );
-                        return None;
-                    }
-                };
-
-                let path = entry.path();
-                let contents = match std::fs::read_to_string(&path.join("details.lua")) {
-                    Ok(contents) => contents,
-                    Err(err) => {
-                        add_log(
-                            LogKind::Error,
-                            format!("Error reading file {}: {}", path.display(), err),
-                        );
-                        return None;
-                    }
-                };
-
-                match lua.load(contents).exec() {
-                    Ok(_) => {
-                        let details: Function = lua.globals().get("Details").unwrap();
-                        let lua_val = details.call::<mlua::Value>(()).unwrap();
-                        let details: PluginDetails = lua.from_value(lua_val).unwrap();
-
-                        Some(Plugin {
-                            details,
-                            path,
-                            kind: match *dir_name {
-                                "test" => PluginKind::Test,
-                                "lint" => PluginKind::Lint,
-                                _ => unreachable!(),
-                            },
-                        })
-                    }
-
-                    Err(err) => {
-                        add_log(
-                            LogKind::Error,
-                            format!("Error loading lua file {}: {}", path.display(), err),
-                        );
-                        None
-                    }
+            let entries = match std::fs::read_dir(&plugins_dir) {
+                Err(err) => {
+                    add_log(
+                        LogKind::Error,
+                        format!("Failed to read {} directory: {}", dir_name, err),
+                    );
+                    return Vec::new();
                 }
-            })
-            .collect::<Vec<_>>()
-    });
+                Ok(entries) => entries,
+            };
+
+            entries
+                .filter_map(|entry| {
+                    let entry = match entry {
+                        Ok(entry) => entry,
+                        Err(err) => {
+                            add_log(
+                                LogKind::Error,
+                                format!("Error reading directory entry: {}", err),
+                            );
+                            return None;
+                        }
+                    };
+
+                    let path = entry.path();
+                    let contents = match std::fs::read_to_string(&path.join("details.lua")) {
+                        Ok(contents) => contents,
+                        Err(err) => {
+                            add_log(
+                                LogKind::Error,
+                                format!("Error reading file {}: {}", path.display(), err),
+                            );
+                            return None;
+                        }
+                    };
+
+                    match lua.load(contents).exec() {
+                        Ok(_) => {
+                            let details: Function = lua.globals().get("Details").unwrap();
+                            let lua_val = details.call::<mlua::Value>(()).unwrap();
+                            let details: PluginDetails = lua.from_value(lua_val).unwrap();
+
+                            Some(Plugin {
+                                details,
+                                path,
+                                kind: match *dir_name {
+                                    "test" => PluginKind::Test,
+                                    "lint" => PluginKind::Lint,
+                                    "ci" => PluginKind::Ci,
+                                    "report" => PluginKind::Report,
+                                    _ => unreachable!(),
+                                },
+                            })
+                        }
+
+                        Err(err) => {
+                            add_log(
+                                LogKind::Error,
+                                format!("Error loading lua file {}: {}", path.display(), err),
+                            );
+                            None
+                        }
+                    }
+                })
+                .collect::<Vec<_>>()
+        });
 
     let x = PLUGINS.get_or_init(|| plugins.collect::<BTreeSet<Plugin>>());
     Some(x)

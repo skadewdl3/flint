@@ -38,10 +38,7 @@ pub fn clone_plugin_folders(
     );
 
     // Create the kind subfolder
-    let kind_str = match plugin_kind {
-        PluginKind::Lint => "lint",
-        PluginKind::Test => "test",
-    };
+    let kind_str = &plugin_kind.to_string();
     let kind_path = final_dest_path.join(kind_str);
 
     // Make sure the final plugin type directory exists

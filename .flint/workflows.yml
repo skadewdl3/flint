@@ -1,0 +1,31 @@
+on:
+  pull_request:
+    branches:
+    - main
+  push:
+    branches:
+    - main
+name: Flint CI
+jobs:
+  flint_checks:
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    - name: Install Flint
+      run: cargo install flint
+    - name: Run Linting
+      run: "                            # Run linting and save output\n                            flint test --lint --json > lint-results.json\n\n                            # Process results and create GitHub annotations\n                            echo \"Processing lint results...\"\n\n                            # Parse JSON and create GitHub annotations\n                            jq -r '.issues[] | \"::error file=\\(.file),line=\\(.line),col=\\(.column)::\\(.message)\"' lint-results.json >> $GITHUB_OUTPUT\n\n                            # Save summary statistics\n                            echo \"### Linting Summary\" >> $GITHUB_STEP_SUMMARY\n                            jq -r '\"Total Issues: \\(.total_issues)\\nFiles Checked: \\(.files_checked)\\nSeverity Breakdown:\\n  Critical: \\(.severity.critical)\\n  Major: \\(.severity.major)\\n  Minor: \\(.severity.minor)\"' lint-results.json >> $GITHUB_STEP_SUMMARY\n                        "
+    - name: Run Tests
+      run: "                            # Run tests and save output\n                            flint test --test --json > test-results.json\n\n                            # Process results and create GitHub annotations\n                            echo \"Processing test results...\"\n\n                            # Parse JSON and create GitHub annotations for failed tests\n                            jq -r '.failures[] | \"::error file=\\(.file),line=\\(.line)::\\(.test_name): \\(.message)\"' test-results.json >> $GITHUB_OUTPUT\n\n                            # Save test summary\n                            echo \"### Test Summary\" >> $GITHUB_STEP_SUMMARY\n                            jq -r '\"Total Tests: \\(.total_tests)\\nPassed: \\(.passed)\\nFailed: \\(.failed)\\nSkipped: \\(.skipped)\\n\\nTest Suites:\\n\\(.test_suites | to_entries | .[] | \"  \\(.key): \\(.value.passed)/\\(.value.total) passed\")\"' test-results.json >> $GITHUB_STEP_SUMMARY\n                        "
+    - uses: actions/upload-artifact@v3
+      name: Upload Test Results
+      with:
+        name: test-results
+        path: test-results.json
+    - uses: actions/upload-artifact@v3
+      name: Upload Lint Results
+      with:
+        name: lint-results
+        path: lint-results.json
+    name: Flint Checks
+    runs-on: ubuntu-latest

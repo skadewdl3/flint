@@ -15,6 +15,8 @@ pub struct Config {
     pub rules: HashMap<String, toml::Value>,
     pub tests: HashMap<String, toml::Value>,
     pub config: HashMap<String, toml::Value>,
+    pub ci: HashMap<String, toml::Value>,
+    pub report: HashMap<String, toml::Value>,
 }
 
 impl Config {
@@ -37,6 +39,8 @@ impl Config {
             rules: HashMap::new(),
             tests: HashMap::new(),
             config: HashMap::new(),
+            ci: HashMap::new(),
+            report: HashMap::new(),
         };
         Self::create(path, config)
     }

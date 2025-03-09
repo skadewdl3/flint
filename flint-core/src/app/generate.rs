@@ -10,7 +10,11 @@ use clap::Parser;
 use flint_macros::ui;
 use ratatui::prelude::*;
 use ratatui::widgets::WidgetRef;
-use std::{path::PathBuf, sync::Arc};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+    sync::Arc,
+};
 use threadpool::ThreadPool;
 
 pub struct GenerateWidget {
@@ -41,7 +45,10 @@ impl GenerateWidget {
 impl AppWidget for GenerateWidget {
     fn setup(&mut self) -> AppResult<()> {
         let toml = Arc::new(Config::load(PathBuf::from("./flint.toml")).unwrap());
-        let plugin_ids = toml.rules.keys().collect::<Vec<&String>>();
+        let mut plugin_ids = Vec::new();
+        plugin_ids.extend(toml.rules.keys());
+        plugin_ids.extend(toml.tests.keys());
+        plugin_ids.extend(toml.ci.keys());
 
         self.plugins = plugin::list()
             .unwrap()
@@ -60,7 +67,9 @@ impl AppWidget for GenerateWidget {
                     Ok(res) => {
                         // TODO: Ask user if we want to overwrite files
                         for (file_name, contents) in res {
-                            std::fs::write(file_name, contents).unwrap();
+                            let flint_path = Path::new("./.flint");
+                            fs::create_dir_all(&flint_path).unwrap();
+                            std::fs::write(flint_path.join(file_name), contents).unwrap();
                         }
                         add_log(
                             LogKind::Success,

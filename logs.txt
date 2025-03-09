@@ -166,3 +166,27 @@ Updating files:  28% (2/7)Updating files:  42% (3/7)Updating files:  57% (4/7)
     help: false,
     logs: false,
 }
+[info]: Validating sqlfluff config
+[info]: Generating ESLint configuration
+[info]: Validating sqlfluff config
+[info]: Generating ESLint configuration
+[info]: Validating sqlfluff config
+[info]: Generating ESLint configuration
+[success]: Generated eslint config successfully
+[success]: Generated sqlfluff config successfully
+[info]: Validating sqlfluff config
+[error]: Error reading plugin code
+[info]: Generating ESLint configuration
+[success]: Generated sqlfluff config successfully
+[success]: Generated eslint config successfully
+[error]: Error reading plugin code
+[info]: Validating sqlfluff config
+[info]: Generating ESLint configuration
+[success]: Generated sqlfluff config successfully
+[success]: Generated eslint config successfully
+[error]: Error reading plugin code
+[info]: Validating sqlfluff config
+[info]: Generating ESLint configuration
+[success]: Generated eslint config successfully
+[success]: Generated github-actions config successfully
+[success]: Generated sqlfluff config successfully

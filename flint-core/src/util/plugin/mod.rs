@@ -36,6 +36,19 @@ pub struct Plugin {
 pub enum PluginKind {
     Lint,
     Test,
+    Ci,
+    Report,
+}
+
+impl PluginKind {
+    pub fn to_string(&self) -> String {
+        match self {
+            PluginKind::Lint => "lint".to_string(),
+            PluginKind::Test => "test".to_string(),
+            PluginKind::Ci => "ci".to_string(),
+            PluginKind::Report => "report".to_string(),
+        }
+    }
 }
 
 impl Plugin {
@@ -47,6 +60,8 @@ impl Plugin {
         let plugin_config = match self.kind {
             PluginKind::Lint => toml.rules.get(&self.details.id),
             PluginKind::Test => toml.tests.get(&self.details.id),
+            PluginKind::Ci => toml.ci.get(&self.details.id),
+            PluginKind::Report => toml.report.get(&self.details.id),
         }
         .expect(format!("unable to find config for plugin - {}", self.details.id).as_str());
 
