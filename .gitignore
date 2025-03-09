@@ -3,4 +3,5 @@ target
 pyproject.toml
 logs.txt
 *.test.js
-downloaded-plugins
+**/node_modules
+**/downloaded-plugins

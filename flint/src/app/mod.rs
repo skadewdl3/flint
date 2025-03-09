@@ -11,6 +11,7 @@ use crossterm::event::Event;
 use ratatui::widgets::WidgetRef;
 use std::error::Error as ErrorTrait;
 use std::io;
+use std::sync::mpsc::Sender;
 use thiserror::Error;
 
 pub trait AppWidget: WidgetRef {
@@ -20,6 +21,7 @@ pub trait AppWidget: WidgetRef {
     fn handle_events(&mut self, _event: Event) -> AppResult<()> {
         Ok(())
     }
+    fn set_exit_sender(&mut self, _exit_sender: Sender<()>) {}
 }
 
 #[derive(Error, Debug)]

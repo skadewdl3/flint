@@ -14,6 +14,7 @@ use flint_macros::{ui, widget};
 use ratatui::widgets::WidgetRef;
 use ratatui::{prelude::*, DefaultTerminal};
 use std::io;
+use std::sync::mpsc;
 use std::time::Duration;
 use tui_popup::Popup;
 
@@ -21,6 +22,8 @@ pub struct App {
     exit: bool,
     active_widget: Box<dyn AppWidget>,
     error: Option<String>,
+    sender: mpsc::Sender<()>,
+    receiver: mpsc::Receiver<()>,
 }
 
 #[derive(Parser)]
@@ -48,10 +51,13 @@ enum AppWidgetArgs {
 
 impl App {
     pub fn new() -> Self {
+        let (sender, receiver) = mpsc::channel();
         Self {
             exit: false,
             active_widget: Box::new(HelpWidget::default()),
             error: None,
+            sender,
+            receiver,
         }
     }
 
@@ -77,6 +83,8 @@ impl App {
             _ => Box::new(HelpWidget::default()),
         };
 
+        self.active_widget.set_exit_sender(self.sender.clone());
+
         match self.active_widget.setup() {
             Ok(_) => (),
             Err(err) => {
@@ -86,6 +94,11 @@ impl App {
         }
         while !self.exit && !headless {
             terminal.draw(|frame| self.draw(frame))?;
+
+            if let Ok(_) = self.receiver.recv_timeout(Duration::from_millis(1)) {
+                // Break if a forceful exit is requested
+                break;
+            }
 
             match self.handle_all_events() {
                 Ok(_) => (),

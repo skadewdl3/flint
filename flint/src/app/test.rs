@@ -30,6 +30,15 @@ pub struct TestArgs {
     /// Show help for the test command
     #[clap(short, long)]
     help: bool,
+
+    #[clap(short, long, default_value_t = true)]
+    all: bool,
+
+    #[clap(short, long)]
+    lint: bool,
+
+    #[clap(short, long)]
+    test: bool,
 }
 
 impl TestWidget {
@@ -47,11 +56,21 @@ impl AppWidget for TestWidget {
     fn setup(&mut self) -> AppResult<()> {
         let toml = Arc::new(Config::load(PathBuf::from("./flint.toml")).unwrap());
         let plugins = plugin::list_from_config();
+        let plugins = plugins.into_iter().filter(|plugin| {
+            if self.args.all {
+                true
+            } else if self.args.lint {
+                plugin.kind == PluginKind::Lint
+            } else if self.args.test {
+                plugin.kind == PluginKind::Test
+            } else {
+                false
+            }
+        });
 
-        for plugin in plugins
-            .into_iter()
-            .filter(|plugin| plugin.kind == PluginKind::Test)
-        {
+        add_log(LogKind::Debug, format!("{:#?}", plugins));
+
+        for plugin in plugins {
             let plugin = plugin.clone();
             let toml_clone = toml.clone();
             self.thread_pool.execute(move || {

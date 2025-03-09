@@ -15,21 +15,9 @@ function_case = "camelCase"
 class_case = "PascalCase"
 constant_case = "UPPER_CASE"
 
-# Code quality
-max_function_length = 30
-max_nesting_depth = 2
-detect_unused_variables = true
-require_const_for_immutable = true
 
-[rules.eslint.rules]
-"no-console" = "warn"
-"semi" = ["error", "always"]
-"quotes" = ["error", "double"]
-"indent" = ["error", 2]
+[rules.eslint]
 
-env = { browser = true, node = true, es6 = true }
-extends = ["eslint:recommended"]
-"prefer-const" = "error"
 [config.eslint]
 root = "./flint-tests/src/js"
 ignore = ["node_modules", "coverage"]
@@ -39,9 +27,13 @@ testEnvironment = "node"
 testMatch = ["**/tests/**/*.test.js"]
 collectCoverage = true
 
-[ci.github-actions]
-branches = ["main"]
-node_version = ["16.x"]
+[ci]
 
-[report.json]
-outputPath = "./lint-report.json"
+[report]
+
+# [ci.github-actions]
+# branches = ["main"]
+# node_version = ["16.x"]
+
+# [report.json]
+# outputPath = "./lint-report.json"

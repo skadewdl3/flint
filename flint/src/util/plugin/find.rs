@@ -31,15 +31,11 @@ pub fn map() -> &'static HashMap<String, BTreeSet<Plugin>> {
 
 pub fn dir() -> PathBuf {
     if cfg!(debug_assertions) {
-        return PathBuf::from("./flint-plugins");
+        return PathBuf::from("./plugins");
     } else if let Some(proj_dirs) = ProjectDirs::from("com", "Flint", "flint") {
         let plugins_path = proj_dirs.data_dir().to_path_buf().join("plugins");
         if !plugins_path.exists() {
             std::fs::create_dir_all(&plugins_path).expect("Failed to create plugins directory");
-            std::fs::create_dir_all(&plugins_path.join("test"))
-                .expect("Failed to create test directory");
-            std::fs::create_dir_all(&plugins_path.join("lint"))
-                .expect("Failed to create lint directory");
         }
         plugins_path
     } else {
@@ -58,12 +54,8 @@ pub fn list<'a>() -> Option<&'a BTreeSet<Plugin>> {
         .iter()
         .flat_map(|dir_name| {
             let plugins_dir = dir().join(dir_name);
-            if let Err(err) = std::fs::create_dir_all(&plugins_dir) {
-                add_log(
-                    LogKind::Error,
-                    format!("Failed to create {} directory: {}", dir_name, err),
-                );
-                return Vec::new();
+            if !plugins_dir.exists() {
+                return vec![];
             }
 
             let entries = match std::fs::read_dir(&plugins_dir) {

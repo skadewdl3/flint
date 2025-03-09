@@ -1,10 +1,14 @@
+use std::sync::mpsc::Sender;
+use std::time::Duration;
+
 use crate::util::plugin::download::{download_plugins, download_plugins_from_config};
 use crate::util::plugin::PluginKind;
 use crate::util::toml::Config;
 use crate::widgets::logs::{add_log, LogKind, LogsWidget};
 use clap::Parser;
+use threadpool::ThreadPool;
 
-use super::{AppResult, AppWidget};
+use super::{AppError, AppResult, AppWidget};
 use flint_macros::ui;
 use ratatui::prelude::*;
 use ratatui::widgets::WidgetRef;
@@ -13,6 +17,8 @@ use ratatui::widgets::WidgetRef;
 pub struct InstallWidget {
     logs: LogsWidget,
     args: InstallArgs,
+    pool: ThreadPool,
+    exit_sender: Option<Sender<()>>,
 }
 
 #[derive(Parser, Debug)]
@@ -46,6 +52,8 @@ impl InstallWidget {
     pub fn new(args: InstallArgs) -> Self {
         Self {
             logs: LogsWidget::default(),
+            pool: ThreadPool::new(16),
+            exit_sender: None,
             args,
         }
     }
@@ -54,17 +62,28 @@ impl InstallWidget {
 impl AppWidget for InstallWidget {
     fn setup(&mut self) -> AppResult<()> {
         let toml = Config::load(std::env::current_dir().unwrap().join("flint.toml")).unwrap();
-        download_plugins_from_config(&toml)?;
-
-        let str = format!("{:#?}", self.args);
-        add_log(LogKind::Debug, str);
-
+        let toml_clone = toml.clone();
+        self.pool.execute(move || {
+            std::thread::sleep(Duration::from_secs(10));
+            match download_plugins_from_config(&toml_clone) {
+                Ok(_) => add_log(LogKind::Success, "Plugins downloaded successfully".into()),
+                Err(e) => add_log(LogKind::Error, format!("Error downloading plugins: {}", e)),
+            }
+        });
         Ok(())
+    }
+
+    fn set_exit_sender(&mut self, exit_sender: Sender<()>) {
+        self.exit_sender = Some(exit_sender);
     }
 }
 
 impl WidgetRef for InstallWidget {
     fn render_ref(&self, area: Rect, buf: &mut Buffer) {
+        // Check if there are no active threads in the threadpool
+        if self.pool.active_count() == 0 && self.pool.queued_count() == 0 {
+            self.exit_sender.as_ref().unwrap().send(()).unwrap();
+        }
         ui!((area, buf) => {
             { self.logs }
         });
