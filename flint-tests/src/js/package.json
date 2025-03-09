@@ -17,6 +17,8 @@
   },
   "homepage": "https://github.com/skadewdl3/flint#readme",
   "devDependencies": {
+    "@stylistic/eslint-plugin": "^4.2.0",
+    "@stylistic/eslint-plugin-js": "^4.2.0",
     "eslint": "^9.22.0",
     "jest": "^29.7.0"
   }

@@ -7,25 +7,19 @@ indent_style = "spaces"
 indent_size = 2
 max_line_length = 100
 quote_style = "double"
-require_semicolons = true
-
-# Naming conventions
-variable_case = "camelCase"
-function_case = "camelCase"
-class_case = "PascalCase"
-constant_case = "UPPER_CASE"
+require_semicolons = false
 
 
 [rules.eslint]
 
 [config.eslint]
-root = "./flint-tests/src/js"
-ignore = ["node_modules", "coverage"]
+# root = "./flint-tests/src/js"
+# ignore = ["node_modules", "coverage"]
 
 [tests.jest]
-testEnvironment = "node"
-testMatch = ["**/tests/**/*.test.js"]
-collectCoverage = true
+# testEnvironment = "node"
+# testMatch = ["**/tests/**/*.test.js"]
+# collectCoverage = true
 
 [ci]
 
