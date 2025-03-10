@@ -155,7 +155,7 @@ impl WidgetRef for App {
 #[macro_export]
 macro_rules! cmd {
     ($program:expr, $($arg:expr),* $(,)?) => {{
-        let mut command = Command::new($program);
+        let mut command = std::process::Command::new($program);
         $(command.arg($arg);)*
         command
     }};

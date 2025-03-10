@@ -1,7 +1,7 @@
 use super::{Plugin, PluginDetails, PluginKind};
 use crate::app::AppResult;
 use crate::util::toml::Config;
-use crate::{app_err, debug, error};
+use crate::{debug, error};
 use directories::ProjectDirs;
 use mlua::{Function, Lua, LuaSerdeExt};
 use std::{

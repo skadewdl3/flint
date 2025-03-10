@@ -12,7 +12,7 @@ use std::{
 use threadpool::ThreadPool;
 
 use crate::{
-    error, info, success,
+    cmd, error, info, success,
     util::{
         handle_key_events, handle_mouse_event,
         plugin::{self, Plugin, PluginKind},
@@ -141,8 +141,6 @@ impl AppWidget for TestWidget {
                                                 });
                                             }
                                         }
-
-                                        // fs::create_dir_all(&flint_path).unwrap();
 
                                         match std::fs::write(flint_path.join(&file_name), contents)
                                         {

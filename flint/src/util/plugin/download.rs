@@ -69,7 +69,7 @@ pub fn clone_plugin_folders(
     ]
     .output()?;
 
-    let stdout = String::from_utf8_lossy(&output.stdout);
+    let _stdout = String::from_utf8_lossy(&output.stdout);
     let stderr = String::from_utf8_lossy(&output.stderr);
     let status = output.status;
 
@@ -78,7 +78,7 @@ pub fn clone_plugin_folders(
             "Cleaning up temporary directory after failed clone: {}",
             temp_path.display()
         );
-        fs::remove_dir_all(&temp_path).map_err(|e| {
+        _ = fs::remove_dir_all(&temp_path).map_err(|e| {
             app_err!("Failed to remove temporary directory: {}", e);
         });
 
