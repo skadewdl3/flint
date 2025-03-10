@@ -3,7 +3,12 @@ use crossterm::event::{KeyCode, MouseEventKind};
 use flint_macros::ui;
 use ratatui::prelude::*;
 use ratatui::widgets::WidgetRef;
-use std::{cell::RefCell, path::PathBuf, sync::Arc};
+use std::{
+    cell::RefCell,
+    fs,
+    path::{Path, PathBuf},
+    sync::Arc,
+};
 use threadpool::ThreadPool;
 
 use crate::{
@@ -118,8 +123,52 @@ impl AppWidget for TestWidget {
                     Err(e) => add_log(LogKind::Error, format!("Failed to evaluate plugin: {}", e)),
                     Ok(res) => {
                         for report_plugin in report_plugins.iter() {
-                            if let Err(e) = report_plugin.report(&toml_clone, &res) {
-                                add_log(LogKind::Error, format!("Report plugin error: {}", e));
+                            match report_plugin.report(&toml_clone, &res) {
+                                Err(e) => {
+                                    add_log(LogKind::Error, format!("Report plugin error: {}", e));
+                                }
+                                Ok(res) => {
+                                    for (file_name, contents) in res {
+                                        let flint_path = Path::new("./.flint/reports");
+                                        let file_path = flint_path.join(&file_name);
+
+                                        if let Some(parent) = file_path.parent() {
+                                            if !parent.exists() {
+                                                fs::create_dir_all(parent).unwrap_or_else(|e| {
+                                                    add_log(
+                                                        LogKind::Error,
+                                                        format!(
+                                                            "Failed to create directory for {}: {}",
+                                                            file_name, e
+                                                        ),
+                                                    );
+                                                });
+                                            }
+                                        }
+
+                                        // fs::create_dir_all(&flint_path).unwrap();
+
+                                        match std::fs::write(flint_path.join(&file_name), contents)
+                                        {
+                                            Ok(_) => (),
+                                            Err(e) => add_log(
+                                                LogKind::Error,
+                                                format!(
+                                                    "Failed to write report file {}: {}",
+                                                    file_name, e
+                                                ),
+                                            ),
+                                        }
+
+                                        add_log(
+                                            LogKind::Success,
+                                            format!(
+                                                "Reported {} to {} successfully",
+                                                plugin.details.id, file_name
+                                            ),
+                                        );
+                                    }
+                                }
                             }
                         }
                     }

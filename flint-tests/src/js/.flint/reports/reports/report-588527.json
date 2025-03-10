@@ -1,0 +1,49 @@
+{
+  "tests_passed": 4,
+  "total_tests": 6,
+  "test_results": [
+    {
+      "error_message": null,
+      "line_no": null,
+      "column_no": null,
+      "success": true,
+      "file_name": "/home/skadewdl3/Projects/flint/flint-tests/src/js/src/utils.test.js"
+    },
+    {
+      "error_message": null,
+      "line_no": null,
+      "column_no": null,
+      "success": true,
+      "file_name": "/home/skadewdl3/Projects/flint/flint-tests/src/js/src/utils.test.js"
+    },
+    {
+      "error_message": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 3\nReceived: \"12\"\n    at Object.toBe (/home/skadewdl3/Projects/flint/flint-tests/src/js/src/utils.test.js:14:29)\n    at Promise.then.completed (/home/skadewdl3/.bun/install/global/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/skadewdl3/.bun/install/global/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/skadewdl3/.bun/install/global/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/skadewdl3/.bun/install/global/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/skadewdl3/.bun/install/global/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/skadewdl3/.bun/install/global/node_modules/jest-circus/build/run.js:121:9)\n    at _runTestsForDescribeBlock (/home/skadewdl3/.bun/install/global/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/skadewdl3/.bun/install/global/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/skadewdl3/.bun/install/global/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/skadewdl3/.bun/install/global/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/skadewdl3/.bun/install/global/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/skadewdl3/.bun/install/global/node_modules/jest-runner/build/runTest.js:444:34)",
+      "line_no": null,
+      "column_no": null,
+      "success": false,
+      "file_name": "/home/skadewdl3/Projects/flint/flint-tests/src/js/src/utils.test.js"
+    },
+    {
+      "error_message": null,
+      "line_no": null,
+      "column_no": null,
+      "success": true,
+      "file_name": "/home/skadewdl3/Projects/flint/flint-tests/src/js/src/utils.test.js"
+    },
+    {
+      "error_message": null,
+      "line_no": null,
+      "column_no": null,
+      "success": true,
+      "file_name": "/home/skadewdl3/Projects/flint/flint-tests/src/js/src/utils.test.js"
+    },
+    {
+      "error_message": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 5\nReceived: 4\n    at Object.toBe (/home/skadewdl3/Projects/flint/flint-tests/src/js/src/utils.test.js:28:30)\n    at Promise.then.completed (/home/skadewdl3/.bun/install/global/node_modules/jest-circus/build/utils.js:298:28)\n    at new Promise (<anonymous>)\n    at callAsyncCircusFn (/home/skadewdl3/.bun/install/global/node_modules/jest-circus/build/utils.js:231:10)\n    at _callCircusTest (/home/skadewdl3/.bun/install/global/node_modules/jest-circus/build/run.js:316:40)\n    at _runTest (/home/skadewdl3/.bun/install/global/node_modules/jest-circus/build/run.js:252:3)\n    at _runTestsForDescribeBlock (/home/skadewdl3/.bun/install/global/node_modules/jest-circus/build/run.js:126:9)\n    at _runTestsForDescribeBlock (/home/skadewdl3/.bun/install/global/node_modules/jest-circus/build/run.js:121:9)\n    at _runTestsForDescribeBlock (/home/skadewdl3/.bun/install/global/node_modules/jest-circus/build/run.js:121:9)\n    at run (/home/skadewdl3/.bun/install/global/node_modules/jest-circus/build/run.js:71:3)\n    at runAndTransformResultsToJestFormat (/home/skadewdl3/.bun/install/global/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)\n    at jestAdapter (/home/skadewdl3/.bun/install/global/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)\n    at runTestInternal (/home/skadewdl3/.bun/install/global/node_modules/jest-runner/build/runTest.js:367:16)\n    at runTest (/home/skadewdl3/.bun/install/global/node_modules/jest-runner/build/runTest.js:444:34)",
+      "line_no": null,
+      "column_no": null,
+      "success": false,
+      "file_name": "/home/skadewdl3/Projects/flint/flint-tests/src/js/src/utils.test.js"
+    }
+  ],
+  "passing_percentage": 66.66666412353516
+}
