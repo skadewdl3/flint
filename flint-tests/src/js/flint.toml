@@ -25,9 +25,7 @@ require_semicolons = false
 
 [report]
 
-# [ci.github-actions]
-# branches = ["main"]
-# node_version = ["16.x"]
+[ci.github-actions]
 
 [report.json]
 outputPath = "reports"

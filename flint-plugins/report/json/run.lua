@@ -3,10 +3,8 @@ function Run(options)
     local output = options.output
 
 
-    -- Generate a random ID
-    local id = math.random(100000, 999999)
 
     return {
-        [config.outputPath .. "/report-" .. id .. ".json"] = json.stringify(output)
+        [config.outputPath .. "/report.json"] = json.stringify(output)
     }
 end

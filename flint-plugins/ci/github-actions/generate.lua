@@ -46,8 +46,8 @@ function Generate(config)
                         name = "Upload Test Results",
                         uses = "actions/upload-artifact@v3",
                         with = {
-                            name = "test-results",
-                            path = "test-results.json"
+                            name = ".flint/reports/reports/report.json",
+                            path = ".flint/reports/reports/report.json"
                         }
                     }
                 }
