@@ -1,6 +1,3 @@
-[submodule "tests/js"]
-	path = tests/js
-	url = https://github.com/skadewdl3/flint-tests-js.git
 [submodule "flint-tests/js"]
 	path = flint-tests/js
 	url = https://github.com/skadewdl3/flint-tests-js.git

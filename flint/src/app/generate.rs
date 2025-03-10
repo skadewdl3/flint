@@ -4,7 +4,7 @@ use crate::{
         plugin::{self, Plugin},
         toml::Config,
     },
-    widgets::logs::{LogKind, LogsWidget, add_log},
+    widgets::logs::{add_log, LogKind, LogsWidget},
 };
 use clap::Parser;
 use flint_macros::ui;
@@ -19,12 +19,12 @@ use threadpool::ThreadPool;
 
 pub struct GenerateWidget {
     plugins: Vec<Plugin>,
-    thread_pool: ThreadPool,
+    thread_pool: Option<ThreadPool>,
     logs_widget: LogsWidget,
     args: GenerateWidgetArgs,
 }
 
-#[derive(Parser)]
+#[derive(Parser, Clone)]
 pub struct GenerateWidgetArgs {
     /// Show help for the generate command
     #[clap(short, long)]
@@ -35,7 +35,7 @@ impl GenerateWidget {
     pub fn new(args: GenerateWidgetArgs) -> Self {
         Self {
             plugins: Vec::new(),
-            thread_pool: ThreadPool::new(16),
+            thread_pool: None,
             logs_widget: LogsWidget::default(),
             args,
         }
@@ -60,8 +60,9 @@ impl AppWidget for GenerateWidget {
         for plugin in &self.plugins {
             let plugin = plugin.clone();
             let toml_clone = toml.clone();
+            let pool = self.thread_pool.as_ref().unwrap();
 
-            self.thread_pool.execute(move || {
+            pool.execute(move || {
                 let result = plugin.generate(&toml_clone);
                 match result {
                     Ok(res) => {
@@ -84,6 +85,10 @@ impl AppWidget for GenerateWidget {
         }
 
         Ok(())
+    }
+
+    fn set_thread_pool(&mut self, thread_pool: &ThreadPool) {
+        self.thread_pool = Some(thread_pool.clone())
     }
 }
 

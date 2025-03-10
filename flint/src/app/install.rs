@@ -19,12 +19,12 @@ use ratatui::widgets::WidgetRef;
 pub struct InstallWidget {
     logs: LogsWidget,
     args: InstallArgs,
-    pool: ThreadPool,
+    pool: Option<ThreadPool>,
     exit_sender: Option<Sender<()>>,
     logs_state: RefCell<LogsState>,
 }
 
-#[derive(Parser, Debug)]
+#[derive(Parser, Debug, Clone)]
 pub struct InstallArgs {
     /// List of plugins to install
     #[clap(short, long, value_parser, num_args = 1, value_delimiter = ' ')]
@@ -55,7 +55,7 @@ impl InstallWidget {
     pub fn new(args: InstallArgs) -> Self {
         Self {
             logs: LogsWidget::default(),
-            pool: ThreadPool::new(16),
+            pool: None,
             exit_sender: None,
             logs_state: RefCell::new(LogsState::default()),
             args,
@@ -67,7 +67,8 @@ impl AppWidget for InstallWidget {
     fn setup(&mut self) -> AppResult<()> {
         let toml = Config::load(std::env::current_dir().unwrap().join("flint.toml")).unwrap();
         let toml_clone = toml.clone();
-        self.pool.execute(move || {
+        let pool = self.pool.as_ref().unwrap();
+        pool.execute(move || {
             std::thread::sleep(Duration::from_secs(10));
             match download_plugins_from_config(&toml_clone) {
                 Ok(_) => add_log(LogKind::Success, "Plugins downloaded successfully".into()),
@@ -79,6 +80,10 @@ impl AppWidget for InstallWidget {
 
     fn set_exit_sender(&mut self, exit_sender: Sender<()>) {
         self.exit_sender = Some(exit_sender);
+    }
+
+    fn set_thread_pool(&mut self, thread_pool: &ThreadPool) {
+        self.pool = Some(thread_pool.clone())
     }
 
     fn handle_events(&mut self, event: crossterm::event::Event) -> AppResult<()> {

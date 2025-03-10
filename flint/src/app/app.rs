@@ -16,6 +16,7 @@ use ratatui::{prelude::*, DefaultTerminal};
 use std::io;
 use std::sync::mpsc;
 use std::time::Duration;
+use threadpool::ThreadPool;
 use tui_popup::Popup;
 
 pub struct App {
@@ -24,20 +25,21 @@ pub struct App {
     error: Option<String>,
     sender: mpsc::Sender<()>,
     receiver: mpsc::Receiver<()>,
+    args: AppArgs,
 }
 
-#[derive(Parser)]
+#[derive(Parser, Clone)]
 #[command(version, about, long_about = None, disable_help_subcommand = true, disable_help_flag = true)]
-struct Args {
+pub struct AppArgs {
     #[command(subcommand)]
-    command: Option<AppWidgetArgs>,
+    pub command: Option<AppWidgetArgs>,
     // #[clap(short, long)]
     // help: bool,
 }
 
-#[derive(Subcommand)]
+#[derive(Subcommand, Clone)]
 #[command(version, about, long_about = None, disable_help_subcommand = true, disable_help_flag = true)]
-enum AppWidgetArgs {
+pub enum AppWidgetArgs {
     /// Initializes a flint.toml file
     Init(InitWidgetArgs),
     /// Generates linter and testing library configuration files
@@ -50,7 +52,7 @@ enum AppWidgetArgs {
 }
 
 impl App {
-    pub fn new() -> Self {
+    pub fn new(args: AppArgs) -> Self {
         let (sender, receiver) = mpsc::channel();
         Self {
             exit: false,
@@ -58,22 +60,12 @@ impl App {
             error: None,
             sender,
             receiver,
+            args,
         }
     }
 
     pub fn run(&mut self, terminal: &mut DefaultTerminal) -> io::Result<()> {
-        let mut args: Vec<String> = std::env::args().collect();
-
-        // Check for --headless and remove it from the args list
-        let headless = if let Some(index) = args.iter().position(|arg| arg == "--headless") {
-            args.remove(index);
-            true
-        } else {
-            false
-        };
-
-        // Parse the command from modified args list
-        let args = Args::parse_from(args);
+        let args = self.args.clone();
 
         self.active_widget = match args.command.unwrap() {
             AppWidgetArgs::Install(args) => Box::new(InstallWidget::new(args)),
@@ -85,6 +77,9 @@ impl App {
 
         self.active_widget.set_exit_sender(self.sender.clone());
 
+        let thread_pool = ThreadPool::new(16);
+        self.active_widget.set_thread_pool(&thread_pool);
+
         match self.active_widget.setup() {
             Ok(_) => (),
             Err(err) => {
@@ -92,7 +87,7 @@ impl App {
                 self.exit = true;
             }
         }
-        while !self.exit && !headless {
+        while !self.exit {
             terminal.draw(|frame| self.draw(frame))?;
 
             if let Ok(_) = self.receiver.recv_timeout(Duration::from_millis(1)) {
@@ -108,6 +103,8 @@ impl App {
                 }
             }
         }
+
+        thread_pool.join();
 
         Ok(())
     }

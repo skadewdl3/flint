@@ -25,12 +25,12 @@ use super::{AppResult, AppWidget};
 #[derive(Debug)]
 pub struct TestWidget {
     logs: LogsWidget,
-    thread_pool: ThreadPool,
+    thread_pool: Option<ThreadPool>,
     logs_state: RefCell<LogsState>,
     args: TestArgs,
 }
 
-#[derive(Parser, Debug)]
+#[derive(Parser, Debug, Clone)]
 pub struct TestArgs {
     /// Show help for the test command
     #[clap(short, long)]
@@ -49,7 +49,7 @@ pub struct TestArgs {
 impl TestWidget {
     pub fn new(args: TestArgs) -> Self {
         Self {
-            thread_pool: ThreadPool::new(16),
+            thread_pool: None,
             logs: LogsWidget::default(),
             logs_state: RefCell::new(LogsState::default()),
             args,
@@ -90,8 +90,9 @@ impl AppWidget for TestWidget {
             let plugin = plugin.clone();
             let toml_clone = toml.clone();
             let report_plugins = Arc::clone(&report_plugins); // Share report plugins across threads
+            let pool = self.thread_pool.as_ref().unwrap();
 
-            self.thread_pool.execute(move || {
+            pool.execute(move || {
                 let result = plugin.run(&toml_clone);
 
                 if let Err(err) = result {
@@ -177,6 +178,10 @@ impl AppWidget for TestWidget {
         }
 
         Ok(())
+    }
+
+    fn set_thread_pool(&mut self, thread_pool: &ThreadPool) {
+        self.thread_pool = Some(thread_pool.clone());
     }
 
     fn handle_events(&mut self, event: crossterm::event::Event) -> AppResult<()> {

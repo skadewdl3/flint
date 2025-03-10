@@ -13,6 +13,7 @@ use std::error::Error as ErrorTrait;
 use std::io;
 use std::sync::mpsc::Sender;
 use thiserror::Error;
+use threadpool::ThreadPool;
 
 pub trait AppWidget: WidgetRef {
     fn setup(&mut self) -> AppResult<()> {
@@ -22,6 +23,8 @@ pub trait AppWidget: WidgetRef {
         Ok(())
     }
     fn set_exit_sender(&mut self, _exit_sender: Sender<()>) {}
+
+    fn set_thread_pool(&mut self, _thread_pool: &ThreadPool) {}
 }
 
 #[derive(Error, Debug)]

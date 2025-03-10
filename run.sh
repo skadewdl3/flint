@@ -1,2 +1,2 @@
-cd flint-tests/src/js
-../../../target/debug/flint install
+cd flint-tests/js
+../../target/debug/flint generate
