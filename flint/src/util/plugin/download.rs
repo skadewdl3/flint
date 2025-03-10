@@ -5,7 +5,7 @@ use std::process::Command;
 
 use crate::util::plugin;
 use crate::util::toml::Config;
-use crate::widgets::logs::{add_log, LogKind};
+use crate::widgets::logs::{LogKind, add_log};
 
 use super::PluginKind;
 
@@ -13,7 +13,6 @@ pub fn clone_plugin_folders(
     repo_url: &str,
     plugin_kind: PluginKind,
     plugin_ids: Vec<&String>,
-    destination: Option<PathBuf>,
 ) -> Result<PathBuf, Box<dyn Error>> {
     add_log(
         LogKind::Info,
@@ -24,30 +23,11 @@ pub fn clone_plugin_folders(
     );
 
     // Determine final destination path
-    let final_dest_path = destination.unwrap_or_else(|| {
-        add_log(
-            LogKind::Info,
-            format!("Creating plugins directory - {}", plugin_kind.to_string()),
-        );
-        if cfg!(debug_assertions) {
-            add_log(
-                LogKind::Info,
-                "Using debug path for plugins: ./downloaded-plugins".to_string(),
-            );
-            Path::new("./plugins").to_path_buf()
-        } else {
-            add_log(
-                LogKind::Info,
-                "Using production path for plugins".to_string(),
-            );
-            // Replace with your actual plugin directory function
-            plugin::dir()
-        }
-    });
+    let final_dest_path = plugin::dir();
 
     add_log(
         LogKind::Info,
-        format!("Final destination path: {}", final_dest_path.display()),
+        format!("Downloading plugins to: {}", final_dest_path.display()),
     );
 
     // Create a temporary directory for git operations
@@ -342,7 +322,7 @@ pub fn download_plugins(kind: PluginKind, ids: Vec<&String>) -> Result<(), Box<d
     );
     let repo_url = "https://github.com/skadewdl3/flint";
     add_log(LogKind::Info, format!("Using repository URL: {}", repo_url));
-    clone_plugin_folders(repo_url, kind.clone(), ids, None)?;
+    clone_plugin_folders(repo_url, kind.clone(), ids)?;
     add_log(
         LogKind::Info,
         format!("Completed downloading {} plugins", kind.to_string()),

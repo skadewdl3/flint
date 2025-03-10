@@ -4,5 +4,4 @@ pyproject.toml
 logs.txt
 *.test.js
 **/node_modules
-**/downloaded-plugins
-flint-tests/**/plugins
+flint-tests/**/flint-plugins

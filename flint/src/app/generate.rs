@@ -4,7 +4,7 @@ use crate::{
         plugin::{self, Plugin},
         toml::Config,
     },
-    widgets::logs::{add_log, LogKind, LogsWidget},
+    widgets::logs::{LogKind, LogsWidget, add_log},
 };
 use clap::Parser;
 use flint_macros::ui;
@@ -47,7 +47,7 @@ impl AppWidget for GenerateWidget {
         let toml = Arc::new(Config::load(PathBuf::from("./flint.toml")).unwrap());
         let mut plugin_ids = Vec::new();
         plugin_ids.extend(toml.rules.keys());
-        plugin_ids.extend(toml.tests.keys());
+        // plugin_ids.extend(toml.tests.keys());
         plugin_ids.extend(toml.ci.keys());
 
         self.plugins = plugin::list()

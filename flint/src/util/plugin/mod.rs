@@ -1,5 +1,8 @@
 use super::toml::Config;
-use crate::app::{AppError, AppResult};
+use crate::{
+    app::{AppError, AppResult},
+    widgets::logs::{add_log, LogKind},
+};
 
 pub mod find;
 pub mod helpers;
@@ -49,6 +52,23 @@ impl PluginKind {
             PluginKind::Report => "report".to_string(),
         }
     }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct TestCaseOutput {
+    file_name: String,
+    line_no: Option<u32>, // Default values if not available
+    column_no: Option<u32>,
+    success: bool, // Converted from assertion.status == "passed"
+    error_message: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct PluginEvalOutput {
+    tests_passed: u32,
+    total_tests: u32,
+    passing_percentage: f32,
+    test_results: Vec<TestCaseOutput>,
 }
 
 impl Plugin {
@@ -177,7 +197,7 @@ impl Plugin {
         Ok(run_command)
     }
 
-    pub fn eval(&self, output: Output) -> AppResult<()> {
+    pub fn eval(&self, output: Output) -> AppResult<PluginEvalOutput> {
         let lua = Lua::new();
         add_helper_globals(&lua);
 
@@ -205,22 +225,51 @@ impl Plugin {
             .set("success", output.status.success())
             .unwrap();
 
-        let eval_success = eval
+        let eval_output = eval
             .expect("error reading run.lua")
             .call::<mlua::Value>(evaluation_state)
             .expect("error running eval function");
 
-        let eval_success: bool = lua
-            .from_value(eval_success)
+        let eval_output: PluginEvalOutput = lua
+            .from_value(eval_output)
             .expect("unable to parse eval success");
 
-        if eval_success {
-            Ok(())
-        } else {
-            Err(AppError::Err(
-                "unknown error while running eval function".to_string(),
-            ))
+        Ok(eval_output)
+    }
+
+    pub fn report(&self, toml: &Arc<Config>, output: &PluginEvalOutput) -> AppResult<()> {
+        if self.kind != PluginKind::Report {
+            return Err(AppError::Err(format!(
+                "{} is not a reporting plugin.",
+                self.details.id
+            )));
         }
+
+        let lua = Lua::new();
+        add_helper_globals(&lua);
+
+        let plugin_config = &self.get_config_lua(&lua, toml);
+
+        let report: Result<Function, Error> = {
+            let contents = std::fs::read_to_string(&self.path.join("run.lua"))
+                .expect("Error reading plugin code");
+
+            lua.load(contents)
+                .exec()
+                .map(|_| lua.globals().get("Run").unwrap())
+        };
+
+        let report_state = lua.create_table().unwrap();
+        report_state.set("config", plugin_config).unwrap();
+        let output_lua = lua.to_value(&output).unwrap();
+        report_state.set("output", output_lua).unwrap();
+
+        let _ = report
+            .expect("error reading run.lua")
+            .call::<mlua::Value>(report_state)
+            .expect("error running report function");
+
+        Ok(())
     }
 
     pub fn list_from_config(config: &Config) -> Vec<&Plugin> {

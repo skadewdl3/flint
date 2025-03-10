@@ -1,7 +1,7 @@
 use super::{Plugin, PluginDetails, PluginKind};
 use crate::{
     util::toml::Config,
-    widgets::logs::{add_log, LogKind},
+    widgets::logs::{LogKind, add_log},
 };
 use directories::ProjectDirs;
 use mlua::{Function, Lua, LuaSerdeExt};
@@ -31,7 +31,7 @@ pub fn map() -> &'static HashMap<String, BTreeSet<Plugin>> {
 
 pub fn dir() -> PathBuf {
     if cfg!(debug_assertions) {
-        return PathBuf::from("./plugins");
+        return PathBuf::from("./flint-plugins");
     } else if let Some(proj_dirs) = ProjectDirs::from("com", "Flint", "flint") {
         let plugins_path = proj_dirs.data_dir().to_path_buf().join("plugins");
         if !plugins_path.exists() {
@@ -55,6 +55,10 @@ pub fn list<'a>() -> Option<&'a BTreeSet<Plugin>> {
         .flat_map(|dir_name| {
             let plugins_dir = dir().join(dir_name);
             if !plugins_dir.exists() {
+                add_log(
+                    LogKind::Error,
+                    format!("{} directory does not exist", dir_name),
+                );
                 return vec![];
             }
 
@@ -132,13 +136,18 @@ pub fn list<'a>() -> Option<&'a BTreeSet<Plugin>> {
 pub fn list_from_config<'a>(config: &Config) -> Vec<&'a Plugin> {
     let linter_ids = config.rules.keys().collect::<HashSet<&String>>();
     let tester_ids = config.tests.keys().collect::<HashSet<&String>>();
+    let ci_ids = config.ci.keys().collect::<HashSet<&String>>();
+    let report_ids = config.report.keys().collect::<HashSet<&String>>();
     let plugins = list().unwrap();
     add_log(LogKind::Debug, format!("Loaded plugins: {:?}", plugins));
 
     plugins
         .iter()
         .filter(|plugin| {
-            linter_ids.contains(&plugin.details.id) || tester_ids.contains(&plugin.details.id)
+            linter_ids.contains(&plugin.details.id)
+                || tester_ids.contains(&plugin.details.id)
+                || ci_ids.contains(&plugin.details.id)
+                || report_ids.contains(&plugin.details.id)
         })
         .collect()
 }
