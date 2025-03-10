@@ -1,8 +1,7 @@
 use super::{Plugin, PluginDetails, PluginKind};
-use crate::{
-    util::toml::Config,
-    widgets::logs::{LogKind, add_log},
-};
+use crate::app::AppResult;
+use crate::util::toml::Config;
+use crate::{app_err, debug, error};
 use directories::ProjectDirs;
 use mlua::{Function, Lua, LuaSerdeExt};
 use std::{
@@ -43,11 +42,11 @@ pub fn dir() -> PathBuf {
     }
 }
 
-pub fn list<'a>() -> Option<&'a BTreeSet<Plugin>> {
+pub fn list<'a>() -> AppResult<&'a BTreeSet<Plugin>> {
     let lua = Lua::new();
 
     if PLUGINS.get().is_some() {
-        return PLUGINS.get();
+        return Ok(PLUGINS.get().unwrap());
     }
 
     let plugins = ["lint", "test", "ci", "report"]
@@ -55,22 +54,19 @@ pub fn list<'a>() -> Option<&'a BTreeSet<Plugin>> {
         .flat_map(|dir_name| {
             let plugins_dir = dir().join(dir_name);
             if !plugins_dir.exists() {
-                add_log(
-                    LogKind::Error,
-                    format!("{} directory does not exist", dir_name),
-                );
+                error!("{} directory does not exist", dir_name);
                 return vec![];
             }
 
             let entries = match std::fs::read_dir(&plugins_dir) {
-                Err(err) => {
-                    add_log(
-                        LogKind::Error,
-                        format!("Failed to read {} directory: {}", dir_name, err),
-                    );
-                    return Vec::new();
-                }
                 Ok(entries) => entries,
+                Err(e) => {
+                    error!(
+                        "Failed to read {} directory. Error message: {}",
+                        dir_name, e
+                    );
+                    return vec![];
+                }
             };
 
             entries
@@ -78,10 +74,7 @@ pub fn list<'a>() -> Option<&'a BTreeSet<Plugin>> {
                     let entry = match entry {
                         Ok(entry) => entry,
                         Err(err) => {
-                            add_log(
-                                LogKind::Error,
-                                format!("Error reading directory entry: {}", err),
-                            );
+                            error!("Error reading directory entry: {}", err);
                             return None;
                         }
                     };
@@ -90,10 +83,7 @@ pub fn list<'a>() -> Option<&'a BTreeSet<Plugin>> {
                     let contents = match std::fs::read_to_string(&path.join("details.lua")) {
                         Ok(contents) => contents,
                         Err(err) => {
-                            add_log(
-                                LogKind::Error,
-                                format!("Error reading file {}: {}", path.display(), err),
-                            );
+                            error!("Error reading file {}: {}", path.display(), err);
                             return None;
                         }
                     };
@@ -118,10 +108,7 @@ pub fn list<'a>() -> Option<&'a BTreeSet<Plugin>> {
                         }
 
                         Err(err) => {
-                            add_log(
-                                LogKind::Error,
-                                format!("Error loading lua file {}: {}", path.display(), err),
-                            );
+                            error!("Error loading lua file {}: {}", path.display(), err);
                             None
                         }
                     }
@@ -130,7 +117,7 @@ pub fn list<'a>() -> Option<&'a BTreeSet<Plugin>> {
         });
 
     let x = PLUGINS.get_or_init(|| plugins.collect::<BTreeSet<Plugin>>());
-    Some(x)
+    Ok(x)
 }
 
 pub fn list_from_config<'a>(config: &Config) -> Vec<&'a Plugin> {
@@ -139,7 +126,7 @@ pub fn list_from_config<'a>(config: &Config) -> Vec<&'a Plugin> {
     let ci_ids = config.ci.keys().collect::<HashSet<&String>>();
     let report_ids = config.report.keys().collect::<HashSet<&String>>();
     let plugins = list().unwrap();
-    add_log(LogKind::Debug, format!("Loaded plugins: {:?}", plugins));
+    debug!("Loaded plugins: {:?}", plugins);
 
     plugins
         .iter()

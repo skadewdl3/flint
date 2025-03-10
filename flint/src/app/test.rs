@@ -12,12 +12,13 @@ use std::{
 use threadpool::ThreadPool;
 
 use crate::{
+    error, info, success,
     util::{
         handle_key_events, handle_mouse_event,
         plugin::{self, Plugin, PluginKind},
         toml::Config,
     },
-    widgets::logs::{add_log, LogKind, LogsState, LogsWidget},
+    widgets::logs::{LogsState, LogsWidget},
 };
 
 use super::{AppResult, AppWidget};
@@ -96,7 +97,7 @@ impl AppWidget for TestWidget {
                 let result = plugin.run(&toml_clone);
 
                 if let Err(err) = result {
-                    add_log(LogKind::Error, err.to_string());
+                    error!("{}", err);
                     return;
                 }
 
@@ -106,13 +107,10 @@ impl AppWidget for TestWidget {
                     .args(&command[1..])
                     .output();
 
-                add_log(LogKind::Info, format!("Running command: {:#?}", command));
+                info!("Running command: {:#?}", command);
 
                 if let Err(e) = cmd_output {
-                    add_log(
-                        LogKind::Error,
-                        format!("Failed to execute command '{}': {}", command[0], e),
-                    );
+                    error!("Failed to execute command '{}': {}", command[0], e);
                     return;
                 }
 
@@ -121,12 +119,12 @@ impl AppWidget for TestWidget {
                 let eval_result = plugin.eval(output);
 
                 match eval_result {
-                    Err(e) => add_log(LogKind::Error, format!("Failed to evaluate plugin: {}", e)),
+                    Err(e) => error!("Failed to evaluate plugin: {}", e),
                     Ok(res) => {
                         for report_plugin in report_plugins.iter() {
                             match report_plugin.report(&toml_clone, &res) {
                                 Err(e) => {
-                                    add_log(LogKind::Error, format!("Report plugin error: {}", e));
+                                    error!("Report plugin error: {}", e);
                                 }
                                 Ok(res) => {
                                     for (file_name, contents) in res {
@@ -136,12 +134,9 @@ impl AppWidget for TestWidget {
                                         if let Some(parent) = file_path.parent() {
                                             if !parent.exists() {
                                                 fs::create_dir_all(parent).unwrap_or_else(|e| {
-                                                    add_log(
-                                                        LogKind::Error,
-                                                        format!(
-                                                            "Failed to create directory for {}: {}",
-                                                            file_name, e
-                                                        ),
+                                                    error!(
+                                                        "Failed to create directory for {}: {}",
+                                                        file_name, e
                                                     );
                                                 });
                                             }
@@ -152,21 +147,16 @@ impl AppWidget for TestWidget {
                                         match std::fs::write(flint_path.join(&file_name), contents)
                                         {
                                             Ok(_) => (),
-                                            Err(e) => add_log(
-                                                LogKind::Error,
-                                                format!(
-                                                    "Failed to write report file {}: {}",
-                                                    file_name, e
-                                                ),
+                                            Err(e) => error!(
+                                                "Failed to write report file {}: {}",
+                                                file_name, e
                                             ),
                                         }
 
-                                        add_log(
-                                            LogKind::Success,
-                                            format!(
-                                                "Reported {} to {} successfully",
-                                                plugin.details.id, file_name
-                                            ),
+                                        success!(
+                                            "Reported {} to {} successfully",
+                                            plugin.details.id,
+                                            file_name
                                         );
                                     }
                                 }
@@ -199,7 +189,6 @@ impl AppWidget for TestWidget {
 
         handle_mouse_event(event.clone(), |mouse_event| match mouse_event {
             MouseEventKind::ScrollUp => {
-                add_log(LogKind::Info, "Scroll up".to_string());
                 self.logs_state.borrow_mut().scroll_up(1);
                 Ok(())
             }

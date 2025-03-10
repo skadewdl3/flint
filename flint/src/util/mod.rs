@@ -1,6 +1,7 @@
 use crossterm::event::{Event, KeyCode, KeyEvent};
 
 pub mod lang;
+pub mod logs;
 pub mod plugin;
 pub mod toml;
 

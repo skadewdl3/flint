@@ -1,13 +1,15 @@
 use super::{AppResult, AppWidget};
 use crate::{
+    success,
     util::{
         plugin::{self, Plugin},
         toml::Config,
     },
-    widgets::logs::{add_log, LogKind, LogsWidget},
+    widgets::logs::LogsWidget,
 };
 use clap::Parser;
 use flint_macros::ui;
+use log::error;
 use ratatui::prelude::*;
 use ratatui::widgets::WidgetRef;
 use std::{
@@ -72,13 +74,10 @@ impl AppWidget for GenerateWidget {
                             fs::create_dir_all(&flint_path).unwrap();
                             std::fs::write(flint_path.join(file_name), contents).unwrap();
                         }
-                        add_log(
-                            LogKind::Success,
-                            format!("Generated {} config successfully", plugin.details.id),
-                        );
+                        success!("Generated {} config successfully", plugin.details.id)
                     }
                     Err(err) => {
-                        add_log(LogKind::Error, err.to_string());
+                        error!("Error occurred: {}", err);
                     }
                 }
             });

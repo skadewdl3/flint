@@ -63,3 +63,13 @@ impl From<Box<dyn ErrorTrait>> for AppError {
 
 // Create type alias for Result with AppError as default error type
 pub type AppResult<T> = Result<T, AppError>;
+
+// Macro to create AppError::Err with format string
+#[macro_export]
+macro_rules! app_err {
+    ($($arg:tt)*) => {{
+        let error_msg = format!($($arg)*);
+        $crate::error!("{}", error_msg);
+        $crate::app::AppError::Err(error_msg)
+    }};
+}

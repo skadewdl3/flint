@@ -5,7 +5,8 @@ use std::time::Duration;
 use crate::util::plugin::download::download_plugins_from_config;
 use crate::util::toml::Config;
 use crate::util::{handle_key_events, handle_mouse_event};
-use crate::widgets::logs::{add_log, LogKind, LogsState, LogsWidget};
+use crate::widgets::logs::{LogsState, LogsWidget};
+use crate::{error, success};
 use clap::Parser;
 use crossterm::event::{KeyCode, MouseEventKind};
 use threadpool::ThreadPool;
@@ -71,8 +72,8 @@ impl AppWidget for InstallWidget {
         pool.execute(move || {
             std::thread::sleep(Duration::from_secs(10));
             match download_plugins_from_config(&toml_clone) {
-                Ok(_) => add_log(LogKind::Success, "Plugins downloaded successfully".into()),
-                Err(e) => add_log(LogKind::Error, format!("Error downloading plugins: {}", e)),
+                Ok(_) => success!("Plugins downloaded successfully"),
+                Err(e) => error!("Error downloading plugins: {}", e),
             }
         });
         Ok(())
@@ -101,7 +102,6 @@ impl AppWidget for InstallWidget {
 
         handle_mouse_event(event.clone(), |mouse_event| match mouse_event {
             MouseEventKind::ScrollUp => {
-                add_log(LogKind::Info, "Scroll up".to_string());
                 self.logs_state.borrow_mut().scroll_up(1);
                 Ok(())
             }

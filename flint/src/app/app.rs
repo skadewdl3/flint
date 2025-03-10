@@ -5,8 +5,8 @@ use super::install::{InstallArgs, InstallWidget};
 use super::test::{TestArgs, TestWidget};
 use super::AppWidget;
 use super::{AppError, AppResult};
+use crate::error;
 use crate::util::handle_key_events;
-use crate::widgets::logs::{add_log, LogKind};
 use clap::{Parser, Subcommand};
 use crossterm::event;
 use crossterm::event::KeyCode;
@@ -142,7 +142,7 @@ impl WidgetRef for App {
         ui!((area, buf) => {
             {
                 &self.error.as_ref().map(|err| {
-                    add_log(LogKind::Error, err.clone());
+                    error!("Error occurred: {}", err);
                     Some(widget!({ Popup::new(err.as_str(), title: format!("Error occurred")) }))
                 })
             }
@@ -150,4 +150,13 @@ impl WidgetRef for App {
 
         self.active_widget.render_ref(area, buf);
     }
+}
+
+#[macro_export]
+macro_rules! cmd {
+    ($program:expr, $($arg:expr),* $(,)?) => {{
+        let mut command = Command::new($program);
+        $(command.arg($arg);)*
+        command
+    }};
 }

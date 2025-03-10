@@ -1,7 +1,7 @@
 use super::{AppError, AppResult, AppWidget};
 use crate::{
+    info,
     util::{handle_key_events, lang::Language, toml::Config},
-    widgets::logs::{add_log, LogKind},
 };
 use clap::Parser;
 use crossterm::event::{Event, KeyCode};
@@ -107,10 +107,7 @@ impl<'a> WidgetRef for InitWidget<'a> {
 impl<'a> AppWidget for InitWidget<'a> {
     fn setup(&mut self) -> AppResult<()> {
         self.cwd = std::env::current_dir()?;
-        add_log(
-            LogKind::Info,
-            format!("Determined current directory: {}", self.cwd.display()),
-        );
+        info!("Determined current directory: {}", self.cwd.display());
 
         self.langs = crate::util::detect_languages(self.cwd.to_str().unwrap());
 

@@ -1,8 +1,5 @@
 use super::toml::Config;
-use crate::{
-    app::{AppError, AppResult},
-    widgets::logs::{add_log, LogKind},
-};
+use crate::app::{AppError, AppResult};
 
 pub mod find;
 pub mod helpers;
