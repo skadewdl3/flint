@@ -4,8 +4,10 @@ use std::time::Duration;
 
 use crate::util::plugin::download::download_plugins_from_config;
 use crate::util::toml::Config;
+use crate::util::{handle_key_events, handle_mouse_event};
 use crate::widgets::logs::{add_log, LogKind, LogsState, LogsWidget};
 use clap::Parser;
+use crossterm::event::{KeyCode, MouseEventKind};
 use threadpool::ThreadPool;
 
 use super::{AppResult, AppWidget};
@@ -78,14 +80,41 @@ impl AppWidget for InstallWidget {
     fn set_exit_sender(&mut self, exit_sender: Sender<()>) {
         self.exit_sender = Some(exit_sender);
     }
+
+    fn handle_events(&mut self, event: crossterm::event::Event) -> AppResult<()> {
+        let _ = handle_key_events(event.clone(), |_, key_code| match key_code {
+            KeyCode::Up => {
+                self.logs_state.borrow_mut().scroll_up(1);
+                Ok(())
+            }
+            KeyCode::Down => {
+                self.logs_state.borrow_mut().scroll_down(1);
+                Ok(())
+            }
+            _ => Ok(()),
+        });
+
+        handle_mouse_event(event.clone(), |mouse_event| match mouse_event {
+            MouseEventKind::ScrollUp => {
+                add_log(LogKind::Info, "Scroll up".to_string());
+                self.logs_state.borrow_mut().scroll_up(1);
+                Ok(())
+            }
+            MouseEventKind::ScrollDown => {
+                self.logs_state.borrow_mut().scroll_down(1);
+                Ok(())
+            }
+            _ => Ok(()),
+        })
+    }
 }
 
 impl WidgetRef for InstallWidget {
     fn render_ref(&self, area: Rect, buf: &mut Buffer) {
         // Check if there are no active threads in the threadpool
-        if self.pool.active_count() == 0 && self.pool.queued_count() == 0 {
-            self.exit_sender.as_ref().unwrap().send(()).unwrap();
-        }
+        // if self.pool.active_count() == 0 && self.pool.queued_count() == 0 {
+        //     // self.exit_sender.as_ref().unwrap().send(()).unwrap();
+        // }
 
         let mut logs_state = self.logs_state.borrow_mut();
         ui!((area, buf) => {

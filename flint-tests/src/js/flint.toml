@@ -29,5 +29,5 @@ require_semicolons = false
 # branches = ["main"]
 # node_version = ["16.x"]
 
-# [report.json]
-# outputPath = "./lint-report.json"
+[report.json]
+outputPath = "reports"
