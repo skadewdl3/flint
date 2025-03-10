@@ -9,7 +9,7 @@ use threadpool::ThreadPool;
 use crate::{
     util::{
         handle_key_events, handle_mouse_event,
-        plugin::{self, PluginKind},
+        plugin::{self, Plugin, PluginKind},
         toml::Config,
     },
     widgets::logs::{add_log, LogKind, LogsState, LogsWidget},
@@ -57,21 +57,35 @@ impl AppWidget for TestWidget {
         let toml = Arc::new(Config::load(PathBuf::from("./flint.toml")).unwrap());
         let plugins = plugin::list_from_config(&toml);
 
-        let plugins = plugins.into_iter().filter(|plugin| {
-            if !self.args.lint && !self.args.test && self.args.all {
-                true
-            } else if self.args.lint {
-                plugin.kind == PluginKind::Lint
-            } else if self.args.test {
-                plugin.kind == PluginKind::Test
-            } else {
-                false
-            }
-        });
+        let run_plugins: Vec<&Plugin> = plugins
+            .iter()
+            .filter(|plugin| {
+                if !self.args.lint && !self.args.test && self.args.all {
+                    true
+                } else if self.args.lint {
+                    plugin.kind == PluginKind::Lint
+                } else if self.args.test {
+                    plugin.kind == PluginKind::Test
+                } else {
+                    false
+                }
+            })
+            .filter(|plugin| plugin.kind != PluginKind::Report)
+            .cloned()
+            .collect();
 
-        for plugin in plugins {
+        let report_plugins: Arc<Vec<&Plugin>> = Arc::new(
+            plugins
+                .into_iter()
+                .filter(|plugin| plugin.kind == PluginKind::Report)
+                .collect(),
+        );
+
+        for plugin in run_plugins {
             let plugin = plugin.clone();
             let toml_clone = toml.clone();
+            let report_plugins = Arc::clone(&report_plugins); // Share report plugins across threads
+
             self.thread_pool.execute(move || {
                 let result = plugin.run(&toml_clone);
 
@@ -102,10 +116,13 @@ impl AppWidget for TestWidget {
 
                 match eval_result {
                     Err(e) => add_log(LogKind::Error, format!("Failed to evaluate plugin: {}", e)),
-                    Ok(res) => add_log(
-                        LogKind::Debug,
-                        format!("Plugin evaluated successfully\n{:#?}", res),
-                    ),
+                    Ok(res) => {
+                        for report_plugin in report_plugins.iter() {
+                            if let Err(e) = report_plugin.report(&toml_clone, &res) {
+                                add_log(LogKind::Error, format!("Report plugin error: {}", e));
+                            }
+                        }
+                    }
                 }
             });
         }
