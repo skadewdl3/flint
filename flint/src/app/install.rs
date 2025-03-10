@@ -4,8 +4,10 @@ use std::time::Duration;
 
 use crate::util::plugin::download::download_plugins_from_config;
 use crate::util::toml::Config;
+use crate::util::{handle_key_events, handle_mouse_event};
 use crate::widgets::logs::{add_log, LogKind, LogsState, LogsWidget};
 use clap::Parser;
+use crossterm::event::{KeyCode, MouseEventKind};
 use threadpool::ThreadPool;
 
 use super::{AppResult, AppWidget};
@@ -17,12 +19,12 @@ use ratatui::widgets::WidgetRef;
 pub struct InstallWidget {
     logs: LogsWidget,
     args: InstallArgs,
-    pool: ThreadPool,
+    pool: Option<ThreadPool>,
     exit_sender: Option<Sender<()>>,
     logs_state: RefCell<LogsState>,
 }
 
-#[derive(Parser, Debug)]
+#[derive(Parser, Debug, Clone)]
 pub struct InstallArgs {
     /// List of plugins to install
     #[clap(short, long, value_parser, num_args = 1, value_delimiter = ' ')]
@@ -53,7 +55,7 @@ impl InstallWidget {
     pub fn new(args: InstallArgs) -> Self {
         Self {
             logs: LogsWidget::default(),
-            pool: ThreadPool::new(16),
+            pool: None,
             exit_sender: None,
             logs_state: RefCell::new(LogsState::default()),
             args,
@@ -65,7 +67,8 @@ impl AppWidget for InstallWidget {
     fn setup(&mut self) -> AppResult<()> {
         let toml = Config::load(std::env::current_dir().unwrap().join("flint.toml")).unwrap();
         let toml_clone = toml.clone();
-        self.pool.execute(move || {
+        let pool = self.pool.as_ref().unwrap();
+        pool.execute(move || {
             std::thread::sleep(Duration::from_secs(10));
             match download_plugins_from_config(&toml_clone) {
                 Ok(_) => add_log(LogKind::Success, "Plugins downloaded successfully".into()),
@@ -78,14 +81,45 @@ impl AppWidget for InstallWidget {
     fn set_exit_sender(&mut self, exit_sender: Sender<()>) {
         self.exit_sender = Some(exit_sender);
     }
+
+    fn set_thread_pool(&mut self, thread_pool: &ThreadPool) {
+        self.pool = Some(thread_pool.clone())
+    }
+
+    fn handle_events(&mut self, event: crossterm::event::Event) -> AppResult<()> {
+        let _ = handle_key_events(event.clone(), |_, key_code| match key_code {
+            KeyCode::Up => {
+                self.logs_state.borrow_mut().scroll_up(1);
+                Ok(())
+            }
+            KeyCode::Down => {
+                self.logs_state.borrow_mut().scroll_down(1);
+                Ok(())
+            }
+            _ => Ok(()),
+        });
+
+        handle_mouse_event(event.clone(), |mouse_event| match mouse_event {
+            MouseEventKind::ScrollUp => {
+                add_log(LogKind::Info, "Scroll up".to_string());
+                self.logs_state.borrow_mut().scroll_up(1);
+                Ok(())
+            }
+            MouseEventKind::ScrollDown => {
+                self.logs_state.borrow_mut().scroll_down(1);
+                Ok(())
+            }
+            _ => Ok(()),
+        })
+    }
 }
 
 impl WidgetRef for InstallWidget {
     fn render_ref(&self, area: Rect, buf: &mut Buffer) {
         // Check if there are no active threads in the threadpool
-        if self.pool.active_count() == 0 && self.pool.queued_count() == 0 {
-            self.exit_sender.as_ref().unwrap().send(()).unwrap();
-        }
+        // if self.pool.active_count() == 0 && self.pool.queued_count() == 0 {
+        //     // self.exit_sender.as_ref().unwrap().send(()).unwrap();
+        // }
 
         let mut logs_state = self.logs_state.borrow_mut();
         ui!((area, buf) => {

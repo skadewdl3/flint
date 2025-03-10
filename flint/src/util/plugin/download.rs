@@ -5,7 +5,7 @@ use std::process::Command;
 
 use crate::util::plugin;
 use crate::util::toml::Config;
-use crate::widgets::logs::{LogKind, add_log};
+use crate::widgets::logs::{add_log, LogKind};
 
 use super::PluginKind;
 
@@ -279,11 +279,6 @@ pub fn clone_plugin_folders(
         ),
     );
 
-    println!(
-        "Successfully extracted plugin folders to {}",
-        kind_path.display()
-    );
-
     Ok(kind_path)
 }
 
@@ -362,10 +357,18 @@ pub fn download_plugins_from_config(toml: &Config) -> Result<(), Box<dyn Error>>
         LogKind::Info,
         "Starting download of all configured plugins".to_string(),
     );
-    download_plugins(PluginKind::Test, tester_ids)?;
-    download_plugins(PluginKind::Lint, linter_ids)?;
-    download_plugins(PluginKind::Ci, ci_ids)?;
-    download_plugins(PluginKind::Report, report_ids)?;
+    if tester_ids.len() > 0 {
+        download_plugins(PluginKind::Test, tester_ids)?;
+    }
+    if linter_ids.len() > 0 {
+        download_plugins(PluginKind::Lint, linter_ids)?;
+    }
+    if ci_ids.len() > 0 {
+        download_plugins(PluginKind::Ci, ci_ids)?;
+    }
+    if report_ids.len() > 0 {
+        download_plugins(PluginKind::Report, report_ids)?;
+    }
     add_log(
         LogKind::Info,
         "All plugins downloaded successfully".to_string(),

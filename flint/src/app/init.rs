@@ -24,7 +24,7 @@ pub struct InitWidget<'a> {
     cwd: PathBuf,
 }
 
-#[derive(Parser, Debug)]
+#[derive(Parser, Debug, Clone)]
 pub struct InitWidgetArgs {
     /// Show help for the init command
     #[clap(short, long)]
