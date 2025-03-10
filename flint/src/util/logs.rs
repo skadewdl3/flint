@@ -41,7 +41,13 @@ pub fn add_log(kind: LogKind, message: String) {
         LogKind::Warn => "[warn]:",
         LogKind::Debug => "[debug]:",
     };
+
+    let is_non_interactive = crate::app::get_non_interactive();
+
     let log = format!("{} {}", prefix, message);
+    if is_non_interactive {
+        println!("{}", log);
+    }
     writeln!(file, "{}", log).unwrap();
     get_logs_mut().unwrap().push((kind, log));
 }

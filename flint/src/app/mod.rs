@@ -15,6 +15,19 @@ use std::sync::mpsc::Sender;
 use thiserror::Error;
 use threadpool::ThreadPool;
 
+use std::sync::atomic::{AtomicBool, Ordering};
+
+pub static NON_INTERACTIVE: AtomicBool = AtomicBool::new(false);
+
+// Helper functions to interact with the global flag
+pub fn set_non_interactive(value: bool) {
+    NON_INTERACTIVE.store(value, Ordering::SeqCst);
+}
+
+pub fn get_non_interactive() -> bool {
+    NON_INTERACTIVE.load(Ordering::SeqCst)
+}
+
 pub trait AppWidget: WidgetRef {
     fn setup(&mut self) -> AppResult<()> {
         Ok(())
