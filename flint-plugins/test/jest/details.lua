@@ -11,7 +11,7 @@ end
 function Dependencies()
     return {
         npm = {
-            { name = "jest", version = "^29.0.0" },
+            { name = "jest", version = "latest" },
         },
     }
 end
