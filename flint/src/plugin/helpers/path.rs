@@ -67,6 +67,7 @@ pub fn path_helpers(lua: &Lua) -> AppResult<Table> {
 
         Ok(lua.create_string(result.to_string_lossy().as_ref())?)
     })?;
+
     let path_join = lua.create_function(|lua, paths: mlua::Variadic<String>| {
         use std::path::Path;
 
@@ -99,8 +100,57 @@ pub fn path_helpers(lua: &Lua) -> AppResult<Table> {
 
         Ok(lua.create_string(normalized.as_ref())?)
     })?;
+
+    let path_ls = lua.create_function(|lua, path: Option<String>| {
+        use std::fs;
+
+        // Get the directory to list
+        let dir_path = match path {
+            Some(p) => p,
+            None => {
+                // Default to current directory if no path provided
+                let cwd = get_flag!(current_dir);
+                cwd.to_string_lossy().to_string()
+            }
+        };
+
+        // Read directory contents
+        let entries = match fs::read_dir(&dir_path) {
+            Ok(entries) => entries,
+            Err(err) => {
+                return Err(mlua::Error::runtime(format!(
+                    "Failed to read directory: {}",
+                    err
+                )))
+            }
+        };
+
+        // Create a Lua table to hold the results
+        let results = lua.create_table()?;
+
+        // Populate the table with file/directory names
+        for (i, entry) in entries.enumerate() {
+            match entry {
+                Ok(entry) => {
+                    let file_name = entry.file_name();
+                    let name = file_name.to_string_lossy().to_string();
+                    results.raw_set(i + 1, name)?;
+                }
+                Err(err) => {
+                    return Err(mlua::Error::runtime(format!(
+                        "Error reading entry: {}",
+                        err
+                    )))
+                }
+            }
+        }
+
+        Ok(results)
+    })?;
+
     path.set("join", path_join)?;
     path.set("resolve", path_resolve)?;
+    path.set("ls", path_ls)?;
     path.set("cwd", cwd)?;
 
     Ok(path)
