@@ -114,9 +114,10 @@ function Generate(config, dependencies)
         name = "Upload Test Results",
         uses = "actions/upload-artifact@v4",
         -- TODO: Make it return all logs
+        -- TODO: Make it adapt to the outputs of reporting plugins
         with = {
             name = "Test Results",
-            path = ".flint/reports/reports/report.json"
+            path = "reports/reports/report.json"
         }
     })
 
