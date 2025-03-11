@@ -1,7 +1,8 @@
 use super::{AppResult, AppWidget};
 use crate::{
-    success,
+    get_flag, info, success,
     util::{
+        get_language_map,
         plugin::{self, Plugin},
         toml::Config,
     },
@@ -46,7 +47,8 @@ impl GenerateWidget {
 
 impl AppWidget for GenerateWidget {
     fn setup(&mut self) -> AppResult<()> {
-        let toml = Arc::new(Config::load(PathBuf::from("./flint.toml")).unwrap());
+        let config_path = get_flag!(config_path);
+        let toml = Arc::new(Config::load(config_path).unwrap());
         let mut plugin_ids = Vec::new();
         plugin_ids.extend(toml.rules.keys());
         // plugin_ids.extend(toml.tests.keys());
@@ -70,7 +72,7 @@ impl AppWidget for GenerateWidget {
                     Ok(res) => {
                         // TODO: Ask user if we want to overwrite files
                         for (file_name, contents) in res {
-                            let flint_path = Path::new("./.flint");
+                            let flint_path = get_flag!(current_dir).join(".flint");
                             fs::create_dir_all(&flint_path).unwrap();
                             std::fs::write(flint_path.join(file_name), contents).unwrap();
                         }

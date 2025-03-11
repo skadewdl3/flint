@@ -6,7 +6,7 @@ use crate::util::plugin::download::download_plugins_from_config;
 use crate::util::toml::Config;
 use crate::util::{handle_key_events, handle_mouse_event};
 use crate::widgets::logs::{LogsState, LogsWidget};
-use crate::{error, success};
+use crate::{error, get_flag, success, warn};
 use clap::Parser;
 use crossterm::event::{KeyCode, MouseEventKind};
 use threadpool::ThreadPool;
@@ -66,7 +66,12 @@ impl InstallWidget {
 
 impl AppWidget for InstallWidget {
     fn setup(&mut self) -> AppResult<()> {
-        let toml = Config::load(std::env::current_dir().unwrap().join("flint.toml")).unwrap();
+        if *get_flag!(no_install) {
+            warn!("Skipping installation of plugins due to --no-install flag");
+            return Ok(());
+        };
+
+        let toml = Config::load(get_flag!(config_path)).unwrap();
         let toml_clone = toml.clone();
         let pool = self.pool.as_ref().unwrap();
         pool.execute(move || {

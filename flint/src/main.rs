@@ -1,5 +1,8 @@
+use std::path::Path;
+
 use app::{App, AppArgs};
 use clap::Parser;
+use util::flags::handle_global_flags;
 
 pub mod app;
 pub mod util;
@@ -9,6 +12,8 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
 
     let app_args = AppArgs::parse_from(&args);
+
+    handle_global_flags(&app_args);
 
     // #[cfg(not(debug_assertions))]
     {

@@ -47,7 +47,7 @@ pub fn add_log(kind: LogKind, message: String) {
     let is_non_interactive = get_flag!(non_interactive);
 
     let log = format!("{} {}", prefix, message);
-    if is_non_interactive {
+    if *is_non_interactive {
         println!("{}", log);
     }
     writeln!(file, "{}", log).unwrap();

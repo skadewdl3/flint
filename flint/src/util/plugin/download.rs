@@ -6,7 +6,7 @@ use std::process::Command;
 use crate::app::AppResult;
 use crate::util::plugin;
 use crate::util::toml::Config;
-use crate::{app_err, error};
+use crate::{app_err, error, get_flag};
 use crate::{cmd, info};
 use crate::{success, warn};
 
@@ -23,7 +23,7 @@ pub fn clone_plugin_folders(
     );
 
     // Determine final destination path
-    let final_dest_path = plugin::dir();
+    let final_dest_path = get_flag!(plugins_dir);
 
     info!("Downloading plugins to: {}", final_dest_path.display());
 

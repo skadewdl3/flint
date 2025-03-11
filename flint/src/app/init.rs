@@ -1,6 +1,6 @@
 use super::{AppError, AppResult, AppWidget};
 use crate::{
-    info,
+    get_flag, info,
     util::{handle_key_events, lang::Language, toml::Config},
 };
 use clap::Parser;
@@ -21,7 +21,6 @@ pub struct InitWidget<'a> {
     created_config: bool,
     config_exists: bool,
     args: InitWidgetArgs,
-    cwd: PathBuf,
 }
 
 #[derive(Parser, Debug, Clone)]
@@ -39,7 +38,6 @@ impl<'a> InitWidget<'a> {
             created_config: false,
             config_exists: false,
             args,
-            cwd: std::env::current_dir().unwrap_or_default(),
         }
     }
 }
@@ -106,12 +104,12 @@ impl<'a> WidgetRef for InitWidget<'a> {
 
 impl<'a> AppWidget for InitWidget<'a> {
     fn setup(&mut self) -> AppResult<()> {
-        self.cwd = std::env::current_dir()?;
-        info!("Determined current directory: {}", self.cwd.display());
+        let cwd = get_flag!(current_dir);
+        info!("Determined current directory: {}", cwd.display());
 
-        self.langs = crate::util::detect_languages(self.cwd.to_str().unwrap());
+        self.langs = crate::util::detect_languages(cwd.to_str().unwrap());
 
-        let config_path = std::path::Path::new(&self.cwd).join("flint.toml");
+        let config_path = std::path::Path::new(&cwd).join("flint.toml");
         if config_path.exists() {
             self.config_exists = true;
         }

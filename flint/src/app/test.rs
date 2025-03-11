@@ -12,7 +12,7 @@ use std::{
 use threadpool::ThreadPool;
 
 use crate::{
-    cmd, error, info, success,
+    cmd, error, get_flag, info, success,
     util::{
         handle_key_events, handle_mouse_event,
         plugin::{self, Plugin, PluginKind},
@@ -60,7 +60,7 @@ impl TestWidget {
 
 impl AppWidget for TestWidget {
     fn setup(&mut self) -> AppResult<()> {
-        let toml = Arc::new(Config::load(PathBuf::from("./flint.toml")).unwrap());
+        let toml = Arc::new(Config::load(get_flag!(config_path)).unwrap());
         let plugins = plugin::list_from_config(&toml);
 
         let run_plugins: Vec<&Plugin> = plugins

@@ -256,3 +256,5 @@ Updating files:  28% (2/7)Updating files:  42% (3/7)Updating files:  57% (4/7)
   "stderr": "",
   "success": true
 }
+[warn]: Skipping installation of plugins due to --no-install flag
+[success]: Generated github-actions config successfully

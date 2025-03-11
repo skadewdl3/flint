@@ -20,8 +20,8 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn load(path: PathBuf) -> AppResult<Self> {
-        let toml_str = std::fs::read_to_string(path)?;
+    pub fn load(path: &PathBuf) -> AppResult<Self> {
+        let toml_str = std::fs::read_to_string(&path)?;
         let config: Config = toml::from_str(&toml_str)?;
         Ok(config)
     }
