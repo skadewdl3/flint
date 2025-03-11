@@ -58,6 +58,8 @@ impl AppWidget for TestWidget {
         let toml = Arc::new(Config::load(get_flag!(config_path)).unwrap());
         let plugins = plugin::list_from_config(&toml);
 
+        crate::warn!("{:#?}", get_flag!(plugins_dir));
+
         let run_plugins: Vec<Plugin> = plugins
             .clone()
             .iter()
