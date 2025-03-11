@@ -1,7 +1,7 @@
 function Run(config)
     local cwd = path.cwd()
     local jest_config_location = path.join(cwd, ".flint", "jest.config.js")
-    return { "jest", "--config", jest_config_location, "--json" }
+    return { "jest", "--rootDir", cwd, "--config", jest_config_location, "--json" }
 end
 
 function Eval(output)
