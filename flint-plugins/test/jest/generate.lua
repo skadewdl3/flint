@@ -47,15 +47,10 @@ function Generate(config)
         testPathIgnorePatterns = getTestIgnore(common.test_files_ignore),
     }
 
-    -- Generate Import statements
-    local importStatements = ""
-    for name, path in pairs(imports) do
-        importStatements = importStatements .. "import " .. name .. " from '" .. path .. "';\n"
-    end
 
     -- Convert the table to a JSON string
     return {
-        ["jest.config.js"] = importStatements ..
-            "\nexport default " .. json.stringify(jestConfig) .. ";"
+        ["jest.config.js"] =
+            "export default " .. json.stringify(jestConfig) .. ";"
     }
 end

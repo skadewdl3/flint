@@ -1,4 +1,4 @@
-function get_dependency_install_steps(dependencies)
+local function get_dependency_install_steps(dependencies)
     local steps = {}
     -- TODO: Add support for system dependencies
 
@@ -65,7 +65,7 @@ function Generate(config, dependencies)
     -- Create empty job table
     local job = {
         name = "Flint Checks",
-        runs_on = "ubuntu-latest",
+        ["runs-on"] = "ubuntu-latest",
         steps = {}
     }
 
@@ -73,7 +73,7 @@ function Generate(config, dependencies)
     -- Add checkout step
     table.insert(job.steps, {
         name = "Checkout code",
-        uses = "actions/checkout@v3"
+        uses = "actions/checkout@v4"
     })
 
     local dependency_install_steps = get_dependency_install_steps(dependencies)
@@ -124,6 +124,10 @@ function Generate(config, dependencies)
             path = "logs.txt",
         }
     })
+
+    workflow.jobs = {
+        flint_checks = job
+    }
 
 
     return {

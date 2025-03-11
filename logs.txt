@@ -841,3 +841,114 @@ Error message: Application error: Plugin jest is missing required file: validate
 [success]: Generated jest config successfully
 [info]: Generating github-actions config
 [success]: Generated github-actions config successfully
+[info]: Generating Jest configuration
+[info]: Generating jest config
+[success]: Generated jest config successfully
+[debug]: {
+  "npm": [
+    {
+      "name": "jest",
+      "version": "latest"
+    }
+  ]
+}
+[info]: Generating github-actions config
+[success]: Generated github-actions config successfully
+[info]: Generating Jest configuration
+[info]: Generating jest config
+[success]: Generated jest config successfully
+[debug]: {
+  "npm": [
+    {
+      "name": "jest",
+      "version": "latest"
+    }
+  ]
+}
+[info]: Generating github-actions config
+[success]: Generated github-actions config successfully
+[info]: Generating Jest configuration
+[info]: Generating jest config
+[success]: Generated jest config successfully
+[info]: Generating ESLint configuration
+[info]: Generating eslint config
+[success]: Generated eslint config successfully
+[debug]: {
+  "npm": [
+    {
+      "name": "eslint",
+      "version": "latest"
+    },
+    {
+      "name": "jest",
+      "version": "latest"
+    }
+  ]
+}
+[info]: Generating github-actions config
+[success]: Generated github-actions config successfully
+[info]: Generating Jest configuration
+[info]: Generating jest config
+[success]: Generated jest config successfully
+[debug]: {
+  "npm": [
+    {
+      "name": "jest",
+      "version": "latest"
+    }
+  ]
+}
+[info]: Generating github-actions config
+[success]: Generated github-actions config successfully
+[info]: Generating Jest configuration
+[info]: Generating jest config
+[success]: Generated jest config successfully
+[debug]: {
+  "npm": [
+    {
+      "name": "jest",
+      "version": "latest"
+    }
+  ]
+}
+[info]: Generating github-actions config
+[success]: Generated github-actions config successfully
+[info]: Generating Jest configuration
+[info]: Generating jest config
+[success]: Generated jest config successfully
+[debug]: {
+  "npm": [
+    {
+      "name": "jest",
+      "version": "latest"
+    }
+  ]
+}
+[info]: Generating github-actions config
+[success]: Generated github-actions config successfully
+[info]: Generating Jest configuration
+[info]: Generating jest config
+[success]: Generated jest config successfully
+[debug]: {
+  "npm": [
+    {
+      "name": "jest",
+      "version": "latest"
+    }
+  ]
+}
+[info]: Generating github-actions config
+[success]: Generated github-actions config successfully
+[info]: Generating Jest configuration
+[info]: Generating jest config
+[success]: Generated jest config successfully
+[debug]: {
+  "npm": [
+    {
+      "name": "jest",
+      "version": "latest"
+    }
+  ]
+}
+[info]: Generating github-actions config
+[success]: Generated github-actions config successfully
