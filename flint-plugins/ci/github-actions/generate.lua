@@ -117,7 +117,7 @@ function Generate(config, dependencies)
         -- TODO: Make it adapt to the outputs of reporting plugins
         with = {
             name = "Test Results",
-            path = "reports/reports/report.json"
+            path = "reports/report.json"
         }
     })
 
