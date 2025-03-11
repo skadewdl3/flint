@@ -2,9 +2,8 @@ function Generate(config)
     local common = config
     log.info("Generating Jest configuration")
 
-    local cwd = path.cwd()
-    log.info(cwd)
 
+    local cwd = path.cwd()
 
     -- Import necessary modules
     local imports = {
@@ -23,7 +22,7 @@ function Generate(config)
     end
 
     local function getTestIgnore(files_ignore)
-        if not files_ignore or #files_ignore == 0 then return {} end
+        if not files_ignore or #files_ignore == 0 then return { "/node_modules/", "/dist/" } end
         return files_ignore
     end
 
