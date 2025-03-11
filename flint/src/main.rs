@@ -3,6 +3,7 @@ use clap::Parser;
 use util::flags::handle_global_flags;
 
 pub mod app;
+pub mod plugin;
 pub mod util;
 pub mod widgets;
 

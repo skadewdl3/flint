@@ -1,7 +1,7 @@
 function Details()
     local details = {
         id = "jest",
-        author = "Aditya Sakhare",
+        author = "Aditya Sakhare (test)",
         version = "0.0.1",
         extensions = { "js", "ts", "mjs", "cjs" },
     }

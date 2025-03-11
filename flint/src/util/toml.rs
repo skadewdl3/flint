@@ -3,9 +3,15 @@ use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::PathBuf};
 use toml;
 
+pub fn default_plugins_branch() -> String {
+    "main".into()
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct FlintConfig {
     pub version: u8,
+    #[serde(default = "default_plugins_branch")]
+    pub plugins_branch: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -34,7 +40,10 @@ impl Config {
 
     pub fn create_default(path: PathBuf) -> AppResult<()> {
         let config = Config {
-            flint: FlintConfig { version: 1 },
+            flint: FlintConfig {
+                version: 1,
+                plugins_branch: "main".into(),
+            },
             common: HashMap::new(),
             rules: HashMap::new(),
             tests: HashMap::new(),

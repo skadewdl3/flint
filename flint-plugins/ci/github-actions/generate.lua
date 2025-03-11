@@ -103,18 +103,21 @@ function Generate(config, dependencies)
     table.insert(job.steps, {
         name = "Run Tests",
         run =
-            "chmod +x ./flint" ..
-            "./flint install" ..
-            "./flint test --test"
+        [[
+        chmod +x ./flint
+        ./flint install
+        ./flint test --test
+        ]]
     })
 
     table.insert(job.steps, {
         name = "Upload Test Results",
         uses = "actions/upload-artifact@v4",
         -- TODO: Make it return all logs
+        -- TODO: Make it adapt to the outputs of reporting plugins
         with = {
             name = "Test Results",
-            path = ".flint/reports/reports/report.json"
+            path = "reports/report.json"
         }
     })
 
@@ -133,6 +136,6 @@ function Generate(config, dependencies)
 
 
     return {
-        ["workflows.yml"] = yaml.stringify(workflow)
+        [".github/workflows/flint_checks.yml"] = yaml.stringify(workflow)
     }
 end

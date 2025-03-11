@@ -1,5 +1,5 @@
-use super::toml::Config;
 use crate::app::AppResult;
+use crate::util::toml::Config;
 
 pub mod find;
 pub mod helpers;
@@ -8,11 +8,10 @@ use eval::PluginEvalOutput;
 pub use find::*;
 pub mod deps;
 pub mod download;
-pub mod eval;
-pub mod generate;
-pub mod report;
-pub mod run;
+pub mod exec;
 pub mod validate;
+
+use exec::*;
 
 use mlua::{Lua, LuaSerdeExt, Table};
 use serde::{Deserialize, Serialize};
@@ -125,6 +124,8 @@ pub fn list_from_config(config: &Arc<Config>) -> Vec<Plugin> {
     let mut plugin_ids = Vec::new();
     plugin_ids.extend(config.rules.keys());
     plugin_ids.extend(config.tests.keys());
+    plugin_ids.extend(config.report.keys());
+    plugin_ids.extend(config.ci.keys());
 
     let plugins = find::list().unwrap();
 

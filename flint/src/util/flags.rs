@@ -17,7 +17,7 @@ pub struct Flags {
 pub static GLOBAL_FLAGS: LazyLock<RwLock<Flags>> = LazyLock::new(|| {
     RwLock::new(Flags {
         non_interactive: false,
-        plugins_dir: crate::util::plugin::dir(),
+        plugins_dir: crate::plugin::dir(),
         config_path: std::env::current_dir().unwrap().join("flint.toml"),
         current_dir: std::env::current_dir().unwrap(),
         no_install: false,

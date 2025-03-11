@@ -1,6 +1,8 @@
-use crate::{app::AppResult, app_err};
-
-use super::{Plugin, PluginKind};
+use crate::{
+    app::AppResult,
+    app_err,
+    plugin::{Plugin, PluginKind},
+};
 
 pub fn validate_plugin_structure(plugin: &Plugin) -> AppResult<()> {
     let required_files = match plugin.kind {

@@ -1,11 +1,10 @@
 use super::{AppResult, AppWidget};
 use crate::{error, info};
 use crate::{
-    get_flag, success,
-    util::{
-        plugin::{self, Plugin},
-        toml::Config,
-    },
+    get_flag,
+    plugin::{self, Plugin},
+    success,
+    util::toml::Config,
     widgets::logs::LogsWidget,
 };
 use clap::Parser;
@@ -68,7 +67,7 @@ impl AppWidget for GenerateWidget {
                 match result {
                     Ok(res) => {
                         // TODO: Ask user if we want to overwrite files
-                        let flint_path = get_flag!(current_dir).join(".flint");
+                        let flint_path = get_flag!(current_dir);
                         for (file_name, contents) in res {
                             fs::create_dir_all(&flint_path).unwrap();
                             std::fs::write(flint_path.join(file_name), contents).unwrap();

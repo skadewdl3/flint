@@ -7,12 +7,11 @@ use std::{cell::RefCell, fs, sync::Arc};
 use threadpool::ThreadPool;
 
 use crate::{
-    debug, error, get_flag, info, success,
-    util::{
-        handle_key_events, handle_mouse_event,
-        plugin::{self, Plugin, PluginKind},
-        toml::Config,
-    },
+    debug, error, get_flag, info,
+    plugin::{self, Plugin, PluginKind},
+    success,
+    util::{handle_key_events, handle_mouse_event, toml::Config},
+    warn,
     widgets::logs::{LogsState, LogsWidget},
 };
 
@@ -58,11 +57,10 @@ impl AppWidget for TestWidget {
         let toml = Arc::new(Config::load(get_flag!(config_path)).unwrap());
         let plugins = plugin::list_from_config(&toml);
 
-        crate::warn!("{:#?}", get_flag!(plugins_dir));
-
         let run_plugins: Vec<Plugin> = plugins
             .clone()
             .iter()
+            .filter(|plugin| plugin.kind != PluginKind::Report && plugin.kind != PluginKind::Ci)
             .filter(|plugin| {
                 if !self.args.lint && !self.args.test && self.args.all {
                     true
@@ -74,7 +72,6 @@ impl AppWidget for TestWidget {
                     false
                 }
             })
-            .filter(|plugin| plugin.kind != PluginKind::Report)
             .cloned()
             .collect();
 
@@ -86,8 +83,6 @@ impl AppWidget for TestWidget {
                 .collect(),
         );
 
-        debug!("{:#?}", run_plugins);
-
         for plugin in run_plugins {
             let plugin = plugin.clone();
             let toml_clone = toml.clone();
@@ -95,6 +90,7 @@ impl AppWidget for TestWidget {
             let pool = self.thread_pool.as_ref().unwrap();
 
             pool.execute(move || {
+                info!("Testing with: {}", plugin.details.id);
                 let result = plugin.run(&toml_clone);
 
                 if let Err(err) = result {
@@ -106,6 +102,7 @@ impl AppWidget for TestWidget {
 
                 let cmd_output = std::process::Command::new(&command[0])
                     .args(&command[1..])
+                    .current_dir(get_flag!(current_dir).as_path())
                     .output();
 
                 info!("Running command: {:#?}", command);
@@ -129,9 +126,13 @@ impl AppWidget for TestWidget {
                                 }
                                 Ok(res) => {
                                     for (file_name, contents) in res {
-                                        let flint_path =
-                                            get_flag!(current_dir).join("./.flint/reports");
+                                        let flint_path = get_flag!(current_dir);
                                         let file_path = flint_path.join(&file_name);
+
+                                        info!(
+                                            "Running report plugin: {}",
+                                            report_plugin.details.id
+                                        );
 
                                         if let Some(parent) = file_path.parent() {
                                             if !parent.exists() {
@@ -154,7 +155,7 @@ impl AppWidget for TestWidget {
                                         }
 
                                         success!(
-                                            "Reported {} to {} successfully",
+                                            "Reported {} results to {} successfully",
                                             plugin.details.id,
                                             file_name
                                         );
