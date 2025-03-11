@@ -124,6 +124,8 @@ pub fn list_from_config(config: &Arc<Config>) -> Vec<Plugin> {
     let mut plugin_ids = Vec::new();
     plugin_ids.extend(config.rules.keys());
     plugin_ids.extend(config.tests.keys());
+    plugin_ids.extend(config.report.keys());
+    plugin_ids.extend(config.ci.keys());
 
     let plugins = find::list().unwrap();
 

@@ -57,8 +57,6 @@ impl AppWidget for TestWidget {
         let toml = Arc::new(Config::load(get_flag!(config_path)).unwrap());
         let plugins = plugin::list_from_config(&toml);
 
-        warn!("{:#?}", get_flag!(plugins_dir));
-
         let run_plugins: Vec<Plugin> = plugins
             .clone()
             .iter()
@@ -128,9 +126,13 @@ impl AppWidget for TestWidget {
                                 }
                                 Ok(res) => {
                                     for (file_name, contents) in res {
-                                        let flint_path =
-                                            get_flag!(current_dir).join("./.flint/reports");
+                                        let flint_path = get_flag!(current_dir);
                                         let file_path = flint_path.join(&file_name);
+
+                                        info!(
+                                            "Running report plugin: {}",
+                                            report_plugin.details.id
+                                        );
 
                                         if let Some(parent) = file_path.parent() {
                                             if !parent.exists() {
@@ -153,7 +155,7 @@ impl AppWidget for TestWidget {
                                         }
 
                                         success!(
-                                            "Reported {} to {} successfully",
+                                            "Reported {} results to {} successfully",
                                             plugin.details.id,
                                             file_name
                                         );

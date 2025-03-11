@@ -5,12 +5,11 @@ local json = require("json")
 function Run(config)
     local cwd = path.cwd()
     local files = path.ls(cwd)
-    log.debug(files)
     return { "jest", "--json" }
 end
 
 function Eval(output)
-    log.debug(output)
+    -- log.debug(output)
     if not output.success then
         log.debug(output.stderr)
         return {
@@ -21,7 +20,7 @@ function Eval(output)
         }
     end
     local output = output.stdout
-    log.debug(output.stdout)
+    -- log.debug(output.stdout)
     local parsed_output = json.parse(output)
     local testResults = parsed_output.testResults
 
@@ -78,6 +77,5 @@ function Eval(output)
         test_results = results
     }
 
-    -- log.debug(parsed_output)
     return coverage
 end
