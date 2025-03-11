@@ -3,16 +3,11 @@ use crossterm::event::{KeyCode, MouseEventKind};
 use flint_macros::ui;
 use ratatui::prelude::*;
 use ratatui::widgets::WidgetRef;
-use std::{
-    cell::RefCell,
-    fs,
-    path::{Path, PathBuf},
-    sync::Arc,
-};
+use std::{cell::RefCell, fs, path::Path, sync::Arc};
 use threadpool::ThreadPool;
 
 use crate::{
-    cmd, error, get_flag, info, success,
+    debug, error, get_flag, info, success,
     util::{
         handle_key_events, handle_mouse_event,
         plugin::{self, Plugin, PluginKind},
@@ -63,7 +58,8 @@ impl AppWidget for TestWidget {
         let toml = Arc::new(Config::load(get_flag!(config_path)).unwrap());
         let plugins = plugin::list_from_config(&toml);
 
-        let run_plugins: Vec<&Plugin> = plugins
+        let run_plugins: Vec<Plugin> = plugins
+            .clone()
             .iter()
             .filter(|plugin| {
                 if !self.args.lint && !self.args.test && self.args.all {
@@ -80,12 +76,15 @@ impl AppWidget for TestWidget {
             .cloned()
             .collect();
 
-        let report_plugins: Arc<Vec<&Plugin>> = Arc::new(
+        let report_plugins: Arc<Vec<Plugin>> = Arc::new(
             plugins
-                .into_iter()
+                .iter()
                 .filter(|plugin| plugin.kind == PluginKind::Report)
+                .cloned()
                 .collect(),
         );
+
+        debug!("{:#?}", run_plugins);
 
         for plugin in run_plugins {
             let plugin = plugin.clone();
@@ -128,7 +127,8 @@ impl AppWidget for TestWidget {
                                 }
                                 Ok(res) => {
                                     for (file_name, contents) in res {
-                                        let flint_path = Path::new("./.flint/reports");
+                                        let flint_path =
+                                            get_flag!(current_dir).join("./.flint/reports");
                                         let file_path = flint_path.join(&file_name);
 
                                         if let Some(parent) = file_path.parent() {

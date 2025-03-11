@@ -65,34 +65,34 @@ macro_rules! log {
 #[macro_export]
 macro_rules! info {
     ($($arg:tt)*) => {{
-        $crate::log!(crate::util::logs::LogKind::Info, $($arg)*);
+        $crate::log!($crate::util::logs::LogKind::Info, $($arg)*);
     }};
 }
 
 #[macro_export]
 macro_rules! warn {
     ($($arg:tt)*) => {{
-        $crate::log!(crate::util::logs::LogKind::Warn, $($arg)*);
+        $crate::log!($crate::util::logs::LogKind::Warn, $($arg)*);
     }};
 }
 
 #[macro_export]
 macro_rules! error {
     ($($arg:tt)*) => {{
-        $crate::log!(crate::util::logs::LogKind::Error, $($arg)*);
+        $crate::log!($crate::util::logs::LogKind::Error, $($arg)*);
     }};
 }
 
 #[macro_export]
 macro_rules! debug {
     ($($arg:tt)*) => {{
-        $crate::log!(crate::util::logs::LogKind::Debug, $($arg)*);
+        $crate::log!($crate::util::logs::LogKind::Debug, $($arg)*);
     }};
 }
 
 #[macro_export]
 macro_rules! success {
     ($($arg:tt)*) => {{
-        $crate::log!(crate::util::logs::LogKind::Success, $($arg)*);
+        $crate::log!($crate::util::logs::LogKind::Success, $($arg)*);
     }};
 }

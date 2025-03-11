@@ -15,6 +15,7 @@ use std::{collections::BTreeSet, path::PathBuf};
 use tui_textarea::TextArea;
 
 #[derive(Debug)]
+#[allow(unused)]
 pub struct InitWidget<'a> {
     textarea: TextArea<'a>,
     langs: BTreeSet<Language>,

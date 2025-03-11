@@ -1,0 +1,56 @@
+name: Update Submodules to Latest Main
+
+on:
+  # Run on a schedule (daily at midnight UTC)
+  schedule:
+    - cron: "0 0 * * *"
+
+  # Allow manual triggering
+  workflow_dispatch:
+
+  # Optionally, run when the main branch is updated
+  push:
+    branches:
+      - main
+
+jobs:
+  update-submodules:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          # Fetch all history for all branches and tags
+          fetch-depth: 0
+          # Include submodules
+          submodules: "recursive"
+          # Required for pushing
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@github.com"
+
+      - name: Update submodules to latest main
+        run: |
+          # For each submodule
+          git submodule foreach '
+            echo "Updating submodule: $(basename $(pwd))"
+            git fetch origin
+            git checkout main
+            git pull origin main
+            echo "Updated to: $(git rev-parse HEAD)"
+          '
+
+      - name: Commit and push if there are changes
+        run: |
+          git add .
+          # Check if there are changes to commit
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Update submodules to latest main [skip ci]"
+            git push
+          fi

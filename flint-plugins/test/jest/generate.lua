@@ -3,6 +3,8 @@ function Generate(config)
     log.info("Generating Jest configuration")
 
 
+    local cwd = path.cwd()
+
     -- Import necessary modules
     local imports = {
         jest = "jest"
