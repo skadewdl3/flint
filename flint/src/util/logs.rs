@@ -1,5 +1,7 @@
 use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 
+use crate::get_flag;
+
 #[derive(Copy, Clone, Debug, Default)]
 pub enum LogKind {
     #[default]
@@ -42,7 +44,7 @@ pub fn add_log(kind: LogKind, message: String) {
         LogKind::Debug => "[debug]:",
     };
 
-    let is_non_interactive = crate::app::get_non_interactive();
+    let is_non_interactive = get_flag!(non_interactive);
 
     let log = format!("{} {}", prefix, message);
     if is_non_interactive {
