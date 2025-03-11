@@ -1,10 +1,8 @@
 use std::error::Error;
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 use crate::app::AppResult;
-use crate::util::plugin;
 use crate::util::toml::Config;
 use crate::{app_err, error, get_flag};
 use crate::{cmd, info};

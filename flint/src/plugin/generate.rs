@@ -38,7 +38,7 @@ pub fn generate<'a>(plugin: &Plugin, toml: &Arc<Config>) -> AppResult<HashMap<St
     }
 
     let generate_results = if plugin.kind == PluginKind::Ci {
-        let active_plugins = crate::util::plugin::list_from_config(&toml);
+        let active_plugins = crate::plugin::list_from_config(&toml);
 
         let dependencies = collect_dependencies(&active_plugins)?;
 

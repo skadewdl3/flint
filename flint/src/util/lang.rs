@@ -6,8 +6,6 @@ use std::{
 
 use ignore::Walk;
 
-use super::plugin;
-
 #[derive(Ord, PartialOrd, Eq, PartialEq, Debug)]
 pub enum Language {
     Supported(String),
@@ -49,7 +47,7 @@ pub fn detect_languages<'a>(project_path: impl Into<&'a str>) -> BTreeSet<Langua
         }
     }
 
-    let supported_languages: BTreeSet<String> = plugin::map().keys().cloned().collect();
+    let supported_languages: BTreeSet<String> = crate::plugin::map().keys().cloned().collect();
 
     languages
         .iter()

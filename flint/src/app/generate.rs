@@ -1,11 +1,10 @@
 use super::{AppResult, AppWidget};
 use crate::{error, info};
 use crate::{
-    get_flag, success,
-    util::{
-        plugin::{self, Plugin},
-        toml::Config,
-    },
+    get_flag,
+    plugin::{self, Plugin},
+    success,
+    util::toml::Config,
     widgets::logs::LogsWidget,
 };
 use clap::Parser;

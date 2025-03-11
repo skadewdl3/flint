@@ -7,12 +7,10 @@ use std::{cell::RefCell, fs, sync::Arc};
 use threadpool::ThreadPool;
 
 use crate::{
-    debug, error, get_flag, info, success,
-    util::{
-        handle_key_events, handle_mouse_event,
-        plugin::{self, Plugin, PluginKind},
-        toml::Config,
-    },
+    debug, error, get_flag, info,
+    plugin::{self, Plugin, PluginKind},
+    success,
+    util::{handle_key_events, handle_mouse_event, toml::Config},
     widgets::logs::{LogsState, LogsWidget},
 };
 

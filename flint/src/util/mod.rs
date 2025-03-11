@@ -3,7 +3,6 @@ use crossterm::event::{Event, KeyCode, KeyEvent};
 pub mod flags;
 pub mod lang;
 pub mod logs;
-pub mod plugin;
 pub mod toml;
 
 pub use lang::{detect_languages, get_language_map};

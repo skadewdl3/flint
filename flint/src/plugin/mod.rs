@@ -1,5 +1,5 @@
-use super::toml::Config;
 use crate::app::AppResult;
+use crate::util::toml::Config;
 
 pub mod find;
 pub mod helpers;

@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::sync::mpsc::Sender;
 use std::time::Duration;
 
-use crate::util::plugin::download::download_plugins_from_config;
+use crate::plugin::download::download_plugins_from_config;
 use crate::util::toml::Config;
 use crate::util::{handle_key_events, handle_mouse_event};
 use crate::widgets::logs::{LogsState, LogsWidget};
