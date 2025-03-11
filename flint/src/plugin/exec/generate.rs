@@ -44,6 +44,12 @@ pub fn generate<'a>(plugin: &Plugin, toml: &Arc<Config>) -> AppResult<HashMap<St
     let generate_results = if plugin.kind == PluginKind::Ci {
         let active_plugins = crate::plugin::list_from_config(&toml);
 
+        // Filter out CI plugins from active_plugins to avoid circular dependencies
+        let active_plugins = active_plugins
+            .into_iter()
+            .filter(|p| p.kind != PluginKind::Ci)
+            .collect::<Vec<_>>();
+
         let dependencies = collect_dependencies(&active_plugins)?;
 
         let deps_table = lua.to_value(&dependencies);

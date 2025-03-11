@@ -16,10 +16,16 @@ pub fn get_dependencies(plugin: &Plugin) -> AppResult<HashMap<String, Vec<Depend
 
     let deps_func: Result<Function, Error> = {
         let contents = std::fs::read_to_string(plugin.path.join("details.lua"))?;
+        lua.load(&contents).exec()?;
 
-        lua.load(contents)
-            .exec()
-            .map(|_| lua.globals().get("Dependencies").unwrap())
+        // Try to get the `Dependencies` function from lua globals
+        match lua.globals().get("Dependencies") {
+            Ok(func) => Ok(func),
+            Err(_) => {
+                // Return empty deps if no Dependencies function exists
+                return Ok(HashMap::new());
+            }
+        }
     };
 
     if let Ok(func) = deps_func {
