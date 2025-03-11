@@ -1,7 +1,13 @@
-use super::{eval::PluginEvalOutput, helpers::add_helper_globals, Plugin, PluginKind};
-use crate::{app::AppResult, app_err, util::toml::Config};
+use crate::{
+    app::AppResult,
+    app_err,
+    plugin::{helpers::add_helper_globals, Plugin, PluginKind},
+    util::toml::Config,
+};
 use mlua::{Error, Function, Lua, LuaSerdeExt};
 use std::{collections::HashMap, sync::Arc};
+
+use super::eval::PluginEvalOutput;
 
 pub fn report(
     plugin: &Plugin,

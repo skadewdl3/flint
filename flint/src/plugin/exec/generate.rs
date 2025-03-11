@@ -1,5 +1,9 @@
-use super::{deps::collect_dependencies, helpers::add_helper_globals, Plugin, PluginKind};
-use crate::{app::AppResult, app_err, util::toml::Config};
+use crate::{
+    app::AppResult,
+    app_err,
+    plugin::{deps::collect_dependencies, helpers::add_helper_globals, Plugin, PluginKind},
+    util::toml::Config,
+};
 use mlua::{Error, Function, Lua, LuaSerdeExt};
 use std::{collections::HashMap, sync::Arc};
 

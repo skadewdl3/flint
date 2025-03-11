@@ -1,5 +1,8 @@
-use super::{helpers::add_helper_globals, Plugin};
-use crate::{app::AppResult, util::toml::Config};
+use crate::{
+    app::AppResult,
+    plugin::{helpers::add_helper_globals, Plugin},
+    util::toml::Config,
+};
 use mlua::{Error, Function, Lua, LuaSerdeExt};
 use std::sync::Arc;
 

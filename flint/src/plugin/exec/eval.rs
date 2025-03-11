@@ -1,5 +1,7 @@
-use super::{helpers::add_helper_globals, Plugin};
-use crate::app::AppResult;
+use crate::{
+    app::AppResult,
+    plugin::{helpers::add_helper_globals, Plugin},
+};
 use mlua::{Error, Function, Lua, LuaSerdeExt};
 use serde::{Deserialize, Serialize};
 use std::process::Output;

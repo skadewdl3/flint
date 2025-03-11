@@ -8,11 +8,10 @@ use eval::PluginEvalOutput;
 pub use find::*;
 pub mod deps;
 pub mod download;
-pub mod eval;
-pub mod generate;
-pub mod report;
-pub mod run;
+pub mod exec;
 pub mod validate;
+
+use exec::*;
 
 use mlua::{Lua, LuaSerdeExt, Table};
 use serde::{Deserialize, Serialize};
