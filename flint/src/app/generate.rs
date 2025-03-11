@@ -1,13 +1,16 @@
 use super::{AppResult, AppWidget};
 use crate::{
+    get_flag, info, success,
     util::{
+        get_language_map,
         plugin::{self, Plugin},
         toml::Config,
     },
-    widgets::logs::{add_log, LogKind, LogsWidget},
+    widgets::logs::LogsWidget,
 };
 use clap::Parser;
 use flint_macros::ui;
+use log::error;
 use ratatui::prelude::*;
 use ratatui::widgets::WidgetRef;
 use std::{
@@ -44,7 +47,8 @@ impl GenerateWidget {
 
 impl AppWidget for GenerateWidget {
     fn setup(&mut self) -> AppResult<()> {
-        let toml = Arc::new(Config::load(PathBuf::from("./flint.toml")).unwrap());
+        let config_path = get_flag!(config_path);
+        let toml = Arc::new(Config::load(config_path).unwrap());
         let mut plugin_ids = Vec::new();
         plugin_ids.extend(toml.rules.keys());
         // plugin_ids.extend(toml.tests.keys());
@@ -67,18 +71,15 @@ impl AppWidget for GenerateWidget {
                 match result {
                     Ok(res) => {
                         // TODO: Ask user if we want to overwrite files
+                        let flint_path = get_flag!(current_dir).join(".flint");
                         for (file_name, contents) in res {
-                            let flint_path = Path::new("./.flint");
                             fs::create_dir_all(&flint_path).unwrap();
                             std::fs::write(flint_path.join(file_name), contents).unwrap();
                         }
-                        add_log(
-                            LogKind::Success,
-                            format!("Generated {} config successfully", plugin.details.id),
-                        );
+                        success!("Generated {} config successfully", plugin.details.id)
                     }
                     Err(err) => {
-                        add_log(LogKind::Error, err.to_string());
+                        error!("Error occurred: {}", err);
                     }
                 }
             });

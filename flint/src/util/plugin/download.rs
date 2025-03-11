@@ -3,9 +3,12 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+use crate::app::AppResult;
 use crate::util::plugin;
 use crate::util::toml::Config;
-use crate::widgets::logs::{add_log, LogKind};
+use crate::{app_err, error, get_flag};
+use crate::{cmd, info};
+use crate::{success, warn};
 
 use super::PluginKind;
 
@@ -13,144 +16,94 @@ pub fn clone_plugin_folders(
     repo_url: &str,
     plugin_kind: PluginKind,
     plugin_ids: Vec<&String>,
-) -> Result<PathBuf, Box<dyn Error>> {
-    add_log(
-        LogKind::Info,
-        format!(
-            "Starting plugin clone process for {} plugins",
-            plugin_kind.to_string()
-        ),
+) -> AppResult<PathBuf> {
+    info!(
+        "Starting plugin clone process for {} plugins",
+        plugin_kind.to_string()
     );
 
     // Determine final destination path
-    let final_dest_path = plugin::dir();
+    let final_dest_path = get_flag!(plugins_dir);
 
-    add_log(
-        LogKind::Info,
-        format!("Downloading plugins to: {}", final_dest_path.display()),
-    );
+    info!("Downloading plugins to: {}", final_dest_path.display());
 
     // Create a temporary directory for git operations
+    // TODO: Use ProjDirs crate here instead of std::env::temp_dir()
     let temp_path = std::env::temp_dir().join("flint-plugins-temp");
-    add_log(
-        LogKind::Info,
-        format!("Setting up temporary directory at: {}", temp_path.display()),
-    );
 
     // Create temporary directory
     fs::create_dir_all(&temp_path)?;
 
-    add_log(
-        LogKind::Info,
-        format!("Created temporary directory: {}", temp_path.display()),
-    );
-
     // Create the kind subfolder
     let kind_str = &plugin_kind.to_string();
     let kind_path = final_dest_path.join(kind_str);
-    add_log(
-        LogKind::Info,
-        format!("Plugin type directory: {}", kind_path.display()),
-    );
 
     // Make sure the final plugin type directory exists
     fs::create_dir_all(&kind_path)?;
-    add_log(
-        LogKind::Info,
-        format!("Created plugin type directory: {}", kind_path.display()),
-    );
 
     // Check if git is installed and available
-    add_log(LogKind::Info, "Checking if git is installed".to_string());
-    let git_check = Command::new("git").arg("--help").output();
+    info!("Checking if git is installed");
+    let git_check = cmd!["git", "--help"].output().map_err(|e| {
+        app_err!(
+            "Git is not instaled on this system or not in PATH.\nError message: {}",
+            e
+        )
+    })?;
 
-    match git_check {
-        Ok(output) => {
-            if !output.status.success() {
-                add_log(
-                    LogKind::Error,
-                    "Git command failed. Is git installed correctly?".to_string(),
-                );
-                return Err("Git is not available or not working properly".into());
-            }
-            add_log(LogKind::Info, "Git is available and working".to_string());
-        }
-        Err(_) => {
-            add_log(
-                LogKind::Error,
-                "Could not execute git command. Is git installed?".to_string(),
-            );
-            return Err("Git is not installed or not in PATH".into());
-        }
+    if !git_check.status.success() {
+        return Err(app_err!("Git is not available or not working properly"));
     }
 
-    add_log(
-        LogKind::Info,
-        format!("Cloning repository metadata from {}", repo_url),
-    );
+    info!("Cloning repository metadata from {}", repo_url);
 
     // Do git operations in the temporary path
-    let mut cmd = Command::new("git");
-    let cmd = cmd
-        .arg("clone")
-        .arg("--filter=blob:none")
-        .arg("--sparse")
-        .arg(repo_url)
-        .arg(&temp_path);
+    // Define a helper macro for creating commands
 
-    add_log(
-        LogKind::Info,
-        format!("Executing git clone with sparse checkout filter"),
-    );
+    let output = cmd![
+        "git",
+        "clone",
+        "--filter=blob:none",
+        "--sparse",
+        repo_url,
+        &temp_path
+    ]
+    .output()?;
 
-    let output = cmd.output()?;
-    let stdout = String::from_utf8_lossy(&output.stdout);
+    let _stdout = String::from_utf8_lossy(&output.stdout);
     let stderr = String::from_utf8_lossy(&output.stderr);
     let status = output.status;
 
-    if !stdout.is_empty() {
-        add_log(LogKind::Info, format!("[git clone]: {}", stdout));
-    }
+    if !status.success() {
+        info!(
+            "Cleaning up temporary directory after failed clone: {}",
+            temp_path.display()
+        );
+        _ = fs::remove_dir_all(&temp_path).map_err(|e| {
+            app_err!("Failed to remove temporary directory: {}", e);
+        });
 
-    if !stderr.is_empty() {
-        add_log(LogKind::Error, format!("[git clone]: {}", stderr));
+        return Err(app_err!(
+            "Failed to clone repository.\n Git Clone output: {}",
+            stderr
+        ));
     }
 
     if !status.success() {
         // Clean up the temporary directory if clone fails
-        add_log(
-            LogKind::Info,
-            format!(
-                "Cleaning up temporary directory after failed clone: {}",
-                temp_path.display()
-            ),
-        );
-        let _ = fs::remove_dir_all(&temp_path);
-        return Err("Failed to clone repository".into());
+        return Err(app_err!("Failed to clone repository"));
     }
-
-    add_log(
-        LogKind::Info,
-        "Repository cloned successfully, setting up sparse checkout".to_string(),
-    );
 
     let mut sparse_paths = Vec::new();
     for id in &plugin_ids {
         sparse_paths.push(format!("flint-plugins/{}/{}", kind_str, id));
     }
 
-    add_log(
-        LogKind::Info,
-        format!(
-            "Setting sparse checkout for {} plugin paths",
-            sparse_paths.len()
-        ),
+    info!(
+        "Metadata downloaded. Setting up sparse checkout for {} plugin paths",
+        sparse_paths.len()
     );
-
-    let output = Command::new("git")
+    let output = cmd!["git", "sparse-checkout", "set"]
         .current_dir(&temp_path)
-        .arg("sparse-checkout")
-        .arg("set")
         .args(&sparse_paths)
         .output()?;
 
@@ -159,125 +112,70 @@ pub fn clone_plugin_folders(
     let status = output.status;
 
     if !stdout.is_empty() {
-        add_log(LogKind::Info, format!("[git sparse-checkout]: {}", stdout));
+        info!("[git sparse-checkout]: {}", stdout);
     }
 
     if !stderr.is_empty() {
-        add_log(LogKind::Error, format!("[git sparse-checkout]: {}", stderr));
+        error!("[git sparse-checkout]: {}", stderr);
     }
 
     if !status.success() {
         // Clean up the temporary directory if sparse-checkout fails
-        add_log(
-            LogKind::Info,
-            format!(
-                "Cleaning up after failed sparse-checkout: {}",
-                temp_path.display()
-            ),
+        info!(
+            "Cleaning up after failed sparse-checkout: {}",
+            temp_path.display()
         );
         let _ = fs::remove_dir_all(&temp_path);
-        return Err("Failed to set sparse-checkout".into());
+        return Err(app_err!("Failed to set sparse-checkout"));
     }
 
     // Check if the plugins directory exists
     let temp_plugins_dir = temp_path.join("flint-plugins").join(kind_str);
-    add_log(
-        LogKind::Info,
-        format!(
-            "Checking for plugins directory: {}",
-            temp_plugins_dir.display()
-        ),
+    info!(
+        "Checking for plugins directory: {}",
+        temp_plugins_dir.display()
     );
 
     if !temp_plugins_dir.exists() {
-        add_log(
-            LogKind::Error,
-            format!(
-                "Plugins directory not found: {}",
-                temp_plugins_dir.display()
-            ),
-        );
-        let _ = fs::remove_dir_all(&temp_path);
-        return Err(format!(
+        error!(
             "Plugins directory not found: {}",
             temp_plugins_dir.display()
-        )
-        .into());
+        );
+        _ = fs::remove_dir_all(&temp_path).map_err(|e| {
+            app_err!(
+                "Failed to clean up temporary directory.\nError message: {}",
+                e
+            )
+        });
+        return Err(app_err!(
+            "Plugins directory not found: {}",
+            temp_plugins_dir.display()
+        ));
     }
-
-    add_log(
-        LogKind::Info,
-        format!(
-            "Found plugins directory, copying {} plugins",
-            plugin_ids.len()
-        ),
-    );
 
     // Copy each requested plugin to the final destination
     for id in &plugin_ids {
         let src_plugin_path = temp_plugins_dir.join(id);
         let dest_plugin_path = kind_path.join(id);
 
-        add_log(LogKind::Info, format!("Processing plugin: {}", id));
-
         if src_plugin_path.exists() {
             // Remove the destination plugin if it already exists
             if dest_plugin_path.exists() {
-                add_log(
-                    LogKind::Info,
-                    format!("Removing existing plugin: {}", dest_plugin_path.display()),
-                );
                 fs::remove_dir_all(&dest_plugin_path)?;
-                add_log(
-                    LogKind::Info,
-                    format!("Removed existing plugin: {}", dest_plugin_path.display()),
-                );
             }
 
             // Copy the plugin directory recursively
-            add_log(
-                LogKind::Info,
-                format!(
-                    "Copying plugin from {} to {}",
-                    src_plugin_path.display(),
-                    dest_plugin_path.display()
-                ),
-            );
             copy_dir_all(&src_plugin_path, &dest_plugin_path)?;
-            add_log(
-                LogKind::Info,
-                format!(
-                    "Copied plugin from {} to {}",
-                    src_plugin_path.display(),
-                    dest_plugin_path.display()
-                ),
-            );
         } else {
-            add_log(
-                LogKind::Warn,
-                format!("Plugin not found: {}", src_plugin_path.display()),
-            );
+            warn!("Plugin not found: {}", src_plugin_path.display());
         }
     }
 
     // Clean up the temporary directory
-    add_log(
-        LogKind::Info,
-        format!("Cleaning up temporary directory: {}", temp_path.display()),
-    );
+    info!("Cleaning up temporary directory: {}", temp_path.display());
     fs::remove_dir_all(&temp_path)?;
-    add_log(
-        LogKind::Info,
-        format!("Removed temporary directory: {}", temp_path.display()),
-    );
 
-    add_log(
-        LogKind::Info,
-        format!(
-            "Successfully extracted plugin folders to {}",
-            kind_path.display()
-        ),
-    );
+    success!("Successfully downloaded {} plugins", kind_path.display());
 
     Ok(kind_path)
 }
@@ -307,56 +205,32 @@ fn copy_dir_all(src: &Path, dst: &Path) -> Result<(), Box<dyn Error>> {
 
 // Example usage
 pub fn download_plugins(kind: PluginKind, ids: Vec<&String>) -> Result<(), Box<dyn Error>> {
-    add_log(
-        LogKind::Info,
-        format!(
-            "Starting download of {} plugins for {}",
-            ids.len(),
-            kind.to_string()
-        ),
+    info!(
+        "Starting download of {} {} plugins",
+        ids.len(),
+        kind.to_string()
     );
     let repo_url = "https://github.com/skadewdl3/flint";
-    add_log(LogKind::Info, format!("Using repository URL: {}", repo_url));
+    info!("Source repository: {}", repo_url);
     clone_plugin_folders(repo_url, kind.clone(), ids)?;
-    add_log(
-        LogKind::Info,
-        format!("Completed downloading {} plugins", kind.to_string()),
-    );
+    success!("Completed downloading {} plugins", kind.to_string());
     Ok(())
 }
 
 pub fn download_plugins_from_config(toml: &Config) -> Result<(), Box<dyn Error>> {
-    add_log(
-        LogKind::Info,
-        "Loading configuration from flint.toml".to_string(),
-    );
+    info!("Loading configuration from flint.toml");
 
     let linter_ids: Vec<&String> = toml.rules.keys().collect();
     let tester_ids: Vec<&String> = toml.tests.keys().collect();
     let ci_ids: Vec<&String> = toml.ci.keys().collect();
     let report_ids: Vec<&String> = toml.report.keys().collect();
 
-    add_log(
-        LogKind::Info,
-        format!("Found {} test plugins in configuration", tester_ids.len()),
-    );
-    add_log(
-        LogKind::Info,
-        format!("Found {} lint plugins in configuration", linter_ids.len()),
-    );
-    add_log(
-        LogKind::Info,
-        format!("Found {} CI plugins in configuration", ci_ids.len()),
-    );
-    add_log(
-        LogKind::Info,
-        format!("Found {} report plugins in configuration", report_ids.len()),
-    );
+    info!("Found {} test plugins in configuration", tester_ids.len());
+    info!("Found {} lint plugins in configuration", linter_ids.len());
+    info!("Found {} CI plugins in configuration", ci_ids.len());
+    info!("Found {} report plugins in configuration", report_ids.len());
 
-    add_log(
-        LogKind::Info,
-        "Starting download of all configured plugins".to_string(),
-    );
+    info!("Starting download of all configured plugins");
     if tester_ids.len() > 0 {
         download_plugins(PluginKind::Test, tester_ids)?;
     }
@@ -369,10 +243,7 @@ pub fn download_plugins_from_config(toml: &Config) -> Result<(), Box<dyn Error>>
     if report_ids.len() > 0 {
         download_plugins(PluginKind::Report, report_ids)?;
     }
-    add_log(
-        LogKind::Info,
-        "All plugins downloaded successfully".to_string(),
-    );
+    success!("All plugins downloaded successfully");
 
     Ok(())
 }

@@ -6,19 +6,8 @@ use ratatui::{
     style::{Color, Style},
     widgets::{Block, Padding, Paragraph, StatefulWidget, Widget},
 };
-use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 
-#[derive(Copy, Clone, Debug, Default)]
-pub enum LogKind {
-    #[default]
-    Info,
-    Success,
-    Error,
-    Warn,
-    Debug,
-}
-
-pub static LOGS: RwLock<Vec<(LogKind, String)>> = RwLock::new(vec![]);
+use crate::util::logs::{get_logs, LogKind};
 
 // Define a state to keep track of scrolling position
 #[derive(Debug, Clone, Copy)]
@@ -61,40 +50,6 @@ impl LogsState {
 
 #[derive(Debug, Default, Clone, Copy)]
 pub struct LogsWidget;
-
-pub fn get_logs() -> Result<
-    RwLockReadGuard<'static, Vec<(LogKind, String)>>,
-    std::sync::PoisonError<RwLockReadGuard<'static, Vec<(LogKind, String)>>>,
-> {
-    LOGS.read()
-}
-
-pub fn get_logs_mut() -> Result<
-    RwLockWriteGuard<'static, Vec<(LogKind, String)>>,
-    std::sync::PoisonError<RwLockWriteGuard<'static, Vec<(LogKind, String)>>>,
-> {
-    LOGS.write()
-}
-
-pub fn add_log(kind: LogKind, message: String) {
-    use std::fs::OpenOptions;
-    use std::io::Write;
-    let mut file = OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open("logs.txt")
-        .unwrap();
-    let prefix = match kind {
-        LogKind::Info => "[info]:",
-        LogKind::Success => "[success]:",
-        LogKind::Error => "[error]:",
-        LogKind::Warn => "[warn]:",
-        LogKind::Debug => "[debug]:",
-    };
-    let log = format!("{} {}", prefix, message);
-    writeln!(file, "{}", log).unwrap();
-    get_logs_mut().unwrap().push((kind, log));
-}
 
 fn get_style(kind: &LogKind) -> Style {
     Style::default().fg(match kind {

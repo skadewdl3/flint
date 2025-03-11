@@ -5,8 +5,8 @@ use super::install::{InstallArgs, InstallWidget};
 use super::test::{TestArgs, TestWidget};
 use super::AppWidget;
 use super::{AppError, AppResult};
+use crate::error;
 use crate::util::handle_key_events;
-use crate::widgets::logs::{add_log, LogKind};
 use clap::{Parser, Subcommand};
 use crossterm::event;
 use crossterm::event::KeyCode;
@@ -31,10 +31,17 @@ pub struct App {
 #[derive(Parser, Clone)]
 #[command(version, about, long_about = None, disable_help_subcommand = true, disable_help_flag = true)]
 pub struct AppArgs {
+    #[clap(long, global = false)]
+    pub plugins_dir: Option<String>,
+
+    #[clap(long, global = false)]
+    pub config_path: Option<String>,
+
+    #[clap(long, default_value_t = false, global = false)]
+    pub no_install: bool,
+
     #[command(subcommand)]
     pub command: Option<AppWidgetArgs>,
-    // #[clap(short, long)]
-    // help: bool,
 }
 
 #[derive(Subcommand, Clone)]
@@ -142,7 +149,7 @@ impl WidgetRef for App {
         ui!((area, buf) => {
             {
                 &self.error.as_ref().map(|err| {
-                    add_log(LogKind::Error, err.clone());
+                    error!("Error occurred: {}", err);
                     Some(widget!({ Popup::new(err.as_str(), title: format!("Error occurred")) }))
                 })
             }
@@ -150,4 +157,13 @@ impl WidgetRef for App {
 
         self.active_widget.render_ref(area, buf);
     }
+}
+
+#[macro_export]
+macro_rules! cmd {
+    ($program:expr, $($arg:expr),* $(,)?) => {{
+        let mut command = std::process::Command::new($program);
+        $(command.arg($arg);)*
+        command
+    }};
 }

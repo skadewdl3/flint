@@ -1,5 +1,8 @@
+use std::path::Path;
+
 use app::{App, AppArgs};
 use clap::Parser;
+use util::flags::handle_global_flags;
 
 pub mod app;
 pub mod util;
@@ -10,7 +13,9 @@ fn main() {
 
     let app_args = AppArgs::parse_from(&args);
 
-    #[cfg(not(debug_assertions))]
+    handle_global_flags(&app_args);
+
+    // #[cfg(not(debug_assertions))]
     {
         use app::{
             help::HelpWidget, install::InstallWidget, test::TestWidget, AppWidget, AppWidgetArgs,
@@ -19,6 +24,7 @@ fn main() {
         let subcommand = args.get(1).unwrap();
 
         if ["test", "install"].contains(&subcommand.as_str()) {
+            set_flag!(non_interactive, true);
             let mut non_interactive_widget: Box<dyn AppWidget> = match app_args.command.unwrap() {
                 AppWidgetArgs::Install(args) => Box::new(InstallWidget::new(args)),
                 AppWidgetArgs::Test(args) => Box::new(TestWidget::new(args)),

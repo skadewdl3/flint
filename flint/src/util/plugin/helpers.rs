@@ -1,7 +1,6 @@
+use log::{debug, error, info, warn};
 use mlua::{Lua, Value};
 use serde_json::to_string_pretty;
-
-use crate::widgets::logs::{add_log, LogKind};
 
 pub fn add_helper_globals(lua: &Lua) {
     let log = lua.create_table().unwrap();
@@ -9,9 +8,16 @@ pub fn add_helper_globals(lua: &Lua) {
     let toml = lua.create_table().unwrap();
     let yaml = lua.create_table().unwrap();
 
-    let create_log_fn = |kind: LogKind| {
+    let create_log_fn = |kind| {
         lua.create_function(move |_, message: String| {
-            add_log(kind, message);
+            match kind {
+                "info" => info!("{}", message),
+                "error" => error!("{}", message),
+                "warn" => warn!("{}", message),
+                "success" => info!("SUCCESS: {}", message),
+                "debug" => debug!("{}", message),
+                _ => info!("{}", message),
+            }
             Ok(())
         })
         .unwrap()
@@ -20,7 +26,7 @@ pub fn add_helper_globals(lua: &Lua) {
     let debug_print = lua
         .create_function(|_, value: Value| match to_string_pretty(&value) {
             Ok(json) => {
-                add_log(LogKind::Debug, json);
+                debug!("{}", json);
                 Ok(())
             }
             Err(err) => Err(mlua::Error::external(err)),
@@ -76,10 +82,10 @@ pub fn add_helper_globals(lua: &Lua) {
         })
         .unwrap();
 
-    log.set("info", create_log_fn(LogKind::Info)).unwrap();
-    log.set("error", create_log_fn(LogKind::Error)).unwrap();
-    log.set("warn", create_log_fn(LogKind::Warn)).unwrap();
-    log.set("success", create_log_fn(LogKind::Success)).unwrap();
+    log.set("info", create_log_fn("info")).unwrap();
+    log.set("error", create_log_fn("error")).unwrap();
+    log.set("warn", create_log_fn("warn")).unwrap();
+    log.set("success", create_log_fn("success")).unwrap();
     log.set("debug", debug_print).unwrap();
 
     json.set("stringify", json_stringify).unwrap();
