@@ -3,8 +3,14 @@ use crate::app::{AppError, AppResult};
 
 pub mod find;
 pub mod helpers;
+use eval::PluginEvalOutput;
 pub use find::*;
 pub mod download;
+pub mod eval;
+pub mod generate;
+pub mod report;
+pub mod run;
+pub mod validate;
 
 use helpers::add_helper_globals;
 
@@ -51,23 +57,6 @@ impl PluginKind {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-pub struct TestCaseOutput {
-    file_name: String,
-    line_no: Option<u32>, // Default values if not available
-    column_no: Option<u32>,
-    success: bool, // Converted from assertion.status == "passed"
-    error_message: Option<String>,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct PluginEvalOutput {
-    tests_passed: u32,
-    total_tests: u32,
-    passing_percentage: f32,
-    test_results: Vec<TestCaseOutput>,
-}
-
 impl Plugin {
     pub fn get_config_lua(&self, lua: &Lua, toml: &Arc<Config>) -> Table {
         let common_config = lua
@@ -112,117 +101,16 @@ impl Plugin {
         plugin_config.clone()
     }
 
-    pub fn generate<'a>(&self, toml: &Arc<Config>) -> AppResult<HashMap<String, String>> {
-        let lua = Lua::new();
-        add_helper_globals(&lua);
-
-        let plugin_config = &self.get_config_lua(&lua, toml);
-
-        let generate: Result<Function, Error> = {
-            let contents = std::fs::read_to_string(&self.path.join("generate.lua"))?;
-
-            lua.load(contents)
-                .exec()
-                .map(|_| lua.globals().get("Generate").unwrap())
-        };
-
-        let validate: Result<Function, Error> = {
-            let contents = std::fs::read_to_string(&self.path.join("validate.lua"))?;
-            lua.load(contents)
-                .exec()
-                .map(|_| lua.globals().get("Validate").unwrap())
-        };
-
-        let validate_success = validate
-            .expect("error reading validate.lua")
-            .call::<mlua::Value>(plugin_config)
-            .expect("error running validate function");
-
-        let validate_success: bool = lua
-            .from_value(validate_success)
-            .expect("unable to convert validation result to boolean");
-
-        if !validate_success {
-            return Err(AppError::Err(
-                "Plugin configuration validation failed".into(),
-            ));
-        }
-
-        let generate_results = generate
-            .expect("Error reading generate.lua")
-            .call::<mlua::Value>(plugin_config)
-            .expect("error running generate function");
-        let generate_results: HashMap<String, String> = lua
-            .from_value(generate_results)
-            .expect("unable to convert generation result to String");
-
-        Ok(generate_results)
+    pub fn generate(&self, toml: &Arc<Config>) -> AppResult<HashMap<String, String>> {
+        generate::generate(&self, toml)
     }
 
     pub fn run<'a>(&self, toml: &Arc<Config>) -> AppResult<Vec<String>> {
-        let lua = Lua::new();
-        add_helper_globals(&lua);
-        let plugin_config = &self.get_config_lua(&lua, toml);
-
-        let run: Result<Function, Error> = {
-            let contents = std::fs::read_to_string(&self.path.join("run.lua"))
-                .expect("Error reading plugin code");
-
-            lua.load(contents)
-                .exec()
-                .map(|_| lua.globals().get("Run").unwrap())
-        };
-
-        let run_success = run
-            .expect("error reading run.lua")
-            .call::<mlua::Value>(plugin_config)
-            .expect("error running run function");
-
-        let run_command: Vec<String> = lua
-            .from_value(run_success)
-            .expect("unable to parse run command");
-
-        Ok(run_command)
+        run::run(&self, toml)
     }
 
     pub fn eval(&self, output: Output) -> AppResult<PluginEvalOutput> {
-        let lua = Lua::new();
-        add_helper_globals(&lua);
-
-        let eval: Result<Function, Error> = {
-            let contents = std::fs::read_to_string(&self.path.join("run.lua"))
-                .expect("Error reading plugin code");
-
-            lua.load(contents)
-                .exec()
-                .map(|_| lua.globals().get("Eval").unwrap())
-        };
-
-        let evaluation_state = lua.create_table().unwrap();
-        evaluation_state
-            .set("stdout", String::from_utf8_lossy(&output.stdout))
-            .unwrap();
-        evaluation_state
-            .set("stderr", String::from_utf8_lossy(&output.stderr))
-            .unwrap();
-        evaluation_state
-            .set("status", output.status.code())
-            .unwrap();
-
-        evaluation_state
-            .set("success", output.status.success())
-            .unwrap();
-
-        let eval_output = eval
-            .expect("error reading run.lua")
-            .call::<mlua::Value>(evaluation_state)
-            .expect("error running eval function");
-
-        let eval_output: PluginEvalOutput = lua
-            .from_value(eval_output)
-            .expect("unable to parse eval success");
-
-        Ok(eval_output)
+        eval::eval(&self, output)
     }
 
     pub fn report(
@@ -230,51 +118,17 @@ impl Plugin {
         toml: &Arc<Config>,
         output: &PluginEvalOutput,
     ) -> AppResult<HashMap<String, String>> {
-        if self.kind != PluginKind::Report {
-            return Err(AppError::Err(format!(
-                "{} is not a reporting plugin.",
-                self.details.id
-            )));
-        }
-
-        let lua = Lua::new();
-        add_helper_globals(&lua);
-
-        let plugin_config = &self.get_config_lua(&lua, toml);
-
-        let report: Result<Function, Error> = {
-            let contents = std::fs::read_to_string(&self.path.join("run.lua"))
-                .expect("Error reading plugin code");
-
-            lua.load(contents)
-                .exec()
-                .map(|_| lua.globals().get("Run").unwrap())
-        };
-
-        let report_state = lua.create_table().unwrap();
-        report_state.set("config", plugin_config).unwrap();
-        let output_lua = lua.to_value(&output).unwrap();
-        report_state.set("output", output_lua).unwrap();
-
-        let report_results = report
-            .expect("error reading run.lua")
-            .call::<mlua::Value>(report_state)
-            .expect("error running report function");
-
-        let report_results: HashMap<String, String> = lua
-            .from_value(report_results)
-            .expect("unable to convert generation result to String");
-
-        Ok(report_results)
+        report::report(&self, toml, output)
     }
+}
 
-    pub fn list_from_config(config: &Config) -> Vec<&Plugin> {
-        let linter_ids = config.rules.keys().collect::<HashSet<&String>>();
-        let plugins = find::list().unwrap();
+pub fn list_from_config(config: &Arc<Config>) -> Vec<Plugin> {
+    let linter_ids = config.rules.keys().collect::<HashSet<&String>>();
+    let plugins = find::list().unwrap();
 
-        plugins
-            .iter()
-            .filter(|plugin| linter_ids.contains(&plugin.details.id))
-            .collect()
-    }
+    plugins
+        .iter()
+        .filter(|plugin| linter_ids.contains(&plugin.details.id))
+        .cloned()
+        .collect()
 }

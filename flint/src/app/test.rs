@@ -63,7 +63,8 @@ impl AppWidget for TestWidget {
         let toml = Arc::new(Config::load(get_flag!(config_path)).unwrap());
         let plugins = plugin::list_from_config(&toml);
 
-        let run_plugins: Vec<&Plugin> = plugins
+        let run_plugins: Vec<Plugin> = plugins
+            .clone()
             .iter()
             .filter(|plugin| {
                 if !self.args.lint && !self.args.test && self.args.all {
@@ -80,10 +81,11 @@ impl AppWidget for TestWidget {
             .cloned()
             .collect();
 
-        let report_plugins: Arc<Vec<&Plugin>> = Arc::new(
+        let report_plugins: Arc<Vec<Plugin>> = Arc::new(
             plugins
-                .into_iter()
+                .iter()
                 .filter(|plugin| plugin.kind == PluginKind::Report)
+                .cloned()
                 .collect(),
         );
 
