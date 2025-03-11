@@ -60,13 +60,22 @@ fn deduplicate_dependencies(all_deps: &mut HashMap<String, Vec<Dependency>>) {
 
         for dep in deps.iter() {
             if let Some(existing) = unique_deps.get(&dep.name) {
+                // Handle "latest" version specifier
+                if dep.version == "latest" {
+                    unique_deps.insert(dep.name.clone(), dep.clone());
+                    continue;
+                }
+                if existing.version == "latest" {
+                    // Keep "latest" if it's already there
+                    continue;
+                }
+
                 // If we've already seen this dependency, use semantic versioning to determine
                 // which version to keep (preferring higher versions)
                 if should_replace_version(&existing.version, &dep.version) {
                     unique_deps.insert(dep.name.clone(), dep.clone());
                 }
             } else {
-                // First time seeing this dependency
                 unique_deps.insert(dep.name.clone(), dep.clone());
             }
         }
@@ -82,10 +91,21 @@ fn deduplicate_dependencies(all_deps: &mut HashMap<String, Vec<Dependency>>) {
 /// Determines if the new version should replace the existing version
 /// Based on semantic versioning principles
 fn should_replace_version(existing: &str, new: &str) -> bool {
+    // Handle "latest" version specifier
+    if new == "latest" {
+        return true;
+    }
+    if existing == "latest" {
+        return false;
+    }
+
     // Parse the versions, stripping any semver operators
     let parse_version = |v: &str| -> Option<semver::Version> {
         let version_str = v.trim_start_matches(|c| !char::is_digit(c, 10));
-        semver::Version::parse(version_str).ok()
+        match semver::Version::parse(version_str) {
+            Ok(v) => Some(v),
+            Err(e) => None,
+        }
     };
 
     if let (Some(existing_ver), Some(new_ver)) = (parse_version(existing), parse_version(new)) {
@@ -106,7 +126,8 @@ fn should_replace_version(existing: &str, new: &str) -> bool {
         extract_minimum_version(existing),
         extract_minimum_version(new),
     ) {
-        return new_min > existing_min;
+        let result = new_min > existing_min;
+        return result;
     }
 
     // Default to keeping the existing version
@@ -115,16 +136,28 @@ fn should_replace_version(existing: &str, new: &str) -> bool {
 
 /// Extracts the minimum version from a semver range
 fn extract_minimum_version(version_range: &str) -> Option<semver::Version> {
+    // Handle "latest" version specifier
+    if version_range == "latest" {
+        // Return a high version to ensure it's preferred
+        return Some(semver::Version::new(9999, 0, 0));
+    }
+
     // Handle caret ranges (^1.2.3)
     if version_range.starts_with('^') {
         let ver_str = &version_range[1..];
-        return semver::Version::parse(ver_str).ok();
+        return match semver::Version::parse(ver_str) {
+            Ok(v) => Some(v),
+            Err(e) => None,
+        };
     }
 
     // Handle tilde ranges (~1.2.3)
     if version_range.starts_with('~') {
         let ver_str = &version_range[1..];
-        return semver::Version::parse(ver_str).ok();
+        return match semver::Version::parse(ver_str) {
+            Ok(v) => Some(v),
+            Err(e) => None,
+        };
     }
 
     // Handle star ranges (1.2.*)
@@ -143,16 +176,25 @@ fn extract_minimum_version(version_range: &str) -> Option<semver::Version> {
                 1 => format!("{}.0", base_version),
                 _ => base_version.to_string(),
             };
-            return semver::Version::parse(&version_str).ok();
+            return match semver::Version::parse(&version_str) {
+                Ok(v) => Some(v),
+                Err(e) => None,
+            };
         }
     }
 
     // Handle range with comparison operators
     if version_range.starts_with('>') {
         let ver_str = version_range.trim_start_matches(|c| !char::is_digit(c, 10));
-        return semver::Version::parse(ver_str).ok();
+        return match semver::Version::parse(ver_str) {
+            Ok(v) => Some(v),
+            Err(e) => None,
+        };
     }
 
     // Default fallback - try to parse as is
-    semver::Version::parse(version_range).ok()
+    match semver::Version::parse(version_range) {
+        Ok(v) => Some(v),
+        Err(e) => None,
+    }
 }
