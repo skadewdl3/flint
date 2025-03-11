@@ -51,7 +51,7 @@ impl AppWidget for GenerateWidget {
         let toml = Arc::new(Config::load(config_path).unwrap());
         let mut plugin_ids = Vec::new();
         plugin_ids.extend(toml.rules.keys());
-        // plugin_ids.extend(toml.tests.keys());
+        plugin_ids.extend(toml.tests.keys());
         plugin_ids.extend(toml.ci.keys());
 
         self.plugins = plugin::list()
@@ -68,10 +68,13 @@ impl AppWidget for GenerateWidget {
 
             pool.execute(move || {
                 let result = plugin.generate(&toml_clone);
+                info!("Generating {} config", plugin.details.id);
+                info!("result: {:?}", result);
                 match result {
                     Ok(res) => {
                         // TODO: Ask user if we want to overwrite files
                         let flint_path = get_flag!(current_dir).join(".flint");
+                        // info!("Generating {} config", plugin.details.id);
                         for (file_name, contents) in res {
                             fs::create_dir_all(&flint_path).unwrap();
                             std::fs::write(flint_path.join(file_name), contents).unwrap();
