@@ -262,3 +262,456 @@ Updating files:  28% (2/7)Updating files:  42% (3/7)Updating files:  57% (4/7)
 [success]: Generated github-actions config successfully
 [info]: "/home/skadewdl3/Projects/flint/flint-tests/js/.flint"
 [success]: Generated github-actions config successfully
+[error]: Plugin jest is missing required file: generate.lua
+[error]: Plugin jest has invalid file structure.
+Error message: Application error: Plugin jest is missing required file: generate.lua
+[success]: Generated github-actions config successfully
+[error]: Plugin jest is missing required file: validate.lua
+[error]: Plugin jest has invalid file structure.
+Error message: Application error: Plugin jest is missing required file: validate.lua
+[success]: Generated github-actions config successfully
+[success]: Generated github-actions config successfully
+[success]: Generated github-actions config successfully
+[success]: Generated jest config successfully
+[success]: Generated github-actions config successfully
+[info]: Running tests
+[debug]: []
+[debug]: []
+[debug]: []
+[debug]: [
+    Plugin {
+        details: PluginDetails {
+            id: "jest",
+            extensions: [
+                "js",
+                "ts",
+                "mjs",
+                "cjs",
+            ],
+            version: "0.0.1",
+            author: "Aditya Sakhare",
+        },
+        path: "./flint-plugins/test/jest",
+        kind: Test,
+    },
+]
+[info]: Running command: [
+    "jest",
+    "--json",
+]
+[debug]: [
+    Plugin {
+        details: PluginDetails {
+            id: "jest",
+            extensions: [
+                "js",
+                "ts",
+                "mjs",
+                "cjs",
+            ],
+            version: "0.0.1",
+            author: "Aditya Sakhare",
+        },
+        path: "./flint-plugins/test/jest",
+        kind: Test,
+    },
+]
+[info]: Running command: [
+    "jest",
+    "--json",
+]
+[debug]: [
+    Plugin {
+        details: PluginDetails {
+            id: "jest",
+            extensions: [
+                "js",
+                "ts",
+                "mjs",
+                "cjs",
+            ],
+            version: "0.0.1",
+            author: "Aditya Sakhare",
+        },
+        path: "./flint-plugins/test/jest",
+        kind: Test,
+    },
+]
+[info]: Running command: [
+    "jest",
+    "--json",
+]
+[debug]: [
+    Plugin {
+        details: PluginDetails {
+            id: "jest",
+            extensions: [
+                "js",
+                "ts",
+                "mjs",
+                "cjs",
+            ],
+            version: "0.0.1",
+            author: "Aditya Sakhare",
+        },
+        path: "./flint-plugins/test/jest",
+        kind: Test,
+    },
+]
+[info]: Running command: [
+    "jest",
+    "--json",
+]
+[debug]: [
+    Plugin {
+        details: PluginDetails {
+            id: "jest",
+            extensions: [
+                "js",
+                "ts",
+                "mjs",
+                "cjs",
+            ],
+            version: "0.0.1",
+            author: "Aditya Sakhare",
+        },
+        path: "./flint-plugins/test/jest",
+        kind: Test,
+    },
+]
+[info]: Running command: [
+    "jest",
+    "--json",
+]
+[debug]: [
+    Plugin {
+        details: PluginDetails {
+            id: "jest",
+            extensions: [
+                "js",
+                "ts",
+                "mjs",
+                "cjs",
+            ],
+            version: "0.0.1",
+            author: "Aditya Sakhare",
+        },
+        path: "./flint-plugins/test/jest",
+        kind: Test,
+    },
+]
+[info]: Running command: [
+    "jest",
+    "--json",
+]
+[debug]: [
+    Plugin {
+        details: PluginDetails {
+            id: "jest",
+            extensions: [
+                "js",
+                "ts",
+                "mjs",
+                "cjs",
+            ],
+            version: "0.0.1",
+            author: "Aditya Sakhare",
+        },
+        path: "./flint-plugins/test/jest",
+        kind: Test,
+    },
+]
+[info]: Running command: [
+    "jest",
+    "--json",
+]
+[debug]: [
+    Plugin {
+        details: PluginDetails {
+            id: "jest",
+            extensions: [
+                "js",
+                "ts",
+                "mjs",
+                "cjs",
+            ],
+            version: "0.0.1",
+            author: "Aditya Sakhare",
+        },
+        path: "./flint-plugins/test/jest",
+        kind: Test,
+    },
+]
+[info]: Running command: [
+    "jest",
+    "--json",
+]
+[debug]: [
+    Plugin {
+        details: PluginDetails {
+            id: "jest",
+            extensions: [
+                "js",
+                "ts",
+                "mjs",
+                "cjs",
+            ],
+            version: "0.0.1",
+            author: "Aditya Sakhare",
+        },
+        path: "./flint-plugins/test/jest",
+        kind: Test,
+    },
+]
+[info]: Running command: [
+    "jest",
+    "--json",
+]
+[debug]: [
+    Plugin {
+        details: PluginDetails {
+            id: "jest",
+            extensions: [
+                "js",
+                "ts",
+                "mjs",
+                "cjs",
+            ],
+            version: "0.0.1",
+            author: "Aditya Sakhare",
+        },
+        path: "./flint-plugins/test/jest",
+        kind: Test,
+    },
+]
+[info]: Running command: [
+    "jest",
+    "--config",
+    ".flint/jest.config.js",
+    "--json",
+]
+[success]: Generated jest config successfully
+[success]: Generated github-actions config successfully
+[success]: Generated jest config successfully
+[success]: Generated github-actions config successfully
+[success]: Generated jest config successfully
+[success]: Generated github-actions config successfully
+[success]: Generated jest config successfully
+[success]: Generated github-actions config successfully
+[success]: Generated jest config successfully
+[success]: Generated github-actions config successfully
+[info]: Generating Jest configuration
+[info]: /home/skadewdl3/Projects/flint/flint-tests/js
+[success]: Generated jest config successfully
+[success]: Generated github-actions config successfully
+[info]: Generating Jest configuration
+[info]: /home/skadewdl3/Projects/flint/flint-tests/js
+[success]: Generated github-actions config successfully
+[success]: Generated jest config successfully
+[debug]: [
+    Plugin {
+        details: PluginDetails {
+            id: "jest",
+            extensions: [
+                "js",
+                "ts",
+                "mjs",
+                "cjs",
+            ],
+            version: "0.0.1",
+            author: "Aditya Sakhare",
+        },
+        path: "./flint-plugins/test/jest",
+        kind: Test,
+    },
+]
+[info]: Running command: [
+    "jest",
+    "--config",
+    "/home/skadewdl3/Projects/flint/flint-tests/js/.flint/jest.config.js",
+    "--json",
+]
+[debug]: {
+  "status": 1,
+  "stdout": "",
+  "stderr": "No tests found, exiting with code 1\nRun with `--passWithNoTests` to exit with code 0\nIn /home/skadewdl3/Projects/flint/flint-tests/js/.flint\n  1 file checked.\n  testMatch: src/*.test.ts - 0 matches\n  testPathIgnorePatterns: node_modules/, dist/ - 1 match\n  testRegex:  - 0 matches\nPattern:  - 0 matches\n",
+  "success": false
+}
+[debug]: [
+    Plugin {
+        details: PluginDetails {
+            id: "jest",
+            extensions: [
+                "js",
+                "ts",
+                "mjs",
+                "cjs",
+            ],
+            version: "0.0.1",
+            author: "Aditya Sakhare",
+        },
+        path: "./flint-plugins/test/jest",
+        kind: Test,
+    },
+]
+[info]: Running command: [
+    "jest",
+    "--config",
+    "/home/skadewdl3/Projects/flint/flint-tests/js/.flint/jest.config.js",
+    "--json",
+]
+[debug]: {
+  "status": 1,
+  "stdout": "",
+  "stderr": "No tests found, exiting with code 1\nRun with `--passWithNoTests` to exit with code 0\nIn /home/skadewdl3/Projects/flint/flint-tests/js/.flint\n  1 file checked.\n  testMatch: src/*.test.ts - 0 matches\n  testPathIgnorePatterns: node_modules/, dist/ - 1 match\n  testRegex:  - 0 matches\nPattern:  - 0 matches\n",
+  "success": false
+}
+[debug]: [
+    Plugin {
+        details: PluginDetails {
+            id: "jest",
+            extensions: [
+                "js",
+                "ts",
+                "mjs",
+                "cjs",
+            ],
+            version: "0.0.1",
+            author: "Aditya Sakhare",
+        },
+        path: "./flint-plugins/test/jest",
+        kind: Test,
+    },
+]
+[info]: Running command: [
+    "jest",
+    "--config",
+    "/home/skadewdl3/Projects/flint/flint-tests/js/.flint/jest.config.js",
+    "--json",
+]
+[debug]: {
+  "status": 1,
+  "stdout": "",
+  "stderr": "No tests found, exiting with code 1\nRun with `--passWithNoTests` to exit with code 0\nIn /home/skadewdl3/Projects/flint/flint-tests/js/.flint\n  1 file checked.\n  testMatch: src/*.test.ts - 0 matches\n  testPathIgnorePatterns: node_modules/, dist/ - 1 match\n  testRegex:  - 0 matches\nPattern:  - 0 matches\n",
+  "success": false
+}
+[debug]: null
+[debug]: [
+    Plugin {
+        details: PluginDetails {
+            id: "jest",
+            extensions: [
+                "js",
+                "ts",
+                "mjs",
+                "cjs",
+            ],
+            version: "0.0.1",
+            author: "Aditya Sakhare",
+        },
+        path: "./flint-plugins/test/jest",
+        kind: Test,
+    },
+]
+[info]: Running command: [
+    "jest",
+    "--config",
+    "/home/skadewdl3/Projects/flint/flint-tests/js/.flint/jest.config.js",
+    "--json",
+]
+[debug]: {
+  "status": 1,
+  "stdout": "",
+  "stderr": "No tests found, exiting with code 1\nRun with `--passWithNoTests` to exit with code 0\nIn /home/skadewdl3/Projects/flint/flint-tests/js/.flint\n  1 file checked.\n  testMatch: src/*.test.ts - 0 matches\n  testPathIgnorePatterns: node_modules/, dist/ - 1 match\n  testRegex:  - 0 matches\nPattern:  - 0 matches\n",
+  "success": false
+}
+[debug]: [
+    Plugin {
+        details: PluginDetails {
+            id: "jest",
+            extensions: [
+                "js",
+                "ts",
+                "mjs",
+                "cjs",
+            ],
+            version: "0.0.1",
+            author: "Aditya Sakhare",
+        },
+        path: "./flint-plugins/test/jest",
+        kind: Test,
+    },
+]
+[info]: Running command: [
+    "jest",
+    "--config",
+    "/home/skadewdl3/Projects/flint/flint-tests/js/.flint/jest.config.js",
+    "--json",
+]
+[debug]: {
+  "status": 1,
+  "stdout": "",
+  "stderr": "No tests found, exiting with code 1\nRun with `--passWithNoTests` to exit with code 0\nIn /home/skadewdl3/Projects/flint/flint-tests/js/.flint\n  1 file checked.\n  testMatch: src/*.test.ts - 0 matches\n  testPathIgnorePatterns: node_modules/, dist/ - 1 match\n  testRegex:  - 0 matches\nPattern:  - 0 matches\n",
+  "success": false
+}
+[debug]: "No tests found, exiting with code 1\nRun with `--passWithNoTests` to exit with code 0\nIn /home/skadewdl3/Projects/flint/flint-tests/js/.flint\n  1 file checked.\n  testMatch: src/*.test.ts - 0 matches\n  testPathIgnorePatterns: node_modules/, dist/ - 1 match\n  testRegex:  - 0 matches\nPattern:  - 0 matches\n"
+[debug]: [
+    Plugin {
+        details: PluginDetails {
+            id: "jest",
+            extensions: [
+                "js",
+                "ts",
+                "mjs",
+                "cjs",
+            ],
+            version: "0.0.1",
+            author: "Aditya Sakhare",
+        },
+        path: "./flint-plugins/test/jest",
+        kind: Test,
+    },
+]
+[info]: Running command: [
+    "jest",
+    "--config",
+    "/home/skadewdl3/Projects/flint/flint-tests/js/.flint/jest.config.js",
+    "--json",
+]
+[debug]: {
+  "status": 1,
+  "stdout": "",
+  "stderr": "No tests found, exiting with code 1\nRun with `--passWithNoTests` to exit with code 0\nIn /home/skadewdl3/Projects/flint/flint-tests/js/.flint\n  1 file checked.\n  testMatch: src/*.test.ts - 0 matches\n  testPathIgnorePatterns: node_modules/, dist/ - 1 match\n  testRegex:  - 0 matches\nPattern:  - 0 matches\n",
+  "success": false
+}
+[debug]: "No tests found, exiting with code 1\nRun with `--passWithNoTests` to exit with code 0\nIn /home/skadewdl3/Projects/flint/flint-tests/js/.flint\n  1 file checked.\n  testMatch: src/*.test.ts - 0 matches\n  testPathIgnorePatterns: node_modules/, dist/ - 1 match\n  testRegex:  - 0 matches\nPattern:  - 0 matches\n"
+[debug]: [
+    Plugin {
+        details: PluginDetails {
+            id: "jest",
+            extensions: [
+                "js",
+                "ts",
+                "mjs",
+                "cjs",
+            ],
+            version: "0.0.1",
+            author: "Aditya Sakhare",
+        },
+        path: "./flint-plugins/test/jest",
+        kind: Test,
+    },
+]
+[info]: Running command: [
+    "jest",
+    "--config",
+    "/home/skadewdl3/Projects/flint/flint-tests/js/.flint/jest.config.js",
+    "--json",
+]
+[debug]: {
+  "status": 1,
+  "stdout": "",
+  "stderr": "No tests found, exiting with code 1\nRun with `--passWithNoTests` to exit with code 0\nIn /home/skadewdl3/Projects/flint/flint-tests/js/.flint\n  1 file checked.\n  testMatch: src/*.test.ts - 0 matches\n  testPathIgnorePatterns: node_modules/, dist/ - 1 match\n  testRegex:  - 0 matches\nPattern:  - 0 matches\n",
+  "success": false
+}
+[debug]: "No tests found, exiting with code 1\nRun with `--passWithNoTests` to exit with code 0\nIn /home/skadewdl3/Projects/flint/flint-tests/js/.flint\n  1 file checked.\n  testMatch: src/*.test.ts - 0 matches\n  testPathIgnorePatterns: node_modules/, dist/ - 1 match\n  testRegex:  - 0 matches\nPattern:  - 0 matches\n"

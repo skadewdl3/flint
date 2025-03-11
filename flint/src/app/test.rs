@@ -7,7 +7,7 @@ use std::{cell::RefCell, fs, path::Path, sync::Arc};
 use threadpool::ThreadPool;
 
 use crate::{
-    error, get_flag, info, success,
+    debug, error, get_flag, info, success,
     util::{
         handle_key_events, handle_mouse_event,
         plugin::{self, Plugin, PluginKind},
@@ -84,6 +84,8 @@ impl AppWidget for TestWidget {
                 .collect(),
         );
 
+        debug!("{:#?}", run_plugins);
+
         for plugin in run_plugins {
             let plugin = plugin.clone();
             let toml_clone = toml.clone();
@@ -125,7 +127,8 @@ impl AppWidget for TestWidget {
                                 }
                                 Ok(res) => {
                                     for (file_name, contents) in res {
-                                        let flint_path = Path::new("./.flint/reports");
+                                        let flint_path =
+                                            get_flag!(current_dir).join("./.flint/reports");
                                         let file_path = flint_path.join(&file_name);
 
                                         if let Some(parent) = file_path.parent() {

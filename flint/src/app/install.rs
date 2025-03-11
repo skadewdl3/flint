@@ -17,6 +17,7 @@ use ratatui::prelude::*;
 use ratatui::widgets::WidgetRef;
 
 #[derive(Debug)]
+#[allow(unused)]
 pub struct InstallWidget {
     logs: LogsWidget,
     args: InstallArgs,

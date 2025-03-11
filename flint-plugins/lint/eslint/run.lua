@@ -1,5 +1,5 @@
 function Run(config)
-    return { "npx", "eslint", "--help", "-y" }
+    return { "npx", "eslint", "--yes" }
 end
 
 function Eval(output)

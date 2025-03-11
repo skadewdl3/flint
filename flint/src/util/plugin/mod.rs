@@ -1,5 +1,5 @@
 use super::toml::Config;
-use crate::app::{AppError, AppResult};
+use crate::app::AppResult;
 
 pub mod find;
 pub mod helpers;
@@ -12,9 +12,7 @@ pub mod report;
 pub mod run;
 pub mod validate;
 
-use helpers::add_helper_globals;
-
-use mlua::{Error, Function, Lua, LuaSerdeExt, Table};
+use mlua::{Lua, LuaSerdeExt, Table};
 use serde::{Deserialize, Serialize};
 use std::{
     collections::{HashMap, HashSet},
@@ -123,12 +121,15 @@ impl Plugin {
 }
 
 pub fn list_from_config(config: &Arc<Config>) -> Vec<Plugin> {
-    let linter_ids = config.rules.keys().collect::<HashSet<&String>>();
+    let mut plugin_ids = Vec::new();
+    plugin_ids.extend(config.rules.keys());
+    plugin_ids.extend(config.tests.keys());
+
     let plugins = find::list().unwrap();
 
     plugins
         .iter()
-        .filter(|plugin| linter_ids.contains(&plugin.details.id))
+        .filter(|plugin| plugin_ids.contains(&&plugin.details.id))
         .cloned()
         .collect()
 }

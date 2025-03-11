@@ -1,5 +1,6 @@
 use flint_macros::{ui, widget};
 use ratatui::text::{Line, Text};
+use ratatui::widgets::Wrap;
 use ratatui::{
     buffer::Buffer,
     layout::Rect,
@@ -111,7 +112,7 @@ impl StatefulWidget for LogsWidget {
         });
 
         ui!((area, buffer) => {
-           Paragraph::new(text, block: block)
+           Paragraph::new(text, block: block, wrap: Wrap { trim: true })
         });
     }
 }

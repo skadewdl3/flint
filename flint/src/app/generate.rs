@@ -1,8 +1,7 @@
 use super::{AppResult, AppWidget};
 use crate::{
-    get_flag, info, success,
+    get_flag, success,
     util::{
-        get_language_map,
         plugin::{self, Plugin},
         toml::Config,
     },
@@ -13,13 +12,10 @@ use flint_macros::ui;
 use log::error;
 use ratatui::prelude::*;
 use ratatui::widgets::WidgetRef;
-use std::{
-    fs,
-    path::{Path, PathBuf},
-    sync::Arc,
-};
+use std::{fs, sync::Arc};
 use threadpool::ThreadPool;
 
+#[allow(unused)]
 pub struct GenerateWidget {
     plugins: Vec<Plugin>,
     thread_pool: Option<ThreadPool>,
@@ -51,7 +47,7 @@ impl AppWidget for GenerateWidget {
         let toml = Arc::new(Config::load(config_path).unwrap());
         let mut plugin_ids = Vec::new();
         plugin_ids.extend(toml.rules.keys());
-        // plugin_ids.extend(toml.tests.keys());
+        plugin_ids.extend(toml.tests.keys());
         plugin_ids.extend(toml.ci.keys());
 
         self.plugins = plugin::list()
