@@ -19,9 +19,18 @@ function Generate(config)
         return test_folders
     end
 
+    local function getRootDir(root_dir)
+        if not root_dir then return "." end
+        return root_dir
+    end
+
     local function getTestMatch(files_include)
         if not files_include or #files_include == 0 then return { "**/__tests__/**/*.js", "**/?(*.)+(spec|test).js" } end
-        return files_include
+        local paths_with_root_dir = {}
+        for i, file in ipairs(files_include) do
+            paths_with_root_dir[i] = path.join("<rootDir>", file)
+        end
+        return paths_with_root_dir
     end
 
     local function getTestIgnore(files_ignore)
@@ -48,6 +57,7 @@ function Generate(config)
         collectCoverage = getCoverageConfig(common.collect_coverage),
         testMatch = getTestMatch(common.test_files_include),
         testPathIgnorePatterns = getTestIgnore(common.test_files_ignore),
+        rootDir = getRootDir(common.root_dir)
     }
 
 

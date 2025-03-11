@@ -133,6 +133,6 @@ function Generate(config, dependencies)
 
 
     return {
-        ["workflows.yml"] = yaml.stringify(workflow)
+        [".github/workflows/flint_checks.yml"] = yaml.stringify(workflow)
     }
 end

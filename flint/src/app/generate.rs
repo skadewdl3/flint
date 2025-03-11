@@ -67,7 +67,7 @@ impl AppWidget for GenerateWidget {
                 match result {
                     Ok(res) => {
                         // TODO: Ask user if we want to overwrite files
-                        let flint_path = get_flag!(current_dir).join(".flint");
+                        let flint_path = get_flag!(current_dir);
                         for (file_name, contents) in res {
                             fs::create_dir_all(&flint_path).unwrap();
                             std::fs::write(flint_path.join(file_name), contents).unwrap();
