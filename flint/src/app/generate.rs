@@ -1,5 +1,5 @@
 use super::{AppResult, AppWidget};
-use crate::info;
+use crate::{error, info};
 use crate::{
     get_flag, success,
     util::{
@@ -10,7 +10,6 @@ use crate::{
 };
 use clap::Parser;
 use flint_macros::ui;
-use log::error;
 use ratatui::prelude::*;
 use ratatui::widgets::WidgetRef;
 use std::{fs, sync::Arc};
