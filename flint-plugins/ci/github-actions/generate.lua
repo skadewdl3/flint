@@ -103,9 +103,11 @@ function Generate(config, dependencies)
     table.insert(job.steps, {
         name = "Run Tests",
         run =
-            "chmod +x ./flint" ..
-            "./flint install" ..
-            "./flint test --test"
+        [[
+        chmod +x ./flint
+        ./flint install
+        ./flint test --test
+        ]]
     })
 
     table.insert(job.steps, {
