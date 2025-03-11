@@ -14,6 +14,7 @@ pub fn clone_plugin_folders(
     repo_url: &str,
     plugin_kind: PluginKind,
     plugin_ids: Vec<&String>,
+    branch: &str,
 ) -> AppResult<PathBuf> {
     info!(
         "Starting plugin clone process for {} plugins",
@@ -62,6 +63,8 @@ pub fn clone_plugin_folders(
         "clone",
         "--filter=blob:none",
         "--sparse",
+        "--branch",
+        branch,
         repo_url,
         &temp_path
     ]
@@ -209,8 +212,13 @@ pub fn download_plugins(kind: PluginKind, ids: Vec<&String>) -> Result<(), Box<d
         kind.to_string()
     );
     let repo_url = "https://github.com/skadewdl3/flint";
+    let config = Config::load(&get_flag!(current_dir).join("flint.toml"))?;
+    let branch = config.flint.plugins_branch;
+
     info!("Source repository: {}", repo_url);
-    clone_plugin_folders(repo_url, kind.clone(), ids)?;
+    info!("Branch: {}", branch);
+
+    clone_plugin_folders(repo_url, kind.clone(), ids, &branch)?;
     success!("Completed downloading {} plugins", kind.to_string());
     Ok(())
 }
