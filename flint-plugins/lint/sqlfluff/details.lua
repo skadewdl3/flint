@@ -13,3 +13,11 @@ function Generate()
     return {
     }
 end
+
+function Dependencies()
+    return {
+        pip = {
+            { name = "sqlfluff", version = "latest" }
+        },
+    }
+end

@@ -813,3 +813,31 @@ Error message: Application error: Plugin jest is missing required file: validate
   "success": true
 }
 [debug]: null
+[info]: Generating Jest configuration
+[debug]: {
+  "npm": [
+    {
+      "name": "jest",
+      "version": "^29.0.0"
+    }
+  ]
+}
+[info]: Generating jest config
+[info]: result: Ok({"jest.config.js": "import jest from 'jest';\n\nexport default {\n  \"testEnvironment\": \"node\",\n  \"testMatch\": [\n    \"src/*.test.js\"\n  ],\n  \"testPathIgnorePatterns\": [\n    \"node_modules/\",\n    \"dist/\"\n  ],\n  \"verbose\": true,\n  \"collectCoverage\": true\n};"})
+[success]: Generated jest config successfully
+[info]: Generating github-actions config
+[info]: result: Ok({"workflows.yml": "on:\n  pull_request:\n    branches:\n    - main\n  push:\n    branches:\n    - main\nname: Flint CI\njobs:\n  flint_checks:\n    steps:\n    - name: Checkout code\n      uses: actions/checkout@v3\n    - name: Install Git\n      run: \"                        sudo apt-get update\\n                        sudo apt-get install -y git\\n                        \"\n    - uses: actions/setup-node@v3\n      name: Install Node.js\n      with:\n        node-version: 18.x\n    - name: Install Jest and ESLint\n      run: \"                                                npm install -g jest eslint --no-fund --no-audit --silent\\n                                                echo \\\"Node.js, Jest, and ESLint installed successfully\\\"\\n                                            \"\n    - uses: robinraju/release-downloader@v1\n      name: Install Flint\n      with:\n        latest: true\n        repository: skadewdl3/flint\n        fileName: flint\n        out-file-path: .\n        prerelease: true\n    - name: Run Tests\n      run: \"                            chmod +x ./flint\\n                            ./flint install\\n                            ./flint test --test\\n                        \"\n    - uses: actions/upload-artifact@v4\n      name: Upload Test Results\n      with:\n        name: Test Results\n        path: .flint/reports/reports/report.json\n    - uses: actions/upload-artifact@v4\n      name: Upload Logs\n      with:\n        name: Logs\n        path: logs.txt\n    name: Flint Checks\n    runs-on: ubuntu-latest\n"})
+[success]: Generated github-actions config successfully
+[info]: Generating Jest configuration
+[debug]: {
+  "npm": [
+    {
+      "name": "jest",
+      "version": "^29.0.0"
+    }
+  ]
+}
+[info]: Generating jest config
+[success]: Generated jest config successfully
+[info]: Generating github-actions config
+[success]: Generated github-actions config successfully

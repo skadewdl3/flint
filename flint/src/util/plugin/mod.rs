@@ -3,8 +3,10 @@ use crate::app::AppResult;
 
 pub mod find;
 pub mod helpers;
+use deps::Dependency;
 use eval::PluginEvalOutput;
 pub use find::*;
+pub mod deps;
 pub mod download;
 pub mod eval;
 pub mod generate;
@@ -14,12 +16,7 @@ pub mod validate;
 
 use mlua::{Lua, LuaSerdeExt, Table};
 use serde::{Deserialize, Serialize};
-use std::{
-    collections::{HashMap, HashSet},
-    path::PathBuf,
-    process::Output,
-    sync::Arc,
-};
+use std::{collections::HashMap, path::PathBuf, process::Output, sync::Arc};
 
 #[derive(Serialize, Deserialize, Debug, Ord, PartialOrd, Eq, PartialEq, Clone)]
 pub struct PluginDetails {
@@ -97,6 +94,10 @@ impl Plugin {
         }
 
         plugin_config.clone()
+    }
+
+    pub fn get_dependencies(&self) -> AppResult<HashMap<String, Vec<Dependency>>> {
+        deps::get_dependencies(&self)
     }
 
     pub fn generate(&self, toml: &Arc<Config>) -> AppResult<HashMap<String, String>> {
