@@ -23,7 +23,7 @@ pub struct PluginEvalOutput {
 
 pub fn eval(plugin: &Plugin, output: Output) -> AppResult<PluginEvalOutput> {
     let lua = Lua::new();
-    add_helper_globals(&lua);
+    add_helper_globals(&lua)?;
 
     let eval: Result<Function, Error> = {
         let contents = std::fs::read_to_string(plugin.path.join("run.lua"))

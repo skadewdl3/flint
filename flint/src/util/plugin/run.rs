@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 pub fn run<'a>(plugin: &Plugin, toml: &Arc<Config>) -> AppResult<Vec<String>> {
     let lua = Lua::new();
-    add_helper_globals(&lua);
+    add_helper_globals(&lua)?;
     let plugin_config = plugin.get_config_lua(&lua, toml);
 
     let run: Result<Function, Error> = {

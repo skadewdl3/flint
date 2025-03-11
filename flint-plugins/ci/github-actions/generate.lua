@@ -1,3 +1,6 @@
+local log = require("log")
+local yaml = require("yaml")
+
 local function get_dependency_install_steps(dependencies)
     local steps = {}
     -- TODO: Add support for system dependencies
@@ -99,11 +102,10 @@ function Generate(config, dependencies)
     -- Run Flint Checks
     table.insert(job.steps, {
         name = "Run Tests",
-        run = [[
-        chmod +x ./flint
-        ./flint install
-        ./flint test --test
-        ]]
+        run =
+            "chmod +x ./flint" ..
+            "./flint install" ..
+            "./flint test --test"
     })
 
     table.insert(job.steps, {

@@ -1,3 +1,6 @@
+local log = require("log")
+local json = require("json")
+
 function Run(config)
     return { "npx", "eslint", "--yes" }
 end

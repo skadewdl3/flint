@@ -1,3 +1,5 @@
+local log = require("log")
+
 function Details()
     local details = {
         id = "sqlfluff",

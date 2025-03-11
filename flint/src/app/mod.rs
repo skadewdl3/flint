@@ -46,6 +46,9 @@ pub enum AppError {
 
     #[error("User requested exit")]
     Exit,
+
+    #[error("Lua error: {0}")]
+    LuaError(#[from] mlua::Error),
 }
 
 // Convert Box<dyn Error> to AppError using a catch-all approach

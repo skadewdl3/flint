@@ -3,7 +3,7 @@ use crossterm::event::{KeyCode, MouseEventKind};
 use flint_macros::ui;
 use ratatui::prelude::*;
 use ratatui::widgets::WidgetRef;
-use std::{cell::RefCell, fs, path::Path, sync::Arc};
+use std::{cell::RefCell, fs, sync::Arc};
 use threadpool::ThreadPool;
 
 use crate::{

@@ -12,7 +12,7 @@ pub struct Dependency {
 
 pub fn get_dependencies(plugin: &Plugin) -> AppResult<HashMap<String, Vec<Dependency>>> {
     let lua = Lua::new();
-    add_helper_globals(&lua);
+    add_helper_globals(&lua)?;
 
     let deps_func: Result<Function, Error> = {
         let contents = std::fs::read_to_string(plugin.path.join("details.lua"))?;
@@ -104,7 +104,7 @@ fn should_replace_version(existing: &str, new: &str) -> bool {
         let version_str = v.trim_start_matches(|c| !char::is_digit(c, 10));
         match semver::Version::parse(version_str) {
             Ok(v) => Some(v),
-            Err(e) => None,
+            Err(_e) => None,
         }
     };
 
@@ -147,7 +147,7 @@ fn extract_minimum_version(version_range: &str) -> Option<semver::Version> {
         let ver_str = &version_range[1..];
         return match semver::Version::parse(ver_str) {
             Ok(v) => Some(v),
-            Err(e) => None,
+            Err(_e) => None,
         };
     }
 
@@ -156,7 +156,7 @@ fn extract_minimum_version(version_range: &str) -> Option<semver::Version> {
         let ver_str = &version_range[1..];
         return match semver::Version::parse(ver_str) {
             Ok(v) => Some(v),
-            Err(e) => None,
+            Err(_e) => None,
         };
     }
 
@@ -178,7 +178,7 @@ fn extract_minimum_version(version_range: &str) -> Option<semver::Version> {
             };
             return match semver::Version::parse(&version_str) {
                 Ok(v) => Some(v),
-                Err(e) => None,
+                Err(_e) => None,
             };
         }
     }
@@ -188,13 +188,13 @@ fn extract_minimum_version(version_range: &str) -> Option<semver::Version> {
         let ver_str = version_range.trim_start_matches(|c| !char::is_digit(c, 10));
         return match semver::Version::parse(ver_str) {
             Ok(v) => Some(v),
-            Err(e) => None,
+            Err(_e) => None,
         };
     }
 
     // Default fallback - try to parse as is
     match semver::Version::parse(version_range) {
         Ok(v) => Some(v),
-        Err(e) => None,
+        Err(_e) => None,
     }
 }

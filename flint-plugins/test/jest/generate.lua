@@ -1,3 +1,6 @@
+local log = require("log")
+local path = require("path")
+local json = require("json")
 function Generate(config)
     local common = config
     log.info("Generating Jest configuration")

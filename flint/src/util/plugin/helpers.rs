@@ -1,15 +1,15 @@
 use directories::UserDirs;
-use mlua::{Lua, Value};
+use mlua::{Function, IntoLuaMulti, Lua, Table, Value};
 use serde_json::to_string_pretty;
 
-use crate::{debug, error, get_flag, info, success, warn};
+use crate::{app::AppResult, debug, error, get_flag, info, success, warn};
 
-pub fn add_helper_globals(lua: &Lua) {
-    let log = lua.create_table().unwrap();
-    let json = lua.create_table().unwrap();
-    let toml = lua.create_table().unwrap();
-    let yaml = lua.create_table().unwrap();
-    let path = lua.create_table().unwrap();
+pub fn add_helper_globals(lua: &Lua) -> AppResult<()> {
+    let log = lua.create_table()?;
+    let json = lua.create_table()?;
+    let toml = lua.create_table()?;
+    let yaml = lua.create_table()?;
+    let path = lua.create_table()?;
 
     let create_log_fn = |kind| {
         lua.create_function(move |_, message: String| {
@@ -26,187 +26,201 @@ pub fn add_helper_globals(lua: &Lua) {
         .unwrap()
     };
 
-    let debug_print = lua
-        .create_function(|_, value: Value| match to_string_pretty(&value) {
-            Ok(json) => {
-                debug!("{}", json);
-                Ok(())
-            }
-            Err(err) => Err(mlua::Error::external(err)),
-        })
-        .unwrap();
+    // Define debug_print function
+    let debug_print = lua.create_function(|_, value: Value| match to_string_pretty(&value) {
+        Ok(json) => {
+            debug!("{}", json);
+            Ok(())
+        }
+        Err(err) => Err(mlua::Error::external(err)),
+    })?;
 
-    let json_stringify = lua
-        .create_function(|_, value: Value| match to_string_pretty(&value) {
-            Ok(json) => Ok(json),
-            Err(err) => Err(mlua::Error::external(err)),
-        })
-        .unwrap();
-    let toml_stringify = lua
-        .create_function(|_, value: Value| match toml::to_string_pretty(&value) {
+    let json_stringify = lua.create_function(|_, value: Value| match to_string_pretty(&value) {
+        Ok(json) => Ok(json),
+        Err(err) => Err(mlua::Error::external(err)),
+    })?;
+    let toml_stringify =
+        lua.create_function(|_, value: Value| match toml::to_string_pretty(&value) {
             Ok(toml_str) => Ok(toml_str),
             Err(err) => Err(mlua::Error::external(err)),
-        })
-        .unwrap();
+        })?;
 
-    let yaml_stringify = lua
-        .create_function(|_, value: Value| match serde_yaml::to_string(&value) {
+    let yaml_stringify =
+        lua.create_function(|_, value: Value| match serde_yaml::to_string(&value) {
             Ok(yaml_str) => Ok(yaml_str),
             Err(err) => Err(mlua::Error::external(err)),
-        })
-        .unwrap();
+        })?;
 
-    let json_parse = lua
-        .create_function(|lua, json_str: String| {
-            match serde_json::from_str::<serde_json::Value>(&json_str) {
-                Ok(value) => serde_value_to_lua_value(lua, &value),
-                Err(err) => Err(mlua::Error::external(err)),
-            }
-        })
-        .unwrap();
+    let json_parse = lua.create_function(|lua, json_str: String| {
+        match serde_json::from_str::<serde_json::Value>(&json_str) {
+            Ok(value) => serde_value_to_lua_value(lua, &value),
+            Err(err) => Err(mlua::Error::external(err)),
+        }
+    })?;
 
-    let toml_parse = lua
-        .create_function(
-            |lua, toml_str: String| match toml::from_str::<toml::Value>(&toml_str) {
-                Ok(value) => toml_value_to_lua_value(lua, &value),
-                Err(err) => Err(mlua::Error::external(err)),
-            },
-        )
-        .unwrap();
+    let toml_parse = lua.create_function(|lua, toml_str: String| {
+        match toml::from_str::<toml::Value>(&toml_str) {
+            Ok(value) => toml_value_to_lua_value(lua, &value),
+            Err(err) => Err(mlua::Error::external(err)),
+        }
+    })?;
 
-    let yaml_parse = lua
-        .create_function(|lua, yaml_str: String| {
-            match serde_yaml::from_str::<serde_yaml::Value>(&yaml_str) {
-                Ok(value) => yaml_value_to_lua_value(lua, &value),
-                Err(err) => Err(mlua::Error::external(err)),
-            }
-        })
-        .unwrap();
+    let yaml_parse = lua.create_function(|lua, yaml_str: String| {
+        match serde_yaml::from_str::<serde_yaml::Value>(&yaml_str) {
+            Ok(value) => yaml_value_to_lua_value(lua, &value),
+            Err(err) => Err(mlua::Error::external(err)),
+        }
+    })?;
 
-    let cwd = lua
-        .create_function(|lua, ()| {
-            let cwd = get_flag!(current_dir);
-            Ok(lua.create_string(cwd.to_string_lossy().as_ref())?)
-        })
-        .unwrap();
+    let cwd = lua.create_function(|lua, ()| {
+        let cwd = get_flag!(current_dir);
+        Ok(lua.create_string(cwd.to_string_lossy().as_ref())?)
+    })?;
 
-    let path_resolve = lua
-        .create_function(|lua, paths: mlua::Variadic<String>| {
-            use std::path::{Path, PathBuf};
+    let path_resolve = lua.create_function(|lua, paths: mlua::Variadic<String>| {
+        use std::path::{Path, PathBuf};
 
-            let cwd = get_flag!(current_dir);
-            let mut result = PathBuf::new();
-            let mut absolute = false;
+        let cwd = get_flag!(current_dir);
+        let mut result = PathBuf::new();
+        let mut absolute = false;
 
-            // Process each path segment similar to Node.js path.resolve
-            for path in paths.iter() {
-                let path_obj = Path::new(path);
+        // Process each path segment similar to Node.js path.resolve
+        for path in paths.iter() {
+            let path_obj = Path::new(path);
 
-                // If path is absolute, reset result and set absolute flag
-                if path_obj.is_absolute() {
-                    result = PathBuf::from(path);
-                    absolute = true;
-                } else if path.starts_with("~")
-                    && path.len() > 1
-                    && (path.len() == 1 || path.chars().nth(1) == Some('/'))
-                {
-                    // Handle home directory with ~
-                    match UserDirs::new() {
-                        Some(user_dirs) => {
-                            let home = user_dirs.home_dir();
-                            if path.len() > 1 {
-                                result = home.join(&path[2..]);
-                            } else {
-                                result = home.to_path_buf();
-                            }
-                            absolute = true;
+            // If path is absolute, reset result and set absolute flag
+            if path_obj.is_absolute() {
+                result = PathBuf::from(path);
+                absolute = true;
+            } else if path.starts_with("~")
+                && path.len() > 1
+                && (path.len() == 1 || path.chars().nth(1) == Some('/'))
+            {
+                // Handle home directory with ~
+                match UserDirs::new() {
+                    Some(user_dirs) => {
+                        let home = user_dirs.home_dir();
+                        if path.len() > 1 {
+                            result = home.join(&path[2..]);
+                        } else {
+                            result = home.to_path_buf();
                         }
-                        None => (),
+                        absolute = true;
                     }
-                } else {
-                    // For relative paths, append to result
-                    if !absolute {
-                        // If this is the first path and it's relative, start from cwd
-                        if result.as_os_str().is_empty() {
-                            result = cwd.clone();
-                        }
+                    None => (),
+                }
+            } else {
+                // For relative paths, append to result
+                if !absolute {
+                    // If this is the first path and it's relative, start from cwd
+                    if result.as_os_str().is_empty() {
+                        result = cwd.clone();
                     }
-                    result = result.join(path);
                 }
+                result = result.join(path);
+            }
+        }
+
+        // If no paths provided, return cwd
+        if result.as_os_str().is_empty() {
+            result = cwd.clone();
+        }
+
+        // Normalize the path
+        if let Ok(canonicalized) = result.canonicalize() {
+            result = canonicalized;
+        }
+
+        Ok(lua.create_string(result.to_string_lossy().as_ref())?)
+    })?;
+    let path_join = lua.create_function(|lua, paths: mlua::Variadic<String>| {
+        use std::path::Path;
+
+        // If there are no path segments, return empty string
+        if paths.len() == 0 {
+            return Ok(lua.create_string("")?);
+        }
+
+        // Node.js path.join() just combines segments with the platform-specific separator
+        // and normalizes the result, but it doesn't resolve to absolute paths
+        let mut result = String::new();
+
+        for (i, path) in paths.iter().enumerate() {
+            // Skip empty segments (but preserve them at the beginning)
+            if path.is_empty() && i > 0 {
+                continue;
             }
 
-            // If no paths provided, return cwd
-            if result.as_os_str().is_empty() {
-                result = cwd.clone();
+            // Add separator between segments
+            if i > 0 && !result.is_empty() && !result.ends_with(std::path::MAIN_SEPARATOR) {
+                result.push(std::path::MAIN_SEPARATOR);
             }
 
-            // Normalize the path
-            if let Ok(canonicalized) = result.canonicalize() {
-                result = canonicalized;
-            }
+            // Add the path segment
+            result.push_str(path);
+        }
 
-            Ok(lua.create_string(result.to_string_lossy().as_ref())?)
-        })
-        .unwrap();
-    let path_join = lua
-        .create_function(|lua, paths: mlua::Variadic<String>| {
-            use std::path::Path;
+        // Normalize the path (remove unnecessary separators/dots)
+        let normalized = Path::new(&result).to_string_lossy();
 
-            // If there are no path segments, return empty string
-            if paths.len() == 0 {
-                return Ok(lua.create_string("")?);
-            }
+        Ok(lua.create_string(normalized.as_ref())?)
+    })?;
 
-            // Node.js path.join() just combines segments with the platform-specific separator
-            // and normalizes the result, but it doesn't resolve to absolute paths
-            let mut result = String::new();
+    log.set("info", create_log_fn("info"))?;
+    log.set("error", create_log_fn("error"))?;
+    log.set("warn", create_log_fn("warn"))?;
+    log.set("success", create_log_fn("success"))?;
+    log.set("debug", debug_print)?;
 
-            for (i, path) in paths.iter().enumerate() {
-                // Skip empty segments (but preserve them at the beginning)
-                if path.is_empty() && i > 0 {
-                    continue;
-                }
+    json.set("stringify", json_stringify)?;
+    json.set("parse", json_parse)?;
 
-                // Add separator between segments
-                if i > 0 && !result.is_empty() && !result.ends_with(std::path::MAIN_SEPARATOR) {
-                    result.push(std::path::MAIN_SEPARATOR);
-                }
+    toml.set("stringify", toml_stringify)?;
+    toml.set("parse", toml_parse)?;
 
-                // Add the path segment
-                result.push_str(path);
-            }
+    yaml.set("stringify", yaml_stringify)?;
+    yaml.set("parse", yaml_parse)?;
 
-            // Normalize the path (remove unnecessary separators/dots)
-            let normalized = Path::new(&result).to_string_lossy();
+    path.set("cwd", cwd)?;
+    path.set("resolve", path_resolve)?;
+    path.set("join", path_join)?;
 
-            Ok(lua.create_string(normalized.as_ref())?)
-        })
-        .unwrap();
+    let package: Table = lua.globals().get("package")?;
+    let loaded: Table = package.get("loaded")?;
 
-    log.set("info", create_log_fn("info")).unwrap();
-    log.set("error", create_log_fn("error")).unwrap();
-    log.set("warn", create_log_fn("warn")).unwrap();
-    log.set("success", create_log_fn("success")).unwrap();
-    log.set("debug", debug_print).unwrap();
+    // Register our module in package.loaded
+    loaded.set("log", log)?;
+    loaded.set("json", json)?;
+    loaded.set("toml", toml)?;
+    loaded.set("yaml", yaml)?;
+    loaded.set("path", path)?;
 
-    json.set("stringify", json_stringify).unwrap();
-    json.set("parse", json_parse).unwrap();
+    // Custom module loader to allow our modules to work
+    lua.load(
+        r#"
+        -- Define our custom module resolver system
+        local originalRequire = require
 
-    toml.set("stringify", toml_stringify).unwrap();
-    toml.set("parse", toml_parse).unwrap();
+        function require(moduleName)
+            -- Check if it's in package.loaded first
+            if package.loaded[moduleName] then
+                return package.loaded[moduleName]
+            end
 
-    yaml.set("stringify", yaml_stringify).unwrap();
-    yaml.set("parse", yaml_parse).unwrap();
+            -- If not found, fall back to the original require
+            return originalRequire(moduleName)
+        end
+    "#,
+    )
+    .exec()?;
 
-    path.set("cwd", cwd).unwrap();
-    path.set("resolve", path_resolve).unwrap();
-    path.set("join", path_join).unwrap();
+    // loaded.set("log", log_table.clone())?;
+    // preload.set(
+    //     "log",
+    //     lua.create_function(move |lua, _: ()| Ok(log_table.clone()))?,
+    // )?;
 
-    lua.globals().set("log", log).unwrap();
-    lua.globals().set("json", json).unwrap();
-    lua.globals().set("toml", toml).unwrap();
-    lua.globals().set("yaml", yaml).unwrap();
-    lua.globals().set("path", path).unwrap();
+    Ok(())
 }
 
 // JSON value to Lua value converter

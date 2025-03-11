@@ -1,3 +1,4 @@
+use super::helpers::add_helper_globals;
 use super::validate::validate_plugin_structure;
 use super::{Plugin, PluginDetails, PluginKind};
 use crate::app::AppResult;
@@ -45,6 +46,7 @@ pub fn dir() -> PathBuf {
 
 pub fn list<'a>() -> AppResult<&'a BTreeSet<Plugin>> {
     let lua = Lua::new();
+    add_helper_globals(&lua);
 
     if PLUGINS.get().is_some() {
         return Ok(PLUGINS.get().unwrap());
