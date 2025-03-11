@@ -1,3 +1,5 @@
+local toml = require("toml")
+
 function Generate(config)
     config.common = nil
 

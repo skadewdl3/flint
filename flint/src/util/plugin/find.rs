@@ -1,8 +1,9 @@
+use super::helpers::add_helper_globals;
 use super::validate::validate_plugin_structure;
 use super::{Plugin, PluginDetails, PluginKind};
 use crate::app::AppResult;
 use crate::util::toml::Config;
-use crate::{debug, error};
+use crate::{debug, error, get_flag};
 use directories::ProjectDirs;
 use mlua::{Function, Lua, LuaSerdeExt};
 use std::{
@@ -45,6 +46,7 @@ pub fn dir() -> PathBuf {
 
 pub fn list<'a>() -> AppResult<&'a BTreeSet<Plugin>> {
     let lua = Lua::new();
+    add_helper_globals(&lua);
 
     if PLUGINS.get().is_some() {
         return Ok(PLUGINS.get().unwrap());
@@ -53,7 +55,7 @@ pub fn list<'a>() -> AppResult<&'a BTreeSet<Plugin>> {
     let plugins = ["lint", "test", "ci", "report"]
         .iter()
         .flat_map(|dir_name| {
-            let plugins_dir = dir().join(dir_name);
+            let plugins_dir = get_flag!(plugins_dir).join(dir_name);
             if !plugins_dir.exists() {
                 error!("{} directory does not exist", dir_name);
                 return vec![];

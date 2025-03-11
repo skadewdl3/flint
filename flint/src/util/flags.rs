@@ -30,7 +30,7 @@ macro_rules! get_flag {
         use $crate::util::flags::GLOBAL_FLAGS;
 
         // Access the flag value through the RwLock read guard
-        &GLOBAL_FLAGS.read().unwrap().$name
+        &GLOBAL_FLAGS.read().unwrap().$name.clone()
     }};
 }
 

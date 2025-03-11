@@ -7,3 +7,11 @@ function Details()
     }
     return details
 end
+
+function Dependencies()
+    return {
+        npm = {
+            { name = "jest", version = "latest" },
+        },
+    }
+end

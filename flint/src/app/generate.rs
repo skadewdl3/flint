@@ -1,4 +1,5 @@
 use super::{AppResult, AppWidget};
+use crate::{error, info};
 use crate::{
     get_flag, success,
     util::{
@@ -9,7 +10,6 @@ use crate::{
 };
 use clap::Parser;
 use flint_macros::ui;
-use log::error;
 use ratatui::prelude::*;
 use ratatui::widgets::WidgetRef;
 use std::{fs, sync::Arc};
@@ -65,12 +65,10 @@ impl AppWidget for GenerateWidget {
             pool.execute(move || {
                 let result = plugin.generate(&toml_clone);
                 info!("Generating {} config", plugin.details.id);
-                info!("result: {:?}", result);
                 match result {
                     Ok(res) => {
                         // TODO: Ask user if we want to overwrite files
                         let flint_path = get_flag!(current_dir).join(".flint");
-                        // info!("Generating {} config", plugin.details.id);
                         for (file_name, contents) in res {
                             fs::create_dir_all(&flint_path).unwrap();
                             std::fs::write(flint_path.join(file_name), contents).unwrap();
@@ -78,7 +76,10 @@ impl AppWidget for GenerateWidget {
                         success!("Generated {} config successfully", plugin.details.id)
                     }
                     Err(err) => {
-                        error!("Error occurred: {}", err);
+                        error!(
+                            "Error while generating {} config: {}",
+                            plugin.details.id, err
+                        );
                     }
                 }
             });

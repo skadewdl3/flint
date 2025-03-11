@@ -1,5 +1,3 @@
-use std::path::Path;
-
 use app::{App, AppArgs};
 use clap::Parser;
 use util::flags::handle_global_flags;

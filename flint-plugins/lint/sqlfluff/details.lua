@@ -1,3 +1,5 @@
+local log = require("log")
+
 function Details()
     local details = {
         id = "sqlfluff",
@@ -11,5 +13,13 @@ end
 function Generate()
     log.info("Generating sqlfluff linter file")
     return {
+    }
+end
+
+function Dependencies()
+    return {
+        pip = {
+            { name = "sqlfluff", version = "latest" }
+        },
     }
 end

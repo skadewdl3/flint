@@ -1,3 +1,7 @@
+local log = require("log")
+local path = require("path")
+local json = require("json")
+
 function Run(config)
     local cwd = path.cwd()
     local jest_config_location = path.join(cwd, ".flint", "jest.config.js")

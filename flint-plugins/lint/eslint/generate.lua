@@ -1,7 +1,9 @@
+local log = require("log")
+local json = require("json")
+
 function Generate(config)
     local common = config.common
     log.info("Generating ESLint configuration")
-    -- log.debug(common)
 
     --Import necessary plugins
     local imports = {
@@ -24,7 +26,7 @@ function Generate(config)
         if lang_ext and extension_map[lang_ext] then
             local plugin_name = extension_map[lang_ext]
             if not imports[plugin_name] then
-                imports[plugin_name] = "@stylistic/eslint-plugin-".. lang_ext
+                imports[plugin_name] = "@stylistic/eslint-plugin-" .. lang_ext
                 plugins["@stylistic/" .. lang_ext] = plugin_name
             end
             return "@stylistic/" .. lang_ext

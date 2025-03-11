@@ -29,6 +29,14 @@ pub fn get_logs_mut() -> Result<
 }
 
 pub fn add_log(kind: LogKind, message: String) {
+    // Skip debug logs in release mode unless explicitly enabled
+    #[cfg(not(debug_assertions))]
+    {
+        if let LogKind::Debug = kind {
+            return;
+        }
+    }
+
     use std::fs::OpenOptions;
     use std::io::Write;
     let mut file = OpenOptions::new()

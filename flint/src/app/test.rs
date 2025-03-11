@@ -3,7 +3,7 @@ use crossterm::event::{KeyCode, MouseEventKind};
 use flint_macros::ui;
 use ratatui::prelude::*;
 use ratatui::widgets::WidgetRef;
-use std::{cell::RefCell, fs, path::Path, sync::Arc};
+use std::{cell::RefCell, fs, sync::Arc};
 use threadpool::ThreadPool;
 
 use crate::{
@@ -57,6 +57,8 @@ impl AppWidget for TestWidget {
     fn setup(&mut self) -> AppResult<()> {
         let toml = Arc::new(Config::load(get_flag!(config_path)).unwrap());
         let plugins = plugin::list_from_config(&toml);
+
+        crate::warn!("{:#?}", get_flag!(plugins_dir));
 
         let run_plugins: Vec<Plugin> = plugins
             .clone()

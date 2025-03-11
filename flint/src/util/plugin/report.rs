@@ -13,7 +13,7 @@ pub fn report(
     }
 
     let lua = Lua::new();
-    add_helper_globals(&lua);
+    add_helper_globals(&lua)?;
 
     let plugin_config = plugin.get_config_lua(&lua, toml);
 

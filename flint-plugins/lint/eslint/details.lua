@@ -10,10 +10,8 @@ end
 
 function Dependencies()
     return {
-        -- Define dependencies by type
         npm = {
-            -- Format: { name = "package-name", version = "version-spec" }
-            { name = "eslint", version = "^9.0.0" }
+            { name = "eslint", version = "latest" }
         },
     }
 end
