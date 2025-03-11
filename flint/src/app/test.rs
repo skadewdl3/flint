@@ -3,16 +3,11 @@ use crossterm::event::{KeyCode, MouseEventKind};
 use flint_macros::ui;
 use ratatui::prelude::*;
 use ratatui::widgets::WidgetRef;
-use std::{
-    cell::RefCell,
-    fs,
-    path::{Path, PathBuf},
-    sync::Arc,
-};
+use std::{cell::RefCell, fs, path::Path, sync::Arc};
 use threadpool::ThreadPool;
 
 use crate::{
-    cmd, error, get_flag, info, success,
+    error, get_flag, info, success,
     util::{
         handle_key_events, handle_mouse_event,
         plugin::{self, Plugin, PluginKind},

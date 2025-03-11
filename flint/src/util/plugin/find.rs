@@ -1,3 +1,4 @@
+use super::validate::validate_plugin_structure;
 use super::{Plugin, PluginDetails, PluginKind};
 use crate::app::AppResult;
 use crate::util::toml::Config;
@@ -94,7 +95,7 @@ pub fn list<'a>() -> AppResult<&'a BTreeSet<Plugin>> {
                             let lua_val = details.call::<mlua::Value>(()).unwrap();
                             let details: PluginDetails = lua.from_value(lua_val).unwrap();
 
-                            Some(Plugin {
+                            let plugin = Plugin {
                                 details,
                                 path,
                                 kind: match *dir_name {
@@ -104,7 +105,18 @@ pub fn list<'a>() -> AppResult<&'a BTreeSet<Plugin>> {
                                     "report" => PluginKind::Report,
                                     _ => unreachable!(),
                                 },
-                            })
+                            };
+
+                            match validate_plugin_structure(&plugin) {
+                                Ok(_) => Some(plugin),
+                                Err(err) => {
+                                    error!(
+                                        "Plugin {} has invalid file structure.\nError message: {}",
+                                        plugin.details.id, err
+                                    );
+                                    None
+                                }
+                            }
                         }
 
                         Err(err) => {
