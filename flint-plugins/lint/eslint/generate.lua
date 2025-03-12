@@ -3,6 +3,7 @@ local json = require("json")
 
 function Generate(config)
     local common = config.common
+    local extra = config.config
     log.info("Generating ESLint configuration")
 
     -- Import necessary plugins
