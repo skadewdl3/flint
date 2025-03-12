@@ -1,5 +1,6 @@
 use mlua::{Lua, Table};
 
+pub mod js;
 pub mod json;
 pub mod log;
 pub mod path;
@@ -14,6 +15,7 @@ pub fn add_helper_globals(lua: &Lua) -> AppResult<()> {
     let toml = toml::toml_helpers(lua)?;
     let yaml = yaml::yaml_helpers(lua)?;
     let path = path::path_helpers(lua)?;
+    let js = js::js_helpers(lua)?;
 
     let package: Table = lua.globals().get("package")?;
     let loaded: Table = package.get("loaded")?;
@@ -24,6 +26,7 @@ pub fn add_helper_globals(lua: &Lua) -> AppResult<()> {
     loaded.set("toml", toml)?;
     loaded.set("yaml", yaml)?;
     loaded.set("path", path)?;
+    loaded.set("js", js)?;
 
     // Custom module loader to allow our modules to work
     lua.load(
