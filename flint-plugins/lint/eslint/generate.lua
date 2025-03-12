@@ -5,51 +5,92 @@ function Generate(config)
     local common = config.common
     log.info("Generating ESLint configuration")
 
-    --Import necessary plugins
+    -- Import necessary plugins
     local imports = {
         stylistic = '@stylistic/eslint-plugin',
-        stylisticJs = '@stylistic/eslint-plugin-js'
+        stylisticJs = '@stylistic/eslint-plugin-js',
+        stylisticTs = '@stylistic/eslint-plugin-ts',
+        stylisticJsx = '@stylistic/eslint-plugin-jsx',
     }
+
     local plugins = {
-        ["@stylistic"] = "stylistic",
-        ["@stylistic/js"] = "stylisticJs"
+        ["@stylistic/jsx"] = "stylisticJsx",
+        ["@stylistic/ts"] = "stylisticTs",
+        ["@stylistic/js"] = "stylisticJs",
+        ["@stylistic"] = "stylistic"
     }
 
+    -- Generate plugins section as a formatted string
+    local pluginsSection = "{\n"
+    for pluginKey, pluginVar in pairs(plugins) do
+        pluginsSection = pluginsSection .. '    "' .. pluginKey .. '": ' .. pluginVar .. ',\n'
+    end
+    pluginsSection = pluginsSection .. "  }"
 
-    --Function to get correct stylistic plugin based on rule extension
-    local function getplugin(rule_key)
-        local extension_map = {
-            js = "stylisticJs",
-            ts = "stylisticTs",
-        }
-        local lang_ext = rule_key:match("_(%a+)$") -- Extract '_js' or '_ts'
-        if lang_ext and extension_map[lang_ext] then
-            local plugin_name = extension_map[lang_ext]
-            if not imports[plugin_name] then
-                imports[plugin_name] = "@stylistic/eslint-plugin-" .. lang_ext
-                plugins["@stylistic/" .. lang_ext] = plugin_name
+    -- Helper function to format options object
+    local function formatOptions(options)
+        if type(options) ~= "table" then return "{}" end
+
+        local result = "{\n"
+        for k, v in pairs(options) do
+            if v ~= nil then
+                result = result .. '        "' .. k .. '": '
+
+                if type(v) == "string" then
+                    result = result .. '"' .. v .. '"'
+                elseif type(v) == "number" then
+                    result = result .. v
+                elseif type(v) == "boolean" then
+                    result = result .. tostring(v)
+                elseif type(v) == "table" then
+                    result = result .. formatOptions(v)
+                end
+
+                result = result .. ",\n"
             end
-            return "@stylistic/" .. lang_ext
         end
-        return "@stylistic"
+        result = result .. "      }"
+
+        return result
     end
 
-    local function createRuleConfig(rule_name, value, options)
-        if value == nil then return {} end
+    -- Function to format rule entries directly as strings
+    local function formatRuleEntry(rule_name, value, options)
+        if value == nil then return nil end
 
-        local base_config = { "error", value }
+        local rule_str = '    "@stylistic/' .. rule_name .. '": [\n'
+        rule_str = rule_str .. '      "error",\n'
+
+        if type(value) == "string" then
+            rule_str = rule_str .. '      "' .. value .. '"'
+        elseif type(value) == "number" then
+            rule_str = rule_str .. '      ' .. value
+        elseif type(value) == "boolean" then
+            if value then
+                rule_str = rule_str .. '      "always"'
+            else
+                rule_str = rule_str .. '      "never"'
+            end
+        else
+            rule_str = rule_str .. '      ' .. tostring(value)
+        end
+
         if options then
-            table.insert(base_config, options)
+            rule_str = rule_str .. ',\n      ' .. formatOptions(options) .. '\n'
+        else
+            rule_str = rule_str .. '\n'
         end
 
-        return {
-            [rule_name] = base_config,
-            ['@stylistic/' .. rule_name] = base_config
-        }
+        rule_str = rule_str .. '    ]'
+
+        return rule_str
     end
 
+    -- Process specific rules from flint.toml
     local function getIndentRule(indent_config)
         if not indent_config then return nil end
+
+        local indent_value = indent_config.indent_style == "spaces" and indent_config.indent_size or "tab"
 
         local options = {
             SwitchCase = indent_config.switch_case,
@@ -75,143 +116,75 @@ function Generate(config)
             offsetTernaryExpressions = indent_config.offset_ternary_expressions
         }
 
-        -- Clean nil values
+        -- Remove nil values
         for k, v in pairs(options) do
             if v == nil then options[k] = nil end
         end
 
-        return createRuleConfig(
-            "indent",
-            indent_config.indent_style == "spaces" and indent_config.indent_size or "tab",
-            options
-        )
+        return formatRuleEntry("indent", indent_value, options)
     end
 
     local function getQuotesRule(quote_style)
-        return createRuleConfig(
-            "quotes",
-            quote_style,
-            {
-                avoidEscape = true,
-                allowTemplateLiterals = true
-            }
-        )
+        if not quote_style then return nil end
+
+        local options = {
+            avoidEscape = true,
+            allowTemplateLiterals = "always"
+        }
+
+        return formatRuleEntry("quotes", quote_style, options)
     end
 
     local function getSemiRule(require_semicolons)
-        return createRuleConfig("semi", require_semicolons)
+        if require_semicolons == nil then return nil end
+
+        local semi_value = require_semicolons and "always" or "never"
+        return formatRuleEntry("semi", semi_value)
     end
 
-    local function getCommaDangleRule(comma_dangle)
-        return createRuleConfig(
-            "comma-dangle",
-            comma_dangle,
-            {
-                arrays = "always-multiline",
-                objects = "always-multiline",
-                imports = "always-multiline",
-                exports = "always-multiline",
-                functions = "never"
-            }
-        )
+    local function getTrailingSpacesRule(trailing_whitespace)
+        if trailing_whitespace == nil then return nil end
+
+        return formatRuleEntry("no-trailing-spaces", trailing_whitespace)
     end
 
-    local function getSpaceBeforeFunctionParenRule(space_before_fn_paren)
-        local options = {
-            anonymous = "always",
-            named = "never",
-            asyncArrow = "always"
-        }
-        return createRuleConfig("space-before-function-paren", space_before_fn_paren, options)
+    -- Build the rules section string
+    local rulesString = "{\n"
+
+    -- Add each rule that has a value
+    local indentRule = getIndentRule(common.indent)
+    if indentRule then
+        rulesString = rulesString .. indentRule .. ",\n"
     end
 
-    local function getObjectCurlySpacingRule(object_curly_spacing)
-        return createRuleConfig(
-            "object-curly-spacing",
-            object_curly_spacing,
-            {
-                arraysInObjects = true,
-                objectsInObjects = true
-            }
-        )
+    local quotesRule = getQuotesRule(common.quote_style)
+    if quotesRule then
+        rulesString = rulesString .. quotesRule .. ",\n"
     end
 
-    local function getArrowSpacingRule(arrow_spacing)
-        return createRuleConfig(
-            "arrow-spacing",
-            arrow_spacing,
-            {
-                before = true,
-                after = true
-            }
-        )
-    end
-
-    local function getKeySpacingRule(key_spacing)
-        return createRuleConfig(
-            "key-spacing",
-            key_spacing,
-            {
-                beforeColon = false,
-                afterColon = true,
-                mode = "strict"
-            }
-        )
-    end
-
-    local function getLinebreakStyleRule(linebreak_style)
-        return createRuleConfig("linebreak-style", linebreak_style)
-    end
-
-    --Function to map Flint rules to ESLint rules
-    local function mapFlintToESLint(flint_key, eslint_rule)
-        local value = common[flint_key]
-        if value ~= nil then
-            local plugin = getplugin(flint_key)
-            return {
-                [eslint_rule] = { "error", value },
-                [plugin .. "/" .. eslint_rule] = { "error", value }
-            }
-        end
-        return {}
+    local semiRule = getSemiRule(common.require_semicolons)
+    if semiRule then
+        rulesString = rulesString .. semiRule .. ",\n"
     end
 
 
-    --Define ESLint rules
-    local rules = {
-        indent = getIndentRule(common.indent),
-        quotes = getQuotesRule(common.quote_style),
-        semi = getSemiRule(common.require_semicolons),
-        ["comma-dangle"] = getCommaDangleRule(common.comma_dangle),
-        ["no-trailing-spaces"] = createRuleConfig("no-trailing-spaces", common.trailing_whitespace),
-        ["space-before-function-paren"] = getSpaceBeforeFunctionParenRule(common.space_before_function_paren),
-        ["object-curly-spacing"] = getObjectCurlySpacingRule(common.object_curly_spacing),
-        ["arrow-spacing"] = getArrowSpacingRule(common.arrow_spacing),
-        ["key-spacing"] = getKeySpacingRule(common.key_spacing),
-        ["linebreak-style"] = getLinebreakStyleRule(common.linebreak_style)
-    }
-    -- Remove nil values
-    for key, value in pairs(rules) do
-        if value == nil then rules[key] = nil end
-    end
+    -- Close the rules object
+    rulesString = rulesString .. "}"
 
-    -- Prepare the ESLint config as a Lua table
-    local eslintConfig = {
-        {
-            plugins = plugins,
-            rules = rules
-        }
-    }
-
-    -- Generate Import statements
+    -- Generate import statements
     local importStatements = ""
     for name, path in pairs(imports) do
         importStatements = importStatements .. "import " .. name .. " from '" .. path .. "';\n"
     end
 
-    -- Convert the table to a JSON string
+    -- Build the final config file
+    local eslintConfig = importStatements ..
+        "\nexport default [{\n" ..
+        "  plugins: " .. pluginsSection .. ",\n" ..
+        "  rules: " .. rulesString .. "\n" ..
+        "}];"
+
     return {
-        ["eslint.config.js"] = importStatements ..
-            "\nexport default " .. json.stringify(eslintConfig) .. ";"
+        ["eslint.config.js"] = eslintConfig
     }
 end
