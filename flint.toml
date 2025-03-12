@@ -65,16 +65,11 @@ templater.unwrap_wrapped_queries = true
 [tests.jest]
 enabled = true
 config_path = "src/jest.config.ts"
-
 test_environment = "node"
 verbose = true
 collect_coverage = true
-test_files_include = [ "src/*.test.ts" ]
-test_files_ignore = [ "node_modules/", "dist/" ]
-
-
-
-
+include = ["src/*.test.ts"]
+exclude = ["node_modules/", "dist/", "*"]
 
 [ci.github-actions]
 branches = ["main", "develop"]

@@ -1,217 +1,152 @@
 local log = require("log")
 local json = require("json")
+local js = require("js")
+
+
+local function getIndentRule(indent_config)
+    if not indent_config then return nil end
+
+    local indent_value = indent_config.indent_style == "spaces" and indent_config.indent_size or "tab"
+
+    local options = js.object({
+        SwitchCase = indent_config.switch_case,
+        FunctionDeclaration = js.object({
+            body = indent_config.function_declaration.body,
+            parameters = indent_config.function_declaration.parameters
+        }),
+        ignoredNodes = indent_config.ignore_nodes,
+        ignoreComments = indent_config.ignore_comments,
+        VariableDeclarator = indent_config.variable_declarator,
+        MemberExpression = indent_config.member_expression,
+        FunctionExpression = js.object({
+            body = indent_config.function_expression and indent_config.function_expression.body,
+            parameters = indent_config.function_expression and indent_config.function_expression.parameters
+        }),
+        CallExpression = js.object({
+            arguments = indent_config.call_expression and indent_config.call_expression.arguments
+        }),
+        ArrayExpression = indent_config.array_expression,
+        ObjectExpression = indent_config.object_expression,
+        ImportDeclaration = indent_config.import_declaration,
+        flatTernaryExpressions = indent_config.flat_ternary_expressions,
+        offsetTernaryExpressions = indent_config.offset_ternary_expressions
+    })
+
+    -- No need to remove nil values, the js.object handles that automatically
+
+    return {
+        name = "indent",
+        value = indent_value,
+        options = options
+    }
+end
+
+local function getQuotesRule(quote_style)
+    if not quote_style then return nil end
+
+    local options = js.object({
+        avoidEscape = true,
+        allowTemplateLiterals = "always"
+    })
+
+    return {
+        name = "quotes",
+        value = quote_style,
+        options = options
+    }
+end
+
+local function getSemiRule(require_semicolons)
+    if require_semicolons == nil then return nil end
+
+    local semi_value = require_semicolons and "always" or "never"
+
+    return {
+        name = "semi",
+        value = semi_value
+    }
+end
 
 function Generate(config)
     local common = config.common
+    local extra = config.config
     log.info("Generating ESLint configuration")
 
-    --Import necessary plugins
-    local imports = {
-        stylistic = '@stylistic/eslint-plugin',
-        stylisticJs = '@stylistic/eslint-plugin-js'
-    }
-    local plugins = {
-        ["@stylistic"] = "stylistic",
-        ["@stylistic/js"] = "stylisticJs"
-    }
+    -- Import necessary plugins
+    local stylistic = js.imports.default("stylistic", '@stylistic/eslint-plugin')
+    local stylisticJs = js.imports.default("stylisticJs", '@stylistic/eslint-plugin-js')
+    local stylisticTs = js.imports.default("stylisticTs", '@stylistic/eslint-plugin-ts')
+    local stylisticJsx = js.imports.default("stylisticJsx", '@stylistic/eslint-plugin-jsx')
+    local defineConfig = js.imports.named("defineConfig", "eslint/config")
+    local recommended = js.imports.default("js", "@eslint/js")
+    local globalIgnores = js.imports.named("globalIgnores", "eslint/config")
+
+    local imports = js.imports.merge(stylistic, stylisticJs, stylisticTs, stylisticJsx, defineConfig, globalIgnores,
+        recommended)
+    imports = tostring(imports)
 
 
-    --Function to get correct stylistic plugin based on rule extension
-    local function getplugin(rule_key)
-        local extension_map = {
-            js = "stylisticJs",
-            ts = "stylisticTs",
-        }
-        local lang_ext = rule_key:match("_(%a+)$") -- Extract '_js' or '_ts'
-        if lang_ext and extension_map[lang_ext] then
-            local plugin_name = extension_map[lang_ext]
-            if not imports[plugin_name] then
-                imports[plugin_name] = "@stylistic/eslint-plugin-" .. lang_ext
-                plugins["@stylistic/" .. lang_ext] = plugin_name
-            end
-            return "@stylistic/" .. lang_ext
-        end
-        return "@stylistic"
+    local eslintConfig = js.object({})
+
+    -- Generate plugins section as a js object
+    local plugins = js.object({
+        ["@stylistic"] = stylistic,
+        ["@stylistic/js"] = stylisticJs,
+        ["@stylistic/ts"] = stylisticTs,
+        ["@stylistic/jsx"] = stylisticJsx
+    })
+    eslintConfig.plugins = plugins
+
+    local rules = js.object({})
+
+    -- Add each rule that has a value
+    local indentRule = getIndentRule(common.indent)
+    if indentRule then
+        rules["@stylistic/" .. indentRule.name] = js.array("error", indentRule.value, indentRule.options)
     end
 
-    local function createRuleConfig(rule_name, value, options)
-        if value == nil then return {} end
-
-        local base_config = { "error", value }
-        if options then
-            table.insert(base_config, options)
-        end
-
-        return {
-            [rule_name] = base_config,
-            ['@stylistic/' .. rule_name] = base_config
-        }
+    local quotesRule = getQuotesRule(common.quote_style)
+    if quotesRule then
+        rules["@stylistic/" .. quotesRule.name] = js.array("error", quotesRule.value, quotesRule.options)
     end
 
-    local function getIndentRule(indent_config)
-        if not indent_config then return nil end
-
-        local options = {
-            SwitchCase = indent_config.switch_case,
-            FunctionDeclaration = {
-                body = indent_config.function_declaration.body,
-                parameters = indent_config.function_declaration.parameters
-            },
-            ignoredNodes = indent_config.ignore_nodes,
-            ignoreComments = indent_config.ignore_comments,
-            VariableDeclarator = indent_config.variable_declarator,
-            MemberExpression = indent_config.member_expression,
-            FunctionExpression = {
-                body = indent_config.function_expression and indent_config.function_expression.body,
-                parameters = indent_config.function_expression and indent_config.function_expression.parameters
-            },
-            CallExpression = {
-                arguments = indent_config.call_expression and indent_config.call_expression.arguments
-            },
-            ArrayExpression = indent_config.array_expression,
-            ObjectExpression = indent_config.object_expression,
-            ImportDeclaration = indent_config.import_declaration,
-            flatTernaryExpressions = indent_config.flat_ternary_expressions,
-            offsetTernaryExpressions = indent_config.offset_ternary_expressions
-        }
-
-        -- Clean nil values
-        for k, v in pairs(options) do
-            if v == nil then options[k] = nil end
-        end
-
-        return createRuleConfig(
-            "indent",
-            indent_config.indent_style == "spaces" and indent_config.indent_size or "tab",
-            options
-        )
+    local semiRule = getSemiRule(common.require_semicolons)
+    if semiRule then
+        rules["@stylistic/" .. semiRule.name] = js.array("error", semiRule.value)
     end
 
-    local function getQuotesRule(quote_style)
-        return createRuleConfig(
-            "quotes",
-            quote_style,
-            {
-                avoidEscape = true,
-                allowTemplateLiterals = true
-            }
-        )
+    -- Add rules table to eslint config
+    eslintConfig.rules = rules
+
+    local ignoresAndIncludes = js.object({})
+
+    if extra.include then
+        ignoresAndIncludes.files = extra.include
     end
 
-    local function getSemiRule(require_semicolons)
-        return createRuleConfig("semi", require_semicolons)
-    end
-
-    local function getCommaDangleRule(comma_dangle)
-        return createRuleConfig(
-            "comma-dangle",
-            comma_dangle,
-            {
-                arrays = "always-multiline",
-                objects = "always-multiline",
-                imports = "always-multiline",
-                exports = "always-multiline",
-                functions = "never"
-            }
-        )
-    end
-
-    local function getSpaceBeforeFunctionParenRule(space_before_fn_paren)
-        local options = {
-            anonymous = "always",
-            named = "never",
-            asyncArrow = "always"
-        }
-        return createRuleConfig("space-before-function-paren", space_before_fn_paren, options)
-    end
-
-    local function getObjectCurlySpacingRule(object_curly_spacing)
-        return createRuleConfig(
-            "object-curly-spacing",
-            object_curly_spacing,
-            {
-                arraysInObjects = true,
-                objectsInObjects = true
-            }
-        )
-    end
-
-    local function getArrowSpacingRule(arrow_spacing)
-        return createRuleConfig(
-            "arrow-spacing",
-            arrow_spacing,
-            {
-                before = true,
-                after = true
-            }
-        )
-    end
-
-    local function getKeySpacingRule(key_spacing)
-        return createRuleConfig(
-            "key-spacing",
-            key_spacing,
-            {
-                beforeColon = false,
-                afterColon = true,
-                mode = "strict"
-            }
-        )
-    end
-
-    local function getLinebreakStyleRule(linebreak_style)
-        return createRuleConfig("linebreak-style", linebreak_style)
-    end
-
-    --Function to map Flint rules to ESLint rules
-    local function mapFlintToESLint(flint_key, eslint_rule)
-        local value = common[flint_key]
-        if value ~= nil then
-            local plugin = getplugin(flint_key)
-            return {
-                [eslint_rule] = { "error", value },
-                [plugin .. "/" .. eslint_rule] = { "error", value }
-            }
-        end
-        return {}
+    if extra.exclude then
+        ignoresAndIncludes.ignores = extra.exclude
     end
 
 
-    --Define ESLint rules
-    local rules = {
-        indent = getIndentRule(common.indent),
-        quotes = getQuotesRule(common.quote_style),
-        semi = getSemiRule(common.require_semicolons),
-        ["comma-dangle"] = getCommaDangleRule(common.comma_dangle),
-        ["no-trailing-spaces"] = createRuleConfig("no-trailing-spaces", common.trailing_whitespace),
-        ["space-before-function-paren"] = getSpaceBeforeFunctionParenRule(common.space_before_function_paren),
-        ["object-curly-spacing"] = getObjectCurlySpacingRule(common.object_curly_spacing),
-        ["arrow-spacing"] = getArrowSpacingRule(common.arrow_spacing),
-        ["key-spacing"] = getKeySpacingRule(common.key_spacing),
-        ["linebreak-style"] = getLinebreakStyleRule(common.linebreak_style)
-    }
-    -- Remove nil values
-    for key, value in pairs(rules) do
-        if value == nil then rules[key] = nil end
-    end
 
-    -- Prepare the ESLint config as a Lua table
-    local eslintConfig = {
-        {
-            plugins = plugins,
-            rules = rules
-        }
-    }
+    eslintConfig = js.exports.default(
+        js.fn.call(defineConfig, js.array(
+            ignoresAndIncludes,
+            js.object({
+                plugins = { js = recommended },
+                extends = { "js/recommended" }
+            }),
+            eslintConfig
+        ))
+    )
+    eslintConfig = js.indent(eslintConfig)
 
-    -- Generate Import statements
-    local importStatements = ""
-    for name, path in pairs(imports) do
-        importStatements = importStatements .. "import " .. name .. " from '" .. path .. "';\n"
-    end
 
-    -- Convert the table to a JSON string
+
     return {
-        ["eslint.config.js"] = importStatements ..
-            "\nexport default " .. json.stringify(eslintConfig) .. ";"
+        ["eslint.config.js"] = imports ..
+            "\n\n" ..
+            eslintConfig
     }
 end
