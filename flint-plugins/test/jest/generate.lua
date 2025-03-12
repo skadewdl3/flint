@@ -1,41 +1,30 @@
 local log = require("log")
 local path = require("path")
 local json = require("json")
+local js = require("js")
+
 function Generate(config)
     local common = config
-    log.info("Generating Jest configuration")
-
-
-    local cwd = path.cwd()
-
-    -- Import necessary modules
-    local imports = {
-        jest = "jest"
-    }
 
     -- Jest Configurations
-    local function getTestFolders(test_folders)
-        if not test_folders or #test_folders == 0 then return nil end
-        return test_folders
-    end
 
     local function getRootDir(root_dir)
         if not root_dir then return "." end
         return root_dir
     end
 
-    local function getTestMatch(files_include)
-        if not files_include or #files_include == 0 then return { "**/__tests__/**/*.js", "**/?(*.)+(spec|test).js" } end
+    local function getTestMatch(include)
+        if not include or #include == 0 then return { "**/__tests__/**/*.js", "**/?(*.)+(spec|test).js" } end
         local paths_with_root_dir = {}
-        for i, file in ipairs(files_include) do
+        for i, file in ipairs(include) do
             paths_with_root_dir[i] = path.join("<rootDir>", file)
         end
         return paths_with_root_dir
     end
 
-    local function getTestIgnore(files_ignore)
-        if not files_ignore or #files_ignore == 0 then return { "/node_modules/", "/dist/" } end
-        return files_ignore
+    local function getTestIgnore(exclude)
+        if not exclude or #exclude == 0 then return { "/node_modules/", "/dist/" } end
+        return exclude
     end
 
     local function getCoverageConfig(coverage)
@@ -51,19 +40,21 @@ function Generate(config)
     end
 
     -- Define Jest configuration
-    local jestConfig = {
+    local jestConfig = js.object({
         testEnvironment = getTestEnvironment(common.test_environment),
         verbose = getVerboseConfig(common.verbose),
         collectCoverage = getCoverageConfig(common.collect_coverage),
-        testMatch = getTestMatch(common.test_files_include),
-        testPathIgnorePatterns = getTestIgnore(common.test_files_ignore),
+        testMatch = getTestMatch(common.include),
+        testPathIgnorePatterns = getTestIgnore(common.exclude),
         rootDir = getRootDir(common.root_dir)
-    }
+    })
+
+    jestConfig = js.exports.default(jestConfig)
+    jestConfig = js.indent(jestConfig)
 
 
     -- Convert the table to a JSON string
     return {
-        ["jest.config.js"] =
-            "export default " .. json.stringify(jestConfig) .. ";"
+        ["jest.config.js"] = jestConfig
     }
 end
