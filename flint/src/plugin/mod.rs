@@ -115,8 +115,9 @@ impl Plugin {
         &self,
         toml: &Arc<Config>,
         output: &PluginEvalOutput,
+        plugin_id: &str,
     ) -> AppResult<HashMap<String, String>> {
-        report::report(&self, toml, output)
+        report::report(&self, toml, output, plugin_id)
     }
 }
 

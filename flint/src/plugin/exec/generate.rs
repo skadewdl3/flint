@@ -30,12 +30,9 @@ pub fn generate<'a>(plugin: &Plugin, toml: &Arc<Config>) -> AppResult<HashMap<St
 
     let validate_success = validate
         .expect("error reading validate.lua")
-        .call::<mlua::Value>(&plugin_config)
-        .expect("error running validate function");
+        .call::<mlua::Value>(&plugin_config)?;
 
-    let validate_success: bool = lua
-        .from_value(validate_success)
-        .expect("unable to convert validation result to boolean");
+    let validate_success: bool = lua.from_value(validate_success)?;
 
     if !validate_success {
         return Err(app_err!("Plugin configuration validation failed"));
@@ -61,12 +58,9 @@ pub fn generate<'a>(plugin: &Plugin, toml: &Arc<Config>) -> AppResult<HashMap<St
         generate
             .expect("Error reading generate.lua")
             .call::<mlua::Value>(plugin_config)
-    }
-    .expect("error running generate function");
+    }?;
 
-    let generate_results: HashMap<String, String> = lua
-        .from_value(generate_results)
-        .expect("unable to convert generation result to String");
+    let generate_results: HashMap<String, String> = lua.from_value(generate_results)?;
 
     Ok(generate_results)
 }

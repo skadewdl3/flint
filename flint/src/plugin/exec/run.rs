@@ -22,12 +22,9 @@ pub fn run<'a>(plugin: &Plugin, toml: &Arc<Config>) -> AppResult<Vec<String>> {
 
     let run_success = run
         .expect("error reading run.lua")
-        .call::<mlua::Value>(plugin_config)
-        .expect("error running run function");
+        .call::<mlua::Value>(plugin_config)?;
 
-    let run_command: Vec<String> = lua
-        .from_value(run_success)
-        .expect("unable to parse run command");
+    let run_command: Vec<String> = lua.from_value(run_success)?;
 
     Ok(run_command)
 }

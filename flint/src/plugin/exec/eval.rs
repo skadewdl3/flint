@@ -41,8 +41,7 @@ pub fn eval(plugin: &Plugin, output: Output) -> AppResult<PluginEvalOutput> {
     add_helper_globals(&lua)?;
 
     let eval: Result<Function, Error> = {
-        let contents = std::fs::read_to_string(plugin.path.join("run.lua"))
-            .expect("Error reading plugin code");
+        let contents = std::fs::read_to_string(plugin.path.join("run.lua"))?;
 
         lua.load(contents)
             .exec()
@@ -50,24 +49,15 @@ pub fn eval(plugin: &Plugin, output: Output) -> AppResult<PluginEvalOutput> {
     };
 
     let evaluation_state = lua.create_table().unwrap();
-    evaluation_state
-        .set("stdout", String::from_utf8_lossy(&output.stdout))
-        .unwrap();
-    evaluation_state
-        .set("stderr", String::from_utf8_lossy(&output.stderr))
-        .unwrap();
-    evaluation_state
-        .set("status", output.status.code())
-        .unwrap();
+    evaluation_state.set("stdout", String::from_utf8_lossy(&output.stdout))?;
+    evaluation_state.set("stderr", String::from_utf8_lossy(&output.stderr))?;
+    evaluation_state.set("status", output.status.code())?;
 
-    evaluation_state
-        .set("success", output.status.success())
-        .unwrap();
+    evaluation_state.set("success", output.status.success())?;
 
     let eval_output = eval
         .expect("error reading run.lua")
-        .call::<mlua::Value>(evaluation_state)
-        .expect("error running eval function");
+        .call::<mlua::Value>(evaluation_state)?;
 
     let eval_output_table = match &eval_output {
         Value::Table(table) => table,
@@ -76,17 +66,13 @@ pub fn eval(plugin: &Plugin, output: Output) -> AppResult<PluginEvalOutput> {
 
     if eval_output_table.contains_key("test_results")? {
         let test_output: TestPluginEvalOutput = lua
-            .from_value(eval_output.clone())
-            .expect("unable to parse test output");
+            .from_value(eval_output.clone())?
         Ok(PluginEvalOutput::Test(test_output))
     } else if eval_output_table.contains_key("lint_results")? {
         let lint_output: LintPluginEvalOutput = lua
-            .from_value(eval_output.clone())
-            .expect("unable to parse lint output");
+            .from_value(eval_output.clone())?;
         Ok(PluginEvalOutput::Lint(lint_output))
     } else {
         Err(app_err!("Unknown plugin output format"))
     }
-
-    // Ok(eval_output)
 }

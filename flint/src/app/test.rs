@@ -120,7 +120,7 @@ impl AppWidget for TestWidget {
                     Err(e) => error!("Failed to evaluate plugin: {}", e),
                     Ok(res) => {
                         for report_plugin in report_plugins.iter() {
-                            match report_plugin.report(&toml_clone, &res) {
+                            match report_plugin.report(&toml_clone, &res, &plugin.details.id) {
                                 Err(e) => {
                                     error!("Report plugin error: {}", e);
                                 }
