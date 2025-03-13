@@ -282,7 +282,7 @@ pub fn sql_helpers(lua: &Lua) -> AppResult<Table> {
     let sql = lua.create_table()?;
 
     // Function to query database and return results as table
-    let query_fn = lua.create_async_function(|lua, args: mlua::Variadic<Value>| async move {
+    let query_fn = lua.create_function(|lua, args: mlua::Variadic<Value>| {
         if args.len() < 2 {
             return Err(mlua::Error::external(
                 "sql.query requires at least 2 arguments: connection_params and query_string",
@@ -310,11 +310,12 @@ pub fn sql_helpers(lua: &Lua) -> AppResult<Table> {
         // Extract parameters (if any)
         let params: Vec<Value> = args.iter().skip(2).cloned().collect();
 
-        execute_query(&lua, conn_params, &query_str, params).await
+        // Use smol to run the async operation synchronously
+        smol::block_on(execute_query(lua, conn_params, &query_str, params))
     })?;
 
     // Function to execute a statement (INSERT, UPDATE, DELETE, etc.)
-    let execute_fn = lua.create_async_function(|_, args: mlua::Variadic<Value>| async move {
+    let execute_fn = lua.create_function(|_, args: mlua::Variadic<Value>| {
         if args.len() < 2 {
             return Err(mlua::Error::external(
                 "sql.execute requires at least 2 arguments: connection_params and query_string",
@@ -342,11 +343,12 @@ pub fn sql_helpers(lua: &Lua) -> AppResult<Table> {
         // Extract parameters (if any)
         let params: Vec<Value> = args.iter().skip(2).cloned().collect();
 
-        execute_statement(conn_params, &query_str, params).await
+        // Use smol to run the async operation synchronously
+        smol::block_on(execute_statement(conn_params, &query_str, params))
     })?;
 
     // Function to check if we can connect to the database
-    let test_connection_fn = lua.create_async_function(|_, conn_params: Table| async move {
+    let test_connection_fn = lua.create_function(|_, conn_params: Table| {
         // Don't capture conn_params directly in the async block
         // Create a connection string first (doesn't involve async)
         let conn_str = match build_connection_string(&conn_params) {
@@ -372,38 +374,39 @@ pub fn sql_helpers(lua: &Lua) -> AppResult<Table> {
             pools.get(&conn_key).cloned()
         };
 
-        if let Some(pool) = existing_pool {
-            // We already have a pool, test it with a simple query
-            match pool.execute("SELECT 1").await {
-                Ok(_) => Ok(true),
-                Err(err) => {
-                    error!("Database connection error (existing pool): {}", err);
-                    Ok(false)
-                }
-            }
-        } else {
-            // We need to create a new pool
-            sqlx::any::install_default_drivers();
-            match AnyPoolOptions::new()
-                .max_connections(1)
-                .connect(&conn_str)
-                .await
-            {
-                Ok(pool) => {
-                    // Store the pool for reuse
-                    {
-                        let mut pools = DB_POOLS.lock().unwrap();
-                        pools.insert(conn_key, pool);
+        smol::block_on(async {
+            if let Some(pool) = existing_pool {
+                // We already have a pool, test it with a simple query
+                match pool.execute("SELECT 1").await {
+                    Ok(_) => Ok(true),
+                    Err(err) => {
+                        error!("Database connection error (existing pool): {}", err);
+                        Ok(false)
                     }
-                    Ok(true)
                 }
-                Err(err) => {
-                    error!("Database connection error: {}", err);
-                    Ok(false)
+            } else {
+                // We need to create a new pool
+                sqlx::any::install_default_drivers();
+                match AnyPoolOptions::new()
+                    .max_connections(1)
+                    .connect(&conn_str)
+                    .await
+                {
+                    Ok(pool) => {
+                        // Store the pool for reuse
+                        {
+                            let mut pools = DB_POOLS.lock().unwrap();
+                            pools.insert(conn_key, pool);
+                        }
+                        Ok(true)
+                    }
+                    Err(err) => {
+                        error!("Database connection error: {}", err);
+                        Ok(false)
+                    }
                 }
             }
-        }
-        // Ok(false)
+        })
     })?;
 
     // Function to close a database connection
@@ -507,17 +510,9 @@ pub fn sql_helpers(lua: &Lua) -> AppResult<Table> {
         Ok(params)
     })?;
 
-    // Synchronous wrapper for test_connection_fn
-    let test_connection_sync_fn =
-        lua.create_function(move |_, conn_params: Table| -> LuaResult<bool> {
-            // Use smol to run the async operation synchronously
-
-            smol::block_on(test_connection_fn.call_async(conn_params))
-        })?;
-
     sql.set("query", query_fn)?;
     sql.set("execute", execute_fn)?;
-    sql.set("testConnection", test_connection_sync_fn)?;
+    sql.set("testConnection", test_connection_fn)?;
     sql.set("closeConnection", close_connection_fn)?;
 
     // Connection creation helper functions
