@@ -1,5 +1,7 @@
+use std::path::Path;
+
 use directories::UserDirs;
-use mlua::{Lua, Table};
+use mlua::{Lua, Table, Variadic};
 
 use crate::{app::AppResult, get_flag};
 
@@ -148,10 +150,29 @@ pub fn path_helpers(lua: &Lua) -> AppResult<Table> {
         Ok(results)
     })?;
 
+    let path_relative = lua.create_function(|lua, args: Variadic<String>| {
+        if args.len() != 2 {
+            return Err(mlua::Error::RuntimeError(
+                "Expected exactly two arguments: file_path and current_dir".into(),
+            ));
+        }
+
+        let file_path = Path::new(&args[0]);
+        let current_dir = Path::new(&args[1]);
+
+        match file_path.strip_prefix(current_dir) {
+            Ok(relative) => Ok(lua.create_string(relative.to_string_lossy().as_ref())?),
+            Err(_) => Err(mlua::Error::RuntimeError(
+                "Could not determine relative path".into(),
+            )),
+        }
+    })?;
+
     path.set("join", path_join)?;
     path.set("resolve", path_resolve)?;
     path.set("ls", path_ls)?;
     path.set("cwd", cwd)?;
+    path.set("relative", path_relative)?;
 
     Ok(path)
 }

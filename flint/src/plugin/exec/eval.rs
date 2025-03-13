@@ -1,8 +1,9 @@
 use crate::{
     app::AppResult,
+    app_err,
     plugin::{helpers::add_helper_globals, Plugin},
 };
-use mlua::{Error, Function, Lua, LuaSerdeExt};
+use mlua::{Error, Function, Lua, LuaSerdeExt, Table, Value};
 use serde::{Deserialize, Serialize};
 use std::process::Output;
 
@@ -16,11 +17,23 @@ pub struct TestCaseOutput {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct PluginEvalOutput {
+pub struct LintPluginEvalOutput {
+    total_errors: u32,
+    lint_results: Vec<TestCaseOutput>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct TestPluginEvalOutput {
     tests_passed: u32,
     total_tests: u32,
     passing_percentage: f32,
     test_results: Vec<TestCaseOutput>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub enum PluginEvalOutput {
+    Lint(LintPluginEvalOutput),
+    Test(TestPluginEvalOutput),
 }
 
 pub fn eval(plugin: &Plugin, output: Output) -> AppResult<PluginEvalOutput> {
@@ -56,9 +69,24 @@ pub fn eval(plugin: &Plugin, output: Output) -> AppResult<PluginEvalOutput> {
         .call::<mlua::Value>(evaluation_state)
         .expect("error running eval function");
 
-    let eval_output: PluginEvalOutput = lua
-        .from_value(eval_output)
-        .expect("unable to parse eval success");
+    let eval_output_table = match &eval_output {
+        Value::Table(table) => table,
+        _ => return Err(app_err!("Eval function should return a valid lua table")),
+    };
 
-    Ok(eval_output)
+    if eval_output_table.contains_key("test_results")? {
+        let test_output: TestPluginEvalOutput = lua
+            .from_value(eval_output.clone())
+            .expect("unable to parse test output");
+        Ok(PluginEvalOutput::Test(test_output))
+    } else if eval_output_table.contains_key("lint_results")? {
+        let lint_output: LintPluginEvalOutput = lua
+            .from_value(eval_output.clone())
+            .expect("unable to parse lint output");
+        Ok(PluginEvalOutput::Lint(lint_output))
+    } else {
+        Err(app_err!("Unknown plugin output format"))
+    }
+
+    // Ok(eval_output)
 }
