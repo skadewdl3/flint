@@ -4,7 +4,7 @@ use crate::{
     plugin::{helpers::add_helper_globals, Plugin, PluginKind},
     util::toml::Config,
 };
-use mlua::{Error, Function, Lua, LuaSerdeExt};
+use mlua::{Function, Lua, LuaSerdeExt};
 use std::{collections::HashMap, sync::Arc};
 
 use super::eval::PluginEvalOutput;

@@ -3,7 +3,7 @@ use crate::{
     app_err,
     plugin::{helpers::add_helper_globals, Plugin},
 };
-use mlua::{Error, Function, Lua, LuaSerdeExt, Table, Value};
+use mlua::{Error, Function, Lua, LuaSerdeExt, Value};
 use serde::{Deserialize, Serialize};
 use std::process::Output;
 
@@ -65,12 +65,10 @@ pub fn eval(plugin: &Plugin, output: Output) -> AppResult<PluginEvalOutput> {
     };
 
     if eval_output_table.contains_key("test_results")? {
-        let test_output: TestPluginEvalOutput = lua
-            .from_value(eval_output.clone())?
+        let test_output: TestPluginEvalOutput = lua.from_value(eval_output.clone())?;
         Ok(PluginEvalOutput::Test(test_output))
     } else if eval_output_table.contains_key("lint_results")? {
-        let lint_output: LintPluginEvalOutput = lua
-            .from_value(eval_output.clone())?;
+        let lint_output: LintPluginEvalOutput = lua.from_value(eval_output.clone())?;
         Ok(PluginEvalOutput::Lint(lint_output))
     } else {
         Err(app_err!("Unknown plugin output format"))
