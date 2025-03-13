@@ -23,11 +23,10 @@ function Run(options)
     output = eval.get_output(output)
 
     local conn = get_postgres_connection()
-    local connected = coroutine.wrap(function()
-        return sql.testConnection(conn)
-    end)()
+    local connected = sql.testConnection(conn)
 
-    log.debug(connected)
+    local res = sql.query(conn, "SELECT * FROM users")
+    log.debug(res)
 
 
     return {
