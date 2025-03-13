@@ -5,6 +5,7 @@ pub mod js;
 pub mod json;
 pub mod log;
 pub mod path;
+pub mod sql;
 pub mod toml;
 pub mod yaml;
 
@@ -18,6 +19,7 @@ pub fn add_helper_globals(lua: &Lua) -> AppResult<()> {
     let path = path::path_helpers(lua)?;
     let js = js::js_helpers(lua)?;
     let eval = eval::eval_helpers(lua)?;
+    let sql = sql::sql_helpers(lua)?;
 
     let package: Table = lua.globals().get("package")?;
     let loaded: Table = package.get("loaded")?;
@@ -30,6 +32,7 @@ pub fn add_helper_globals(lua: &Lua) -> AppResult<()> {
     loaded.set("path", path)?;
     loaded.set("js", js)?;
     loaded.set("eval", eval)?;
+    loaded.set("sql", sql)?;
 
     // Custom module loader to allow our modules to work
     lua.load(
