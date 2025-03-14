@@ -1,6 +1,7 @@
 use flint_utils::Result;
 use mlua::{Lua, Table};
 
+mod coroutine;
 mod eval;
 mod js;
 mod json;
@@ -19,6 +20,7 @@ pub fn add_ffi_modules(lua: &Lua) -> Result<()> {
     let js = js::js_helpers(lua)?;
     let eval = eval::eval_helpers(lua)?;
     let sql = sql::sql_helpers(lua)?;
+    let coroutine = coroutine::coroutine_helpers(lua)?;
 
     let package: Table = lua.globals().get("package")?;
     let loaded: Table = package.get("loaded")?;
@@ -32,6 +34,7 @@ pub fn add_ffi_modules(lua: &Lua) -> Result<()> {
     loaded.set("js", js)?;
     loaded.set("eval", eval)?;
     loaded.set("sql", sql)?;
+    loaded.set("async", coroutine)?;
 
     // Custom module loader to allow our modules to work
     lua.load(

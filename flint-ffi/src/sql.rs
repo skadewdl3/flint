@@ -1,16 +1,12 @@
 use flint_utils::app_err;
 use sqlx::Column;
 use sqlx::Executor;
+use sqlx::any::install_default_drivers;
 use std::sync::{Arc, LazyLock, Mutex};
 
 use mlua::{Lua, Result as LuaResult, Table, Value};
 use sqlx::AnyPool;
-use sqlx::{
-    Row,
-    any::{AnyKind, AnyPoolOptions},
-    pool::PoolConnection,
-    query::Query,
-};
+use sqlx::{Row, any::AnyPoolOptions};
 
 use flint_utils::{Result, debug, error};
 
@@ -342,7 +338,7 @@ pub fn sql_helpers(lua: &Lua) -> Result<Table> {
     })?;
 
     // Function to check if we can connect to the database
-    let test_connection_fn = lua.create_function(|_, conn_params: Table| {
+    let test_connection_fn = lua.create_async_function(|_, conn_params: Table| async move {
         // Don't capture conn_params directly in the async block
         // Create a connection string first (doesn't involve async)
         let conn_str = match build_connection_string(&conn_params) {
@@ -368,39 +364,37 @@ pub fn sql_helpers(lua: &Lua) -> Result<Table> {
             pools.get(&conn_key).cloned()
         };
 
-        smol::block_on(async {
-            if let Some(pool) = existing_pool {
-                // We already have a pool, test it with a simple query
-                match pool.execute("SELECT 1").await {
-                    Ok(_) => Ok(true),
-                    Err(err) => {
-                        error!("Database connection error (existing pool): {}", err);
-                        Ok(false)
-                    }
-                }
-            } else {
-                // We need to create a new pool
-                sqlx::any::install_default_drivers();
-                match AnyPoolOptions::new()
-                    .max_connections(1)
-                    .connect(&conn_str)
-                    .await
-                {
-                    Ok(pool) => {
-                        // Store the pool for reuse
-                        {
-                            let mut pools = DB_POOLS.lock().unwrap();
-                            pools.insert(conn_key, pool);
-                        }
-                        Ok(true)
-                    }
-                    Err(err) => {
-                        error!("Database connection error: {}", err);
-                        Ok(false)
-                    }
+        if let Some(pool) = existing_pool {
+            // We already have a pool, test it with a simple query
+            match pool.execute("SELECT 1").await {
+                Ok(_) => Ok(true),
+                Err(err) => {
+                    error!("Database connection error (existing pool): {}", err);
+                    Ok(false)
                 }
             }
-        })
+        } else {
+            // We need to create a new pool
+            sqlx::any::install_default_drivers();
+            match AnyPoolOptions::new()
+                .max_connections(1)
+                .connect(&conn_str)
+                .await
+            {
+                Ok(pool) => {
+                    // Store the pool for reuse
+                    {
+                        let mut pools = DB_POOLS.lock().unwrap();
+                        pools.insert(conn_key, pool);
+                    }
+                    Ok(true)
+                }
+                Err(err) => {
+                    error!("Database connection error: {}", err);
+                    Ok(false)
+                }
+            }
+        }
     })?;
 
     // Function to close a database connection
@@ -433,6 +427,7 @@ pub fn sql_helpers(lua: &Lua) -> Result<Table> {
 
     // Helper function to create connection parameters
     let create_postgres_connection = lua.create_function(|lua, args: Table| {
+        install_default_drivers();
         let params = lua.create_table()?;
 
         params.set("type", "postgres")?;
@@ -465,6 +460,7 @@ pub fn sql_helpers(lua: &Lua) -> Result<Table> {
     })?;
 
     let create_mysql_connection = lua.create_function(|lua, args: Table| {
+        install_default_drivers();
         let params = lua.create_table()?;
 
         params.set("type", "mysql")?;
@@ -497,6 +493,7 @@ pub fn sql_helpers(lua: &Lua) -> Result<Table> {
     })?;
 
     let create_sqlite_connection = lua.create_function(|lua, path: String| {
+        install_default_drivers();
         let params = lua.create_table()?;
         params.set("type", "sqlite")?;
         params.set("path", path)?;

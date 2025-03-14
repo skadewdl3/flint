@@ -3,6 +3,7 @@ local path = require("path")
 local eval = require("eval")
 local log = require("log")
 local sql = require("sql")
+local async = require("async")
 
 
 local function get_postgres_connection()
@@ -15,6 +16,7 @@ local function get_postgres_connection()
     })
 end
 
+
 function Run(options)
     local config = options.config
     local output = options.output
@@ -23,10 +25,8 @@ function Run(options)
     output = eval.get_output(output)
 
     local conn = get_postgres_connection()
-    local connected = sql.testConnection(conn)
-
-    local res = sql.query(conn, "SELECT * FROM users")
-    log.debug(res)
+    local connected = async.block_on(sql.testConnection, conn)
+    log.debug(connected)
 
 
     return {
