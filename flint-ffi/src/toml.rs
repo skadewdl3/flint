@@ -1,8 +1,7 @@
-use mlua::{Lua, Table, Value};
+use flint_utils::Result;
+use mlua::{Lua, Result as LuaResult, Table, Value};
 
-use crate::app::AppResult;
-
-pub fn toml_helpers(lua: &Lua) -> AppResult<Table> {
+pub fn toml_helpers(lua: &Lua) -> Result<Table> {
     let toml = lua.create_table()?;
 
     let toml_stringify =
@@ -24,10 +23,7 @@ pub fn toml_helpers(lua: &Lua) -> AppResult<Table> {
     Ok(toml)
 }
 
-fn toml_value_to_lua_value<'lua>(
-    lua: &'lua Lua,
-    value: &toml::Value,
-) -> Result<Value, mlua::Error> {
+fn toml_value_to_lua_value<'lua>(lua: &'lua Lua, value: &toml::Value) -> LuaResult<Value> {
     match value {
         toml::Value::String(s) => Ok(Value::String(lua.create_string(s)?)),
         toml::Value::Integer(i) => Ok(Value::Integer(*i as i32)),

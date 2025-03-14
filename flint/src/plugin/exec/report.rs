@@ -1,10 +1,11 @@
 use crate::{
-    app::AppResult,
-    app_err,
-    plugin::{helpers::add_helper_globals, Plugin, PluginKind},
+    plugin::{Plugin, PluginKind},
     util::toml::Config,
 };
-use mlua::{Function, Lua, LuaSerdeExt};
+use flint_ffi::add_ffi_modules;
+use flint_utils::app_err;
+use flint_utils::Result;
+use mlua::{Function, Lua, LuaSerdeExt, Result as LuaResult};
 use std::{collections::HashMap, sync::Arc};
 
 use super::eval::PluginEvalOutput;
@@ -14,13 +15,13 @@ pub fn report(
     toml: &Arc<Config>,
     output: &PluginEvalOutput,
     plugin_id: &str,
-) -> AppResult<HashMap<String, String>> {
+) -> Result<HashMap<String, String>> {
     if plugin.kind != PluginKind::Report {
-        return Err(app_err!("{} is not a reporting plugin.", plugin.details.id));
+        return app_err!("{} is not a reporting plugin.", plugin.details.id);
     }
 
     let lua = Lua::new();
-    add_helper_globals(&lua)?;
+    add_ffi_modules(&lua)?;
 
     let plugin_config = plugin.get_config_lua(&lua, toml);
 

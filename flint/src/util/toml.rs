@@ -1,4 +1,4 @@
-use crate::app::AppResult;
+use flint_utils::Result;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::PathBuf};
 use toml;
@@ -26,19 +26,19 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn load(path: &PathBuf) -> AppResult<Self> {
+    pub fn load(path: &PathBuf) -> Result<Self> {
         let toml_str = std::fs::read_to_string(&path)?;
         let config: Config = toml::from_str(&toml_str)?;
         Ok(config)
     }
 
-    pub fn create(path: PathBuf, config: Config) -> AppResult<()> {
+    pub fn create(path: PathBuf, config: Config) -> Result<()> {
         let toml_str = toml::to_string(&config)?;
         std::fs::write(path, toml_str)?;
         Ok(())
     }
 
-    pub fn create_default(path: PathBuf) -> AppResult<()> {
+    pub fn create_default(path: PathBuf) -> Result<()> {
         let config = Config {
             flint: FlintConfig {
                 version: 1,

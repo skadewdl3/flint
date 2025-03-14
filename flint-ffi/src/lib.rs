@@ -1,17 +1,16 @@
+use flint_utils::Result;
 use mlua::{Lua, Table};
 
-pub mod eval;
-pub mod js;
-pub mod json;
-pub mod log;
-pub mod path;
-pub mod sql;
-pub mod toml;
-pub mod yaml;
+mod eval;
+mod js;
+mod json;
+mod log;
+mod path;
+mod sql;
+mod toml;
+mod yaml;
 
-use crate::app::AppResult;
-
-pub fn add_helper_globals(lua: &Lua) -> AppResult<()> {
+pub fn add_ffi_modules(lua: &Lua) -> Result<()> {
     let log = log::log_helpers(lua)?;
     let json = json::json_helpers(lua)?;
     let toml = toml::toml_helpers(lua)?;

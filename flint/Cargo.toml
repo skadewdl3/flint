@@ -20,6 +20,8 @@ toml = "0.8.19"
 tui-popup = "0.6.0"
 tui-textarea = "0.7.0"
 flint-macros = { path = "../flint-macros" }
+flint-ffi = { path = "../flint-ffi" }
+flint-utils = { path = "../flint-utils" }
 thiserror = "2.0.11"
 serde_yaml = "0.9.34"
 clap = { version = "4.5.31", features = ["derive"] }

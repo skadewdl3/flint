@@ -8,7 +8,7 @@ use ratatui::{
     widgets::{Block, Padding, Paragraph, StatefulWidget, Widget},
 };
 
-use crate::util::logs::{get_logs, LogKind};
+use flint_utils::logs::{get_logs, LogKind};
 
 // Define a state to keep track of scrolling position
 #[derive(Debug, Clone, Copy)]

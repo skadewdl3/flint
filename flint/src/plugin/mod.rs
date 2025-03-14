@@ -1,8 +1,7 @@
-use crate::app::AppResult;
 use crate::util::toml::Config;
+use flint_utils::Result;
 
 pub mod find;
-pub mod helpers;
 use deps::Dependency;
 use eval::PluginEvalOutput;
 pub use find::*;
@@ -95,19 +94,19 @@ impl Plugin {
         plugin_config.clone()
     }
 
-    pub fn get_dependencies(&self) -> AppResult<HashMap<String, Vec<Dependency>>> {
+    pub fn get_dependencies(&self) -> Result<HashMap<String, Vec<Dependency>>> {
         deps::get_dependencies(&self)
     }
 
-    pub fn generate(&self, toml: &Arc<Config>) -> AppResult<HashMap<String, String>> {
+    pub fn generate(&self, toml: &Arc<Config>) -> Result<HashMap<String, String>> {
         generate::generate(&self, toml)
     }
 
-    pub fn run<'a>(&self, toml: &Arc<Config>) -> AppResult<Vec<String>> {
+    pub fn run<'a>(&self, toml: &Arc<Config>) -> Result<Vec<String>> {
         run::run(&self, toml)
     }
 
-    pub fn eval(&self, output: Output) -> AppResult<PluginEvalOutput> {
+    pub fn eval(&self, output: Output) -> Result<PluginEvalOutput> {
         eval::eval(&self, output)
     }
 
@@ -116,7 +115,7 @@ impl Plugin {
         toml: &Arc<Config>,
         output: &PluginEvalOutput,
         plugin_id: &str,
-    ) -> AppResult<HashMap<String, String>> {
+    ) -> Result<HashMap<String, String>> {
         report::report(&self, toml, output, plugin_id)
     }
 }

@@ -1,6 +1,7 @@
 use app::{App, AppArgs};
 use clap::Parser;
-use util::flags::handle_global_flags;
+use flint_utils::set_flag;
+use util::handle_global_flags;
 
 pub mod app;
 pub mod plugin;

@@ -1,11 +1,9 @@
-use super::{AppError, AppResult, AppWidget};
-use crate::{
-    get_flag, info,
-    util::{handle_key_events, lang::Language, toml::Config},
-};
+use super::AppWidget;
+use crate::util::{handle_key_events, lang::Language, toml::Config};
 use clap::Parser;
 use crossterm::event::{Event, KeyCode};
 use flint_macros::{ui, widget as w};
+use flint_utils::{error, get_flag, info, success, warn, Error, Result};
 use ratatui::{
     layout::{Constraint, Direction, Layout},
     prelude::*,
@@ -104,7 +102,7 @@ impl<'a> WidgetRef for InitWidget<'a> {
 }
 
 impl<'a> AppWidget for InitWidget<'a> {
-    fn setup(&mut self) -> AppResult<()> {
+    fn setup(&mut self) -> Result<()> {
         let cwd = get_flag!(current_dir);
         info!("Determined current directory: {}", cwd.display());
 
@@ -118,17 +116,17 @@ impl<'a> AppWidget for InitWidget<'a> {
         Ok(())
     }
 
-    fn handle_events(&mut self, event: Event) -> AppResult<()> {
+    fn handle_events(&mut self, event: Event) -> Result<()> {
         handle_key_events(event, |key_event, key_code| {
             if self.created_config {
-                return Err(AppError::Exit);
+                return Err(Error::Exit);
             }
             match key_code {
                 KeyCode::Enter => {
                     let input = self.textarea.lines().get(0).unwrap();
 
                     match input.as_str() {
-                        "n" => return Err(AppError::Exit),
+                        "n" => return Err(Error::Exit),
                         "y" => {
                             Config::create_default(PathBuf::from("./flint.toml")).unwrap();
                             self.created_config = true;

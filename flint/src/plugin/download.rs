@@ -2,20 +2,19 @@ use std::error::Error;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use crate::app::AppResult;
+use flint_utils::{app_err, cmd, error, get_flag, info, success, warn};
+
 use crate::util::toml::Config;
-use crate::{app_err, error, get_flag};
-use crate::{cmd, info};
-use crate::{success, warn};
 
 use super::PluginKind;
+use flint_utils::Result;
 
 pub fn clone_plugin_folders(
     repo_url: &str,
     plugin_kind: PluginKind,
     plugin_ids: Vec<&String>,
     branch: &str,
-) -> AppResult<PathBuf> {
+) -> Result<PathBuf> {
     info!(
         "Starting plugin clone process for {} plugins",
         plugin_kind.to_string()
@@ -42,15 +41,10 @@ pub fn clone_plugin_folders(
 
     // Check if git is installed and available
     info!("Checking if git is installed");
-    let git_check = cmd!["git", "--help"].output().map_err(|e| {
-        app_err!(
-            "Git is not instaled on this system or not in PATH.\nError message: {}",
-            e
-        )
-    })?;
+    let git_check = cmd!["git", "--help"].output()?;
 
     if !git_check.status.success() {
-        return Err(app_err!("Git is not available or not working properly"));
+        return app_err!("Git is not available or not working properly");
     }
 
     info!("Cloning repository metadata from {}", repo_url);
@@ -79,19 +73,15 @@ pub fn clone_plugin_folders(
             "Cleaning up temporary directory after failed clone: {}",
             temp_path.display()
         );
-        _ = fs::remove_dir_all(&temp_path).map_err(|e| {
-            app_err!("Failed to remove temporary directory: {}", e);
-        });
+        _ = fs::remove_dir_all(&temp_path)
+            .map_err(|e| -> Result<()> { app_err!("Failed to remove temporary directory: {}", e) });
 
-        return Err(app_err!(
-            "Failed to clone repository.\n Git Clone output: {}",
-            stderr
-        ));
+        return app_err!("Failed to clone repository.\n Git Clone output: {}", stderr);
     }
 
     if !status.success() {
         // Clean up the temporary directory if clone fails
-        return Err(app_err!("Failed to clone repository"));
+        return app_err!("Failed to clone repository");
     }
 
     let mut sparse_paths = Vec::new();
@@ -127,7 +117,7 @@ pub fn clone_plugin_folders(
             temp_path.display()
         );
         let _ = fs::remove_dir_all(&temp_path);
-        return Err(app_err!("Failed to set sparse-checkout"));
+        return app_err!("Failed to set sparse-checkout");
     }
 
     // Check if the plugins directory exists
@@ -142,16 +132,16 @@ pub fn clone_plugin_folders(
             "Plugins directory not found: {}",
             temp_plugins_dir.display()
         );
-        _ = fs::remove_dir_all(&temp_path).map_err(|e| {
+        _ = fs::remove_dir_all(&temp_path).map_err(|e| -> Result<()> {
             app_err!(
                 "Failed to clean up temporary directory.\nError message: {}",
                 e
             )
         });
-        return Err(app_err!(
+        return app_err!(
             "Plugins directory not found: {}",
             temp_plugins_dir.display()
-        ));
+        );
     }
 
     // Copy each requested plugin to the final destination
@@ -182,7 +172,7 @@ pub fn clone_plugin_folders(
 }
 
 // Helper function to recursively copy directories
-fn copy_dir_all(src: &Path, dst: &Path) -> Result<(), Box<dyn Error>> {
+fn copy_dir_all(src: &Path, dst: &Path) -> Result<()> {
     if !dst.exists() {
         fs::create_dir_all(dst)?;
     }
@@ -205,14 +195,15 @@ fn copy_dir_all(src: &Path, dst: &Path) -> Result<(), Box<dyn Error>> {
 }
 
 // Example usage
-pub fn download_plugins(kind: PluginKind, ids: Vec<&String>) -> Result<(), Box<dyn Error>> {
+pub fn download_plugins(kind: PluginKind, ids: Vec<&String>) -> Result<()> {
     info!(
         "Starting download of {} {} plugins",
         ids.len(),
         kind.to_string()
     );
     let repo_url = "https://github.com/skadewdl3/flint";
-    let config = Config::load(&get_flag!(current_dir).join("flint.toml"))?;
+    let config_path = get_flag!(current_dir).join("flint.toml");
+    let config = Config::load(&config_path)?;
     let branch = config.flint.plugins_branch;
 
     info!("Source repository: {}", repo_url);
@@ -223,7 +214,7 @@ pub fn download_plugins(kind: PluginKind, ids: Vec<&String>) -> Result<(), Box<d
     Ok(())
 }
 
-pub fn download_plugins_from_config(toml: &Config) -> Result<(), Box<dyn Error>> {
+pub fn download_plugins_from_config(toml: &Config) -> Result<()> {
     info!("Loading configuration from flint.toml");
 
     let linter_ids: Vec<&String> = toml.rules.keys().collect();

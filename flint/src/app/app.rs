@@ -4,13 +4,12 @@ use super::init::{InitWidget, InitWidgetArgs};
 use super::install::{InstallArgs, InstallWidget};
 use super::test::{TestArgs, TestWidget};
 use super::AppWidget;
-use super::{AppError, AppResult};
-use crate::error;
 use crate::util::handle_key_events;
 use clap::{Parser, Subcommand};
 use crossterm::event;
 use crossterm::event::KeyCode;
 use flint_macros::{ui, widget};
+use flint_utils::{error, Error, Result};
 use ratatui::widgets::WidgetRef;
 use ratatui::{prelude::*, DefaultTerminal};
 use std::io;
@@ -122,7 +121,7 @@ impl App {
         });
     }
 
-    fn handle_all_events(&mut self) -> AppResult<()> {
+    fn handle_all_events(&mut self) -> Result<()> {
         // Exit early if no events are available
         if let Ok(event_exists) = event::poll(Duration::from_millis(100)) {
             if !event_exists {
@@ -132,13 +131,13 @@ impl App {
 
         let event = event::read().expect("Could not get event");
         let status1 = handle_key_events(event.clone(), |_, key_code| match key_code {
-            KeyCode::Esc => return Err(AppError::Exit),
+            KeyCode::Esc => return Err(Error::Exit),
             _ => Ok(()),
         });
 
         let status2 = self.active_widget.handle_events(event);
-        if matches!(status1, Err(AppError::Exit)) || matches!(status2, Err(AppError::Exit)) {
-            return Err(AppError::Exit);
+        if matches!(status1, Err(Error::Exit)) || matches!(status2, Err(Error::Exit)) {
+            return Err(Error::Exit);
         }
         Ok(())
     }
@@ -157,13 +156,4 @@ impl WidgetRef for App {
 
         self.active_widget.render_ref(area, buf);
     }
-}
-
-#[macro_export]
-macro_rules! cmd {
-    ($program:expr, $($arg:expr),* $(,)?) => {{
-        let mut command = std::process::Command::new($program);
-        $(command.arg($arg);)*
-        command
-    }};
 }

@@ -1,8 +1,8 @@
-use crate::{app::AppResult, debug, error, info, success, warn};
+use flint_utils::{Result, debug, error, info, success, warn};
 use mlua::{Lua, Table, Value};
 use serde_json::to_string_pretty;
 
-pub fn log_helpers(lua: &Lua) -> AppResult<Table> {
+pub fn log_helpers(lua: &Lua) -> Result<Table> {
     let log = lua.create_table()?;
     let create_log_fn = |kind| {
         lua.create_function(move |_, message: String| {

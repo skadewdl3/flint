@@ -1,11 +1,10 @@
-use crate::{
-    app::AppResult,
-    app_err,
-    plugin::{helpers::add_helper_globals, Plugin},
-};
-use mlua::{Error, Function, Lua, LuaSerdeExt, Value};
+use flint_ffi::add_ffi_modules;
+use flint_utils::{app_err, Result};
+use mlua::{Function, Lua, LuaSerdeExt, Result as LuaResult, Value};
 use serde::{Deserialize, Serialize};
 use std::process::Output;
+
+use crate::plugin::Plugin;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct TestCaseOutput {
@@ -36,32 +35,30 @@ pub enum PluginEvalOutput {
     Test(TestPluginEvalOutput),
 }
 
-pub fn eval(plugin: &Plugin, output: Output) -> AppResult<PluginEvalOutput> {
+pub fn eval(plugin: &Plugin, output: Output) -> Result<PluginEvalOutput> {
     let lua = Lua::new();
-    add_helper_globals(&lua)?;
+    add_ffi_modules(&lua)?;
 
-    let eval: Result<Function, Error> = {
+    let eval: Function = {
         let contents = std::fs::read_to_string(plugin.path.join("run.lua"))?;
 
         lua.load(contents)
             .exec()
             .map(|_| lua.globals().get("Eval").unwrap())
-    };
+    }?;
 
-    let evaluation_state = lua.create_table().unwrap();
+    let evaluation_state = lua.create_table()?;
     evaluation_state.set("stdout", String::from_utf8_lossy(&output.stdout))?;
     evaluation_state.set("stderr", String::from_utf8_lossy(&output.stderr))?;
     evaluation_state.set("status", output.status.code())?;
 
     evaluation_state.set("success", output.status.success())?;
 
-    let eval_output = eval
-        .expect("error reading run.lua")
-        .call::<mlua::Value>(evaluation_state)?;
+    let eval_output = eval.call::<mlua::Value>(evaluation_state)?;
 
     let eval_output_table = match &eval_output {
         Value::Table(table) => table,
-        _ => return Err(app_err!("Eval function should return a valid lua table")),
+        _ => return app_err!("Eval function should return a valid lua table"),
     };
 
     if eval_output_table.contains_key("test_results")? {
@@ -71,6 +68,6 @@ pub fn eval(plugin: &Plugin, output: Output) -> AppResult<PluginEvalOutput> {
         let lint_output: LintPluginEvalOutput = lua.from_value(eval_output.clone())?;
         Ok(PluginEvalOutput::Lint(lint_output))
     } else {
-        Err(app_err!("Unknown plugin output format"))
+        app_err!("Unknown plugin output format")
     }
 }

@@ -1,3 +1,4 @@
+use flint_utils::app_err;
 use sqlx::Column;
 use sqlx::Executor;
 use std::sync::{Arc, LazyLock, Mutex};
@@ -5,13 +6,13 @@ use std::sync::{Arc, LazyLock, Mutex};
 use mlua::{Lua, Result as LuaResult, Table, Value};
 use sqlx::AnyPool;
 use sqlx::{
+    Row,
     any::{AnyKind, AnyPoolOptions},
     pool::PoolConnection,
     query::Query,
-    Row,
 };
 
-use crate::{app::AppResult, debug, error};
+use flint_utils::{Result, debug, error};
 
 // Cache for database connections
 
@@ -19,11 +20,11 @@ static DB_POOLS: LazyLock<Arc<Mutex<std::collections::HashMap<String, AnyPool>>>
     LazyLock::new(|| Arc::new(Mutex::new(std::collections::HashMap::new())));
 
 // Helper function to build connection string from parameters
-fn build_connection_string(params: &Table) -> Result<String, String> {
+fn build_connection_string(params: &Table) -> Result<String> {
     // Get database type (required)
     let db_type: String = match params.get("type") {
         Ok(db_type) => db_type,
-        Err(_) => return Err("Database type is required".to_string()),
+        Err(_) => return app_err!("Database type is required"),
     };
 
     match db_type.as_str() {
@@ -58,21 +59,21 @@ fn build_connection_string(params: &Table) -> Result<String, String> {
         "sqlite" => {
             let path: String = match params.get("path") {
                 Ok(path) => path,
-                Err(_) => return Err("SQLite requires a path parameter".to_string()),
+                Err(_) => return app_err!("SQLite requires a path parameter"),
             };
 
             Ok(format!("sqlite://{}", path))
         }
-        _ => Err(format!("Unsupported database type: {}", db_type)),
+        _ => app_err!("Unsupported database type: {}", db_type),
     }
 }
 
 // Helper function to create a connection key for the connection pool cache
-fn create_connection_key(params: &Table) -> Result<String, String> {
+fn create_connection_key(params: &Table) -> Result<String> {
     // Get database type (required)
     let db_type: String = match params.get("type") {
         Ok(db_type) => db_type,
-        Err(_) => return Err("Database type is required".to_string()),
+        Err(_) => return app_err!("Database type is required"),
     };
 
     match db_type.as_str() {
@@ -80,16 +81,9 @@ fn create_connection_key(params: &Table) -> Result<String, String> {
             let host: String = params
                 .get("host")
                 .unwrap_or_else(|_| "localhost".to_string());
-            let port: u16 =
-                params.get("port").unwrap_or_else(
-                    |_| {
-                        if db_type == "postgres" {
-                            5432
-                        } else {
-                            3306
-                        }
-                    },
-                );
+            let port: u16 = params
+                .get("port")
+                .unwrap_or_else(|_| if db_type == "postgres" { 5432 } else { 3306 });
             let username: String = params.get("username").unwrap_or_default();
             let database: String = params.get("database").unwrap_or_default();
 
@@ -101,16 +95,16 @@ fn create_connection_key(params: &Table) -> Result<String, String> {
         "sqlite" => {
             let path: String = match params.get("path") {
                 Ok(path) => path,
-                Err(_) => return Err("SQLite requires a path parameter".to_string()),
+                Err(_) => return app_err!("SQLite requires a path parameter"),
             };
 
             Ok(format!("sqlite:{}", path))
         }
-        _ => Err(format!("Unsupported database type: {}", db_type)),
+        _ => app_err!("Unsupported database type: {}", db_type),
     }
 }
 
-async fn get_db_pool(params: &Table) -> Result<AnyPool, String> {
+async fn get_db_pool(params: &Table) -> Result<AnyPool> {
     // Create a unique key for the connection
     let conn_key = create_connection_key(params)?;
 
@@ -137,7 +131,7 @@ async fn get_db_pool(params: &Table) -> Result<AnyPool, String> {
         .await
     {
         Ok(pool) => pool,
-        Err(err) => return Err(format!("Failed to connect to database: {}", err)),
+        Err(err) => return app_err!("Failed to connect to database: {}", err),
     };
 
     // Store the pool for reuse, but only after creating it
@@ -218,7 +212,7 @@ async fn execute_query(
                 return Err(mlua::Error::external(format!(
                     "Unsupported parameter type: {:?}",
                     param
-                )))
+                )));
             }
         };
     }
@@ -266,7 +260,7 @@ async fn execute_statement(
                 return Err(mlua::Error::external(format!(
                     "Unsupported parameter type: {:?}",
                     param
-                )))
+                )));
             }
         };
     }
@@ -278,7 +272,7 @@ async fn execute_statement(
     }
 }
 
-pub fn sql_helpers(lua: &Lua) -> AppResult<Table> {
+pub fn sql_helpers(lua: &Lua) -> Result<Table> {
     let sql = lua.create_table()?;
 
     // Function to query database and return results as table
@@ -294,7 +288,7 @@ pub fn sql_helpers(lua: &Lua) -> AppResult<Table> {
             _ => {
                 return Err(mlua::Error::external(
                     "First argument must be a table with connection parameters",
-                ))
+                ));
             }
         };
 
@@ -303,7 +297,7 @@ pub fn sql_helpers(lua: &Lua) -> AppResult<Table> {
             _ => {
                 return Err(mlua::Error::external(
                     "Second argument must be a string (SQL query)",
-                ))
+                ));
             }
         };
 
@@ -327,7 +321,7 @@ pub fn sql_helpers(lua: &Lua) -> AppResult<Table> {
             _ => {
                 return Err(mlua::Error::external(
                     "First argument must be a table with connection parameters",
-                ))
+                ));
             }
         };
 
@@ -336,7 +330,7 @@ pub fn sql_helpers(lua: &Lua) -> AppResult<Table> {
             _ => {
                 return Err(mlua::Error::external(
                     "Second argument must be a string (SQL query)",
-                ))
+                ));
             }
         };
 
@@ -417,7 +411,7 @@ pub fn sql_helpers(lua: &Lua) -> AppResult<Table> {
                 return Err(mlua::Error::external(format!(
                     "Failed to create connection key: {}",
                     err
-                )))
+                )));
             }
         };
 

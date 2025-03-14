@@ -3,9 +3,9 @@ use std::path::Path;
 use directories::UserDirs;
 use mlua::{Lua, Table, Variadic};
 
-use crate::{app::AppResult, get_flag};
+use flint_utils::{Result, get_flag};
 
-pub fn path_helpers(lua: &Lua) -> AppResult<Table> {
+pub fn path_helpers(lua: &Lua) -> Result<Table> {
     let path = lua.create_table()?;
 
     let cwd = lua.create_function(|lua, ()| {
@@ -123,7 +123,7 @@ pub fn path_helpers(lua: &Lua) -> AppResult<Table> {
                 return Err(mlua::Error::runtime(format!(
                     "Failed to read directory: {}",
                     err
-                )))
+                )));
             }
         };
 
@@ -142,7 +142,7 @@ pub fn path_helpers(lua: &Lua) -> AppResult<Table> {
                     return Err(mlua::Error::runtime(format!(
                         "Error reading entry: {}",
                         err
-                    )))
+                    )));
                 }
             }
         }
