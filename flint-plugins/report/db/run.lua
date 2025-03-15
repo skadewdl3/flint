@@ -112,7 +112,7 @@ function Run(options)
                 log.error("Failed to insert lint result for file: " .. result.file_name)
             end
         end
-        log.info("Pushed " .. #output.lint_results .. " lint results to database")
+        log.success("Pushed " .. #output.lint_results .. " lint results to database")
     elseif output_type == eval.test then
         -- Process Test results
         for _, result in ipairs(output.test_results) do
@@ -141,7 +141,7 @@ function Run(options)
                 log.error("Failed to insert test result for file: " .. result.file_name)
             end
         end
-        log.info("Pushed " .. #output.test_results .. " test results to database")
+        log.success("Pushed " .. #output.test_results .. " test results to database")
     else
         log.error("Unknown output type")
     end
