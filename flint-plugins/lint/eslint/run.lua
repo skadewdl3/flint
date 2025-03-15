@@ -12,7 +12,7 @@ end
 function Eval(output)
     local output = output.stdout
     local parsed_output = json.parse(output)
-    log.debug(parsed_output)
+    -- log.debug(parsed_output)
     local cwd = path.cwd()
 
     -- Extract linting results
@@ -33,9 +33,12 @@ function Eval(output)
                         column_no = msg.column,
                         error_message = msg.message,
                         success = false,
-                        -- severity = msg.severity, -- 1 = warning, 2 = error
-                        -- node_type = msg.nodeType,
-                        -- message_id = msg.messageId
+                        data = {
+                            severity = msg.severity,
+                            rule_id = msg.ruleId,
+                            node_type = msg.nodeType,
+                            message_id = msg.messageId
+                        }
                     }
 
                     table.insert(results, result)
@@ -44,7 +47,7 @@ function Eval(output)
         end
     end
 
-    log.debug(results)
+    -- log.debug(results)
 
     -- Return false if there are linting errors, true otherwise
     return {

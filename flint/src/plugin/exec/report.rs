@@ -5,7 +5,7 @@ use crate::{
 use flint_ffi::add_ffi_modules;
 use flint_utils::app_err;
 use flint_utils::Result;
-use mlua::{Function, Lua, LuaSerdeExt, Result as LuaResult};
+use mlua::{Function, Lua, LuaSerdeExt, Result as LuaResult, Value};
 use std::{collections::HashMap, sync::Arc};
 
 use super::eval::PluginEvalOutput;
@@ -41,6 +41,10 @@ pub fn report(
     report_state.set("plugin_id", plugin_id)?;
 
     let report_results = report.call::<mlua::Value>(report_state)?;
+
+    if let Value::Nil = report_results {
+        return Ok(HashMap::new());
+    }
 
     let report_results: HashMap<String, String> = lua.from_value(report_results)?;
 

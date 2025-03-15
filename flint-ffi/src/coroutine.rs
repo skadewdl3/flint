@@ -1,3 +1,4 @@
+use flint_utils::debug;
 use mlua::{Function, Lua, Result as LuaResult, Table, Value, Variadic, chunk};
 
 pub fn coroutine_helpers(lua: &Lua) -> LuaResult<Table> {

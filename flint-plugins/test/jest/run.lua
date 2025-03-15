@@ -5,13 +5,11 @@ local json = require("json")
 function Run(config)
     local cwd = path.cwd()
     local files = path.ls(cwd)
-    return { "jest", "--json" }
+    return { "jest", "--json", "--passWithNoTests", "--logHeapUsage", "--testLocationInResults" }
 end
 
 function Eval(output)
-    -- log.debug(output)
     if not output.success then
-        log.debug(output.stderr)
         return {
             tests_passed = 0,
             total_tests = 0,
@@ -20,7 +18,6 @@ function Eval(output)
         }
     end
     local output = output.stdout
-    -- log.debug(output.stdout)
     local parsed_output = json.parse(output)
     local testResults = parsed_output.testResults
 
@@ -39,11 +36,12 @@ function Eval(output)
             end
 
             local test_result = {
-                file_name = file_name,
+                file_name = path.relative(file_name, path.cwd()),
                 line_no = nil, -- Default values if not available
                 column_no = nil,
                 success = (assertion.status == "passed"),
-                error_message = nil
+                error_message = nil,
+                data = {},
             }
 
             if assertion.status == "failed" then
@@ -63,6 +61,16 @@ function Eval(output)
                 else
                     test_result.error_message = "Test failed without specific error message"
                 end
+            end
+
+
+            if assertion.title then
+                test_result.data.title = assertion.title
+            end
+
+            if not test_result.line_no and assertion.location then
+                test_result.line_no = assertion.location.line
+                test_result.column_no = assertion.location.column
             end
 
             table.insert(results, test_result)

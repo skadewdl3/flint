@@ -2,17 +2,18 @@ use flint_ffi::add_ffi_modules;
 use flint_utils::{app_err, Result};
 use mlua::{Function, Lua, LuaSerdeExt, Result as LuaResult, Value};
 use serde::{Deserialize, Serialize};
-use std::process::Output;
+use std::{collections::HashMap, process::Output};
 
 use crate::plugin::Plugin;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct TestCaseOutput {
     file_name: String,
-    line_no: Option<u32>, // Default values if not available
+    line_no: Option<u32>,
     column_no: Option<u32>,
-    success: bool, // Converted from assertion.status == "passed"
+    success: bool,
     error_message: Option<String>,
+    data: Option<HashMap<String, serde_json::Value>>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]

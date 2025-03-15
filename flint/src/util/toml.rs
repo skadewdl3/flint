@@ -3,8 +3,12 @@ use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::PathBuf};
 use toml;
 
-pub fn default_plugins_branch() -> String {
+fn default_plugins_branch() -> String {
     "main".into()
+}
+
+fn default_hashmap() -> HashMap<String, toml::Value> {
+    HashMap::new()
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -17,11 +21,22 @@ pub struct FlintConfig {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Config {
     pub flint: FlintConfig,
+
+    #[serde(default = "default_hashmap")]
     pub common: HashMap<String, toml::Value>,
+
+    #[serde(default = "default_hashmap")]
     pub rules: HashMap<String, toml::Value>,
+    #[serde(default = "default_hashmap")]
     pub tests: HashMap<String, toml::Value>,
+
+    #[serde(default = "default_hashmap")]
     pub config: HashMap<String, toml::Value>,
+
+    #[serde(default = "default_hashmap")]
     pub ci: HashMap<String, toml::Value>,
+
+    #[serde(default = "default_hashmap")]
     pub report: HashMap<String, toml::Value>,
 }
 

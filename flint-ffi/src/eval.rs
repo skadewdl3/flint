@@ -9,7 +9,7 @@ pub fn eval_helpers(lua: &Lua) -> LuaResult<Table> {
     let tbl = eval_table.clone();
 
     eval_table.set(
-        "test_type",
+        "get_output_type",
         lua.create_function(move |_, table: Table| -> LuaResult<String> {
             if table.contains_key("Lint")? {
                 Ok(tbl.get("lint")?)

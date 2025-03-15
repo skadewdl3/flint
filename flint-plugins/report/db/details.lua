@@ -1,6 +1,6 @@
 function Details()
     return {
-        id = "grafana",
+        id = "db",
         version = "1.0.0",
         author = "Soham Karandikar",
         extensions = {}
