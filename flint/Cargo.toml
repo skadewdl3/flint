@@ -33,3 +33,4 @@ sqlx = { version = "0.8.3", features = [
     "runtime-async-std",
 ] }
 smol = "2.0.2"
+async-openai = "0.28.0"

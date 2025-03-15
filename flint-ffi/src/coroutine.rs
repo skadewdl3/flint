@@ -1,5 +1,4 @@
-use flint_utils::debug;
-use mlua::{Function, Lua, Result as LuaResult, Table, Value, Variadic, chunk};
+use mlua::{Function, Lua, Result as LuaResult, Table, Value, Variadic};
 
 pub fn coroutine_helpers(lua: &Lua) -> LuaResult<Table> {
     // Create a function that takes an async mlua function and blocks until it completes

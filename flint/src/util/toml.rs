@@ -23,9 +23,6 @@ pub struct Config {
     pub flint: FlintConfig,
 
     #[serde(default = "default_hashmap")]
-    pub common: HashMap<String, toml::Value>,
-
-    #[serde(default = "default_hashmap")]
     pub rules: HashMap<String, toml::Value>,
     #[serde(default = "default_hashmap")]
     pub tests: HashMap<String, toml::Value>,
@@ -59,7 +56,6 @@ impl Config {
                 version: 1,
                 plugins_branch: "main".into(),
             },
-            common: HashMap::new(),
             rules: HashMap::new(),
             tests: HashMap::new(),
             config: HashMap::new(),
