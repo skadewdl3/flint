@@ -1,0 +1,10 @@
+[package]
+name = "flint-utils"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+directories = "6.0.0"
+mlua = "0.10.3"
+thiserror = "2.0.12"
+toml = "0.8.20"

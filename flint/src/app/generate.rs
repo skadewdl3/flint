@@ -1,14 +1,12 @@
-use super::{AppResult, AppWidget};
-use crate::{error, info};
+use super::AppWidget;
 use crate::{
-    get_flag,
     plugin::{self, Plugin},
-    success,
     util::toml::Config,
     widgets::logs::LogsWidget,
 };
 use clap::Parser;
 use flint_macros::ui;
+use flint_utils::{error, get_flag, info, success, Result};
 use ratatui::prelude::*;
 use ratatui::widgets::WidgetRef;
 use std::{fs, sync::Arc};
@@ -41,9 +39,9 @@ impl GenerateWidget {
 }
 
 impl AppWidget for GenerateWidget {
-    fn setup(&mut self) -> AppResult<()> {
+    fn setup(&mut self) -> Result<()> {
         let config_path = get_flag!(config_path);
-        let toml = Arc::new(Config::load(config_path).unwrap());
+        let toml = Arc::new(Config::load(&config_path).unwrap());
         let mut plugin_ids = Vec::new();
         plugin_ids.extend(toml.rules.keys());
         plugin_ids.extend(toml.tests.keys());

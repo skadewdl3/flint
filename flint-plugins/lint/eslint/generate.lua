@@ -118,21 +118,10 @@ function Generate(config)
     -- Add rules table to eslint config
     eslintConfig.rules = rules
 
-    local ignoresAndIncludes = js.object({})
-
-    if extra.include then
-        ignoresAndIncludes.files = extra.include
-    end
-
-    if extra.exclude then
-        ignoresAndIncludes.ignores = extra.exclude
-    end
-
-
-
     eslintConfig = js.exports.default(
         js.fn.call(defineConfig, js.array(
-            ignoresAndIncludes,
+            extra.include and #extra.include ~= 0 and { files = extra.include },
+            extra.exclude and #extra.exclude ~= 0 and js.fn.call(globalIgnores, extra.exclude),
             js.object({
                 plugins = { js = recommended },
                 extends = { "js/recommended" }

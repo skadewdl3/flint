@@ -1,10 +1,11 @@
 use crate::{
-    app::AppResult,
-    app_err,
-    plugin::{helpers::add_helper_globals, Plugin, PluginKind},
+    plugin::{Plugin, PluginKind},
     util::toml::Config,
 };
-use mlua::{Error, Function, Lua, LuaSerdeExt};
+use flint_ffi::add_ffi_modules;
+use flint_utils::app_err;
+use flint_utils::Result;
+use mlua::{Function, Lua, LuaSerdeExt, Result as LuaResult, Value};
 use std::{collections::HashMap, sync::Arc};
 
 use super::eval::PluginEvalOutput;
@@ -13,38 +14,39 @@ pub fn report(
     plugin: &Plugin,
     toml: &Arc<Config>,
     output: &PluginEvalOutput,
-) -> AppResult<HashMap<String, String>> {
+    plugin_id: &str,
+) -> Result<HashMap<String, String>> {
     if plugin.kind != PluginKind::Report {
-        return Err(app_err!("{} is not a reporting plugin.", plugin.details.id));
+        return app_err!("{} is not a reporting plugin.", plugin.details.id);
     }
 
     let lua = Lua::new();
-    add_helper_globals(&lua)?;
+    add_ffi_modules(&lua)?;
 
     let plugin_config = plugin.get_config_lua(&lua, toml);
 
-    let report: Result<Function, Error> = {
+    let report: Function = {
         let contents = std::fs::read_to_string(plugin.path.join("run.lua"))
             .expect("Error reading plugin code");
 
         lua.load(contents)
             .exec()
             .map(|_| lua.globals().get("Run").unwrap())
-    };
+    }?;
 
-    let report_state = lua.create_table().unwrap();
-    report_state.set("config", plugin_config).unwrap();
-    let output_lua = lua.to_value(&output).unwrap();
-    report_state.set("output", output_lua).unwrap();
+    let report_state = lua.create_table()?;
+    report_state.set("config", plugin_config)?;
+    let output_lua = lua.to_value(&output)?;
+    report_state.set("output", output_lua)?;
+    report_state.set("plugin_id", plugin_id)?;
 
-    let report_results = report
-        .expect("error reading run.lua")
-        .call::<mlua::Value>(report_state)
-        .expect("error running report function");
+    let report_results = report.call::<mlua::Value>(report_state)?;
 
-    let report_results: HashMap<String, String> = lua
-        .from_value(report_results)
-        .expect("unable to convert generation result to String");
+    if let Value::Nil = report_results {
+        return Ok(HashMap::new());
+    }
+
+    let report_results: HashMap<String, String> = lua.from_value(report_results)?;
 
     Ok(report_results)
 }

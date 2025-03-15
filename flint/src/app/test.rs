@@ -7,15 +7,14 @@ use std::{cell::RefCell, fs, sync::Arc};
 use threadpool::ThreadPool;
 
 use crate::{
-    debug, error, get_flag, info,
     plugin::{self, Plugin, PluginKind},
-    success,
     util::{handle_key_events, handle_mouse_event, toml::Config},
-    warn,
     widgets::logs::{LogsState, LogsWidget},
 };
 
-use super::{AppResult, AppWidget};
+use flint_utils::{error, get_flag, info, success, Result};
+
+use super::AppWidget;
 
 #[derive(Debug)]
 pub struct TestWidget {
@@ -53,8 +52,9 @@ impl TestWidget {
 }
 
 impl AppWidget for TestWidget {
-    fn setup(&mut self) -> AppResult<()> {
-        let toml = Arc::new(Config::load(get_flag!(config_path)).unwrap());
+    fn setup(&mut self) -> Result<()> {
+        let config_path = get_flag!(config_path);
+        let toml = Arc::new(Config::load(&config_path).unwrap());
         let plugins = plugin::list_from_config(&toml);
 
         let run_plugins: Vec<Plugin> = plugins
@@ -120,7 +120,7 @@ impl AppWidget for TestWidget {
                     Err(e) => error!("Failed to evaluate plugin: {}", e),
                     Ok(res) => {
                         for report_plugin in report_plugins.iter() {
-                            match report_plugin.report(&toml_clone, &res) {
+                            match report_plugin.report(&toml_clone, &res, &plugin.details.id) {
                                 Err(e) => {
                                     error!("Report plugin error: {}", e);
                                 }
@@ -175,7 +175,7 @@ impl AppWidget for TestWidget {
         self.thread_pool = Some(thread_pool.clone());
     }
 
-    fn handle_events(&mut self, event: crossterm::event::Event) -> AppResult<()> {
+    fn handle_events(&mut self, event: crossterm::event::Event) -> Result<()> {
         let _ = handle_key_events(event.clone(), |_, key_code| match key_code {
             KeyCode::Up => {
                 self.logs_state.borrow_mut().scroll_up(1);

@@ -1,8 +1,10 @@
-use super::{helpers::add_helper_globals, Plugin};
-use crate::app::AppResult;
-use mlua::{Error, Function, Lua, LuaSerdeExt};
+use flint_ffi::add_ffi_modules;
+use flint_utils::Result;
+use mlua::{Function, Lua, LuaSerdeExt};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+
+use super::Plugin;
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Dependency {
@@ -10,11 +12,11 @@ pub struct Dependency {
     pub version: String,
 }
 
-pub fn get_dependencies(plugin: &Plugin) -> AppResult<HashMap<String, Vec<Dependency>>> {
+pub fn get_dependencies(plugin: &Plugin) -> Result<HashMap<String, Vec<Dependency>>> {
     let lua = Lua::new();
-    add_helper_globals(&lua)?;
+    add_ffi_modules(&lua)?;
 
-    let deps_func: Result<Function, Error> = {
+    let deps_func: Result<Function> = {
         let contents = std::fs::read_to_string(plugin.path.join("details.lua"))?;
         lua.load(&contents).exec()?;
 
@@ -38,7 +40,7 @@ pub fn get_dependencies(plugin: &Plugin) -> AppResult<HashMap<String, Vec<Depend
     }
 }
 
-pub fn collect_dependencies(plugins: &Vec<Plugin>) -> AppResult<HashMap<String, Vec<Dependency>>> {
+pub fn collect_dependencies(plugins: &Vec<Plugin>) -> Result<HashMap<String, Vec<Dependency>>> {
     let mut all_deps: HashMap<String, Vec<Dependency>> = HashMap::new();
 
     for plugin in plugins {

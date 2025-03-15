@@ -1,14 +1,10 @@
-use super::helpers::add_helper_globals;
 use super::validate::validate_plugin_structure;
 use super::{Plugin, PluginDetails, PluginKind};
-use crate::app::AppResult;
 use crate::util::toml::Config;
-use crate::{debug, error, get_flag};
-use directories::ProjectDirs;
+use flint_utils::{debug, error, get_flag, Result};
 use mlua::{Function, Lua, LuaSerdeExt};
 use std::{
     collections::{BTreeSet, HashMap, HashSet},
-    path::PathBuf,
     sync::OnceLock,
 };
 
@@ -30,23 +26,9 @@ pub fn map() -> &'static HashMap<String, BTreeSet<Plugin>> {
     })
 }
 
-pub fn dir() -> PathBuf {
-    if cfg!(debug_assertions) {
-        return PathBuf::from("./flint-plugins");
-    } else if let Some(proj_dirs) = ProjectDirs::from("com", "Flint", "flint") {
-        let plugins_path = proj_dirs.data_dir().to_path_buf().join("plugins");
-        if !plugins_path.exists() {
-            std::fs::create_dir_all(&plugins_path).expect("Failed to create plugins directory");
-        }
-        plugins_path
-    } else {
-        panic!("Unable to determine project directories");
-    }
-}
-
-pub fn list<'a>() -> AppResult<&'a BTreeSet<Plugin>> {
+pub fn list<'a>() -> Result<&'a BTreeSet<Plugin>> {
     let lua = Lua::new();
-    add_helper_globals(&lua)?;
+    flint_ffi::add_ffi_modules(&lua)?;
 
     if PLUGINS.get().is_some() {
         return Ok(PLUGINS.get().unwrap());
@@ -55,7 +37,8 @@ pub fn list<'a>() -> AppResult<&'a BTreeSet<Plugin>> {
     let plugins = ["lint", "test", "ci", "report"]
         .iter()
         .flat_map(|dir_name| {
-            let plugins_dir = get_flag!(plugins_dir).join(dir_name);
+            let plugins_dir = get_flag!(plugins_dir);
+            let plugins_dir = plugins_dir.join(dir_name);
             if !plugins_dir.exists() {
                 error!("{} directory does not exist", dir_name);
                 return vec![];

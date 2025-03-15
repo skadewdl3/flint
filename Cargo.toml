@@ -1,4 +1,4 @@
 [workspace]
 resolver = "2"
 
-members = ["flint-macros", "flint"]
+members = ["flint-macros", "flint", "flint-ffi", "flint-utils"]

@@ -1,21 +1,26 @@
+use flint_utils::Result;
 use mlua::{Lua, Table};
 
-pub mod js;
-pub mod json;
-pub mod log;
-pub mod path;
-pub mod toml;
-pub mod yaml;
+mod coroutine;
+mod eval;
+mod js;
+mod json;
+mod log;
+mod path;
+mod sql;
+mod toml;
+mod yaml;
 
-use crate::app::AppResult;
-
-pub fn add_helper_globals(lua: &Lua) -> AppResult<()> {
+pub fn add_ffi_modules(lua: &Lua) -> Result<()> {
     let log = log::log_helpers(lua)?;
     let json = json::json_helpers(lua)?;
     let toml = toml::toml_helpers(lua)?;
     let yaml = yaml::yaml_helpers(lua)?;
     let path = path::path_helpers(lua)?;
     let js = js::js_helpers(lua)?;
+    let eval = eval::eval_helpers(lua)?;
+    let sql = sql::sql_helpers(lua)?;
+    let coroutine = coroutine::coroutine_helpers(lua)?;
 
     let package: Table = lua.globals().get("package")?;
     let loaded: Table = package.get("loaded")?;
@@ -27,6 +32,9 @@ pub fn add_helper_globals(lua: &Lua) -> AppResult<()> {
     loaded.set("yaml", yaml)?;
     loaded.set("path", path)?;
     loaded.set("js", js)?;
+    loaded.set("eval", eval)?;
+    loaded.set("sql", sql)?;
+    loaded.set("async", coroutine)?;
 
     // Custom module loader to allow our modules to work
     lua.load(

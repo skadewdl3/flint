@@ -1,9 +1,7 @@
-use mlua::{Lua, Table, Value};
+use mlua::{Lua, Result as LuaResult, Table, Value};
 use serde_json::to_string_pretty;
 
-use crate::app::AppResult;
-
-pub fn json_helpers(lua: &Lua) -> AppResult<Table> {
+pub fn json_helpers(lua: &Lua) -> LuaResult<Table> {
     let json = lua.create_table()?;
 
     let json_stringify = lua.create_function(|_, value: Value| match to_string_pretty(&value) {

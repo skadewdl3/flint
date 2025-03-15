@@ -1,8 +1,7 @@
-use mlua::{Lua, Table, Value};
+use flint_utils::Result;
+use mlua::{Lua, Result as LuaResult, Table, Value};
 
-use crate::app::AppResult;
-
-pub fn yaml_helpers(lua: &Lua) -> AppResult<Table> {
+pub fn yaml_helpers(lua: &Lua) -> Result<Table> {
     let yaml = lua.create_table()?;
 
     let yaml_stringify =
@@ -24,10 +23,7 @@ pub fn yaml_helpers(lua: &Lua) -> AppResult<Table> {
     Ok(yaml)
 }
 
-fn yaml_value_to_lua_value<'lua>(
-    lua: &'lua Lua,
-    value: &serde_yaml::Value,
-) -> Result<Value, mlua::Error> {
+fn yaml_value_to_lua_value<'lua>(lua: &'lua Lua, value: &serde_yaml::Value) -> LuaResult<Value> {
     match value {
         serde_yaml::Value::Null => Ok(Value::Nil),
         serde_yaml::Value::Bool(b) => Ok(Value::Boolean(*b)),
@@ -37,7 +33,7 @@ fn yaml_value_to_lua_value<'lua>(
             } else if let Some(f) = n.as_f64() {
                 Ok(Value::Number(f))
             } else {
-                Err(mlua::Error::external("Unsupported number format"))
+                Err(mlua::Error::external("Unsupported number format").into())
             }
         }
         serde_yaml::Value::String(s) => Ok(Value::String(lua.create_string(s)?)),

@@ -55,7 +55,7 @@ pub fn add_log(kind: LogKind, message: String) {
     let is_non_interactive = get_flag!(non_interactive);
 
     let log = format!("{} {}", prefix, message);
-    if *is_non_interactive {
+    if is_non_interactive {
         println!("{}", log);
     }
     writeln!(file, "{}", log).unwrap();
@@ -66,41 +66,41 @@ pub fn add_log(kind: LogKind, message: String) {
 macro_rules! log {
     ($kind:expr, $($arg:tt)*) => {{
         let message = format!($($arg)*);
-        $crate::util::logs::add_log($kind, message);
+        $crate::logs::add_log($kind, message);
     }};
 }
 
 #[macro_export]
 macro_rules! info {
     ($($arg:tt)*) => {{
-        $crate::log!($crate::util::logs::LogKind::Info, $($arg)*);
+        $crate::log!($crate::logs::LogKind::Info, $($arg)*);
     }};
 }
 
 #[macro_export]
 macro_rules! warn {
     ($($arg:tt)*) => {{
-        $crate::log!($crate::util::logs::LogKind::Warn, $($arg)*);
+        $crate::log!($crate::logs::LogKind::Warn, $($arg)*);
     }};
 }
 
 #[macro_export]
 macro_rules! error {
     ($($arg:tt)*) => {{
-        $crate::log!($crate::util::logs::LogKind::Error, $($arg)*);
+        $crate::log!($crate::logs::LogKind::Error, $($arg)*);
     }};
 }
 
 #[macro_export]
 macro_rules! debug {
     ($($arg:tt)*) => {{
-        $crate::log!($crate::util::logs::LogKind::Debug, $($arg)*);
+        $crate::log!($crate::logs::LogKind::Debug, $($arg)*);
     }};
 }
 
 #[macro_export]
 macro_rules! success {
     ($($arg:tt)*) => {{
-        $crate::log!($crate::util::logs::LogKind::Success, $($arg)*);
+        $crate::log!($crate::logs::LogKind::Success, $($arg)*);
     }};
 }

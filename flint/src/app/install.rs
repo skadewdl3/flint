@@ -6,12 +6,13 @@ use crate::plugin::download::download_plugins_from_config;
 use crate::util::toml::Config;
 use crate::util::{handle_key_events, handle_mouse_event};
 use crate::widgets::logs::{LogsState, LogsWidget};
-use crate::{error, get_flag, success, warn};
 use clap::Parser;
 use crossterm::event::{KeyCode, MouseEventKind};
 use threadpool::ThreadPool;
 
-use super::{AppResult, AppWidget};
+use flint_utils::{error, get_flag, success, warn, Result};
+
+use super::AppWidget;
 use flint_macros::ui;
 use ratatui::prelude::*;
 use ratatui::widgets::WidgetRef;
@@ -66,13 +67,15 @@ impl InstallWidget {
 }
 
 impl AppWidget for InstallWidget {
-    fn setup(&mut self) -> AppResult<()> {
-        if *get_flag!(no_install) {
+    fn setup(&mut self) -> Result<()> {
+        let no_install = get_flag!(no_install);
+        if no_install {
             warn!("Skipping installation of plugins due to --no-install flag");
             return Ok(());
         };
 
-        let toml = Config::load(get_flag!(config_path)).unwrap();
+        let config_path = get_flag!(config_path);
+        let toml = Config::load(&config_path).unwrap();
         let toml_clone = toml.clone();
         let pool = self.pool.as_ref().unwrap();
         pool.execute(move || {
@@ -93,7 +96,7 @@ impl AppWidget for InstallWidget {
         self.pool = Some(thread_pool.clone())
     }
 
-    fn handle_events(&mut self, event: crossterm::event::Event) -> AppResult<()> {
+    fn handle_events(&mut self, event: crossterm::event::Event) -> Result<()> {
         let _ = handle_key_events(event.clone(), |_, key_code| match key_code {
             KeyCode::Up => {
                 self.logs_state.borrow_mut().scroll_up(1);
