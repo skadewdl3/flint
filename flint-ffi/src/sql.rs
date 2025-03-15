@@ -1,12 +1,11 @@
 use flint_utils::{app_err, debug};
-use sea_orm::{ConnectionTrait, ExecResult, TryGetableMany};
-use serde::Deserialize;
+use sea_orm::ConnectionTrait;
 use serde_json::Map;
-use std::{collections::HashMap, sync::Arc};
+use std::sync::Arc;
 
 use mlua::{
-    FromLua, IntoLua, Lua, LuaSerdeExt, Result as LuaResult, Table, UserData, UserDataMethods,
-    Value as LuaValue, Variadic,
+    Lua, LuaSerdeExt, Result as LuaResult, Table, UserData, UserDataMethods, Value as LuaValue,
+    Variadic,
 };
 use sea_orm::{Database, DatabaseConnection, DbErr, Statement, Value as SeaValue};
 
@@ -31,14 +30,18 @@ impl UserData for DbConnection {
             |lua, this, args: Variadic<mlua::Value>| async move {
                 let query: String = lua.from_value(args[0].clone())?;
                 let params = args[1..].iter();
-                let params = params.map(|v| SeaSqlValue::from_lua(&v, &lua).unwrap());
+                let mut new_params: Vec<SeaValue> = Vec::new();
+                for param in params {
+                    let val = SeaSqlValue::from_lua(&param, &lua)?;
+                    new_params.push(val);
+                }
 
                 match this
                     .conn
                     .execute(Statement::from_sql_and_values(
                         this.conn.get_database_backend(),
                         query,
-                        params,
+                        new_params,
                     ))
                     .await
                 {
@@ -79,27 +82,26 @@ impl UserData for DbConnection {
                             // Iterate over each column by index
                             for (idx, col_name) in row.column_names().iter().enumerate() {
                                 // Attempt to retrieve the value at the current index
-                                let value: Result<Option<JsonValue>, DbErr> =
-                                    row.try_get_by_index(idx);
-
-                                // Match on the result to handle both Ok and Err cases
-                                match value {
-                                    Ok(Some(val)) => {
-                                        // Insert the column name and its corresponding value into the JSON map
-                                        json_row.insert(col_name.to_string(), val);
-                                    }
-                                    Ok(None) => {
-                                        // Handle NULL values by inserting Null into the JSON map
-                                        json_row.insert(col_name.to_string(), JsonValue::Null);
-                                    }
-                                    Err(err) => {
-                                        // Handle any errors that occur during value retrieval
-                                        eprintln!(
-                                            "Error retrieving value for column '{}': {:?}",
-                                            col_name, err
-                                        );
-                                        json_row.insert(col_name.to_string(), JsonValue::Null);
-                                    }
+                                if let Ok(val) = row.try_get_by_index::<i64>(idx) {
+                                    json_row.insert(
+                                        col_name.to_string(),
+                                        JsonValue::Number(
+                                            serde_json::Number::from_i128(val as i128).unwrap(),
+                                        ),
+                                    );
+                                } else if let Ok(val) = row.try_get_by_index::<f64>(idx) {
+                                    json_row.insert(
+                                        col_name.to_string(),
+                                        JsonValue::Number(
+                                            serde_json::Number::from_f64(val).unwrap(),
+                                        ),
+                                    );
+                                } else if let Ok(val) = row.try_get_by_index::<String>(idx) {
+                                    json_row.insert(col_name.to_string(), JsonValue::String(val));
+                                } else if let Ok(val) = row.try_get_by_index::<bool>(idx) {
+                                    json_row.insert(col_name.to_string(), JsonValue::Bool(val));
+                                } else {
+                                    json_row.insert(col_name.to_string(), JsonValue::Null);
                                 }
                             }
 
@@ -187,7 +189,7 @@ impl UserData for DbConnection {
                 }
                 Err(e) => Err(mlua::Error::RuntimeError(format!("Database error: {}", e))),
             }
-        });
+        })
     }
 }
 
@@ -225,25 +227,66 @@ impl SeaSqlValue {
             let value: mlua::Value = tbl.get("value")?;
 
             match kind.as_str() {
-                "bool" => Ok(SeaValue::Bool(Some(lua.from_value(value)?))),
-                "tiny_int" => Ok(SeaValue::TinyInt(Some(lua.from_value(value)?))),
-                "small_int" => Ok(SeaValue::SmallInt(Some(lua.from_value(value)?))),
-                "int" => Ok(SeaValue::Int(Some(lua.from_value(value)?))),
-                "big_int" => Ok(SeaValue::BigInt(Some(lua.from_value(value)?))),
-                "tiny_unsigned" => Ok(SeaValue::TinyUnsigned(Some(lua.from_value(value)?))),
-                "small_unsigned" => Ok(SeaValue::SmallUnsigned(Some(lua.from_value(value)?))),
-                "unsigned" => Ok(SeaValue::Unsigned(Some(lua.from_value(value)?))),
-                "big_unsigned" => Ok(SeaValue::BigUnsigned(Some(lua.from_value(value)?))),
-                "float" => Ok(SeaValue::Float(Some(lua.from_value(value)?))),
-                "bouble" => Ok(SeaValue::Double(Some(lua.from_value(value)?))),
-                "string" => Ok(SeaValue::String(Some(lua.from_value(value)?))),
-                "char" => Ok(SeaValue::Char(Some(lua.from_value(value)?))),
-                "bytes" => Ok(SeaValue::Bytes(Some(
-                    lua.from_value::<Box<Vec<u8>>>(value)?,
-                ))),
-                "json" => Ok(SeaValue::Json(Some(Box::new(lua_value_to_json_value(
-                    value,
-                )?)))),
+                "bool" => Ok(match lua.from_value::<bool>(value) {
+                    Ok(v) => SeaValue::Bool(Some(v)),
+                    Err(_) => SeaValue::Bool(None),
+                }),
+                "tiny_int" => Ok(match lua.from_value::<i8>(value) {
+                    Ok(v) => SeaValue::TinyInt(Some(v)),
+                    Err(_) => SeaValue::TinyInt(None),
+                }),
+                "small_int" => Ok(match lua.from_value::<i16>(value) {
+                    Ok(v) => SeaValue::SmallInt(Some(v)),
+                    Err(_) => SeaValue::SmallInt(None),
+                }),
+                "int" => Ok(match lua.from_value::<i32>(value) {
+                    Ok(v) => SeaValue::Int(Some(v)),
+                    Err(_) => SeaValue::Int(None),
+                }),
+                "big_int" => Ok(match lua.from_value::<i64>(value) {
+                    Ok(v) => SeaValue::BigInt(Some(v)),
+                    Err(_) => SeaValue::BigInt(None),
+                }),
+                "tiny_unsigned" => Ok(match lua.from_value::<u8>(value) {
+                    Ok(v) => SeaValue::TinyUnsigned(Some(v)),
+                    Err(_) => SeaValue::TinyUnsigned(None),
+                }),
+                "small_unsigned" => Ok(match lua.from_value::<u16>(value) {
+                    Ok(v) => SeaValue::SmallUnsigned(Some(v)),
+                    Err(_) => SeaValue::SmallUnsigned(None),
+                }),
+                "unsigned" => Ok(match lua.from_value::<u32>(value) {
+                    Ok(v) => SeaValue::Unsigned(Some(v)),
+                    Err(_) => SeaValue::Unsigned(None),
+                }),
+                "big_unsigned" => Ok(match lua.from_value::<u64>(value) {
+                    Ok(v) => SeaValue::BigUnsigned(Some(v)),
+                    Err(_) => SeaValue::BigUnsigned(None),
+                }),
+                "float" => Ok(match lua.from_value::<f32>(value) {
+                    Ok(v) => SeaValue::Float(Some(v)),
+                    Err(_) => SeaValue::Float(None),
+                }),
+                "bouble" => Ok(match lua.from_value::<f64>(value) {
+                    Ok(v) => SeaValue::Double(Some(v)),
+                    Err(_) => SeaValue::Double(None),
+                }),
+                "string" => Ok(match lua.from_value::<String>(value) {
+                    Ok(s) => SeaValue::String(Some(Box::new(s))),
+                    Err(_) => SeaValue::String(None),
+                }),
+                "char" => Ok(match lua.from_value::<char>(value) {
+                    Ok(v) => SeaValue::Char(Some(v)),
+                    Err(_) => SeaValue::Char(None),
+                }),
+                "bytes" => Ok(match lua.from_value::<Box<Vec<u8>>>(value) {
+                    Ok(v) => SeaValue::Bytes(Some(v)),
+                    Err(_) => SeaValue::Bytes(None),
+                }),
+                "json" => Ok(match lua_value_to_json_value(value) {
+                    Ok(v) => SeaValue::Json(Some(Box::new(v))),
+                    Err(_) => SeaValue::Json(None),
+                }),
                 _ => Err(mlua::Error::FromLuaConversionError {
                     from: "LuaSqlValue",
                     to: "SeaValue".to_string(),
@@ -325,7 +368,7 @@ pub fn sql_helpers(lua: &Lua) -> LuaResult<Table> {
         "unsigned",
         "big_unsigned",
         "float",
-        "bouble", // Note: Possible typo, should be "double"?
+        "double",
         "string",
         "char",
         "bytes",
