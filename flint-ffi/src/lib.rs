@@ -3,6 +3,7 @@ use mlua::{Lua, Table};
 
 mod ai;
 mod coroutine;
+mod env;
 mod eval;
 mod js;
 mod json;
@@ -25,6 +26,7 @@ pub fn add_ffi_modules(lua: &Lua) -> Result<()> {
     let coroutine = coroutine::coroutine_helpers(lua)?;
     let md = md::md_helpers(lua)?;
     let ai = ai::ai_helpers(lua)?;
+    let env = env::env_helpers(lua)?;
 
     let package: Table = lua.globals().get("package")?;
     let loaded: Table = package.get("loaded")?;
@@ -41,6 +43,7 @@ pub fn add_ffi_modules(lua: &Lua) -> Result<()> {
     loaded.set("async", coroutine)?;
     loaded.set("md", md)?;
     loaded.set("ai", ai)?;
+    loaded.set("env", env)?;
 
     // Custom module loader to allow our modules to work
     lua.load(

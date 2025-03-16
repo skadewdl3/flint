@@ -1,3 +1,4 @@
+pub mod env;
 pub mod error;
 pub mod flags;
 pub mod logs;

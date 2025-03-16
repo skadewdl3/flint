@@ -1,4 +1,4 @@
-use std::error::Error as ErrorTrait;
+use std::{error::Error as ErrorTrait, sync::Arc};
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -23,6 +23,9 @@ pub enum AppError {
 
     #[error("Lua error: {0}")]
     LuaError(#[from] mlua::Error),
+
+    #[error("Environment error: {0}")]
+    Env(#[from] dotenvy::Error),
 }
 
 // Convert Box<dyn Error> to AppError using a catch-all approach
@@ -50,3 +53,9 @@ macro_rules! app_err {
 
 // Create type alias for Result with AppError as default error type
 pub type AppResult<T> = Result<T, AppError>;
+
+impl From<AppError> for mlua::Error {
+    fn from(err: AppError) -> Self {
+        mlua::Error::ExternalError(Arc::new(err))
+    }
+}

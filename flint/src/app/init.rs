@@ -3,7 +3,7 @@ use crate::util::{handle_key_events, lang::Language, toml::Config};
 use clap::Parser;
 use crossterm::event::{Event, KeyCode};
 use flint_macros::{ui, widget as w};
-use flint_utils::{error, get_flag, info, success, warn, Error, Result};
+use flint_utils::{get_flag, info, Error, Result};
 use ratatui::{
     layout::{Constraint, Direction, Layout},
     prelude::*,

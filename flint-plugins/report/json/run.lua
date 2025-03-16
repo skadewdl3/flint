@@ -5,6 +5,7 @@ local log = require("log")
 
 function Run(options)
     local config = options.config
+
     local output = options.output
     local plugin_id = options.plugin_id
 

@@ -55,6 +55,11 @@ impl AppWidget for TestWidget {
     fn setup(&mut self) -> Result<()> {
         let config_path = get_flag!(config_path);
         let toml = Arc::new(Config::load(&config_path).unwrap());
+        if let Some(ref env) = toml.flint.env {
+            let cwd = get_flag!(current_dir);
+            let env_path = cwd.join(env);
+            flint_utils::env::load_from_file(&env_path)?;
+        }
         let plugins = plugin::list_from_config(&toml);
 
         let run_plugins: Vec<Plugin> = plugins

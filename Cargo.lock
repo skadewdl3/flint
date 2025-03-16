@@ -1160,6 +1160,7 @@ dependencies = [
 name = "flint-ffi"
 version = "0.1.0"
 dependencies = [
+ "async-openai",
  "directories",
  "flint-utils",
  "mlua",
@@ -1169,6 +1170,7 @@ dependencies = [
  "serde_yaml",
  "smol",
  "sqlx",
+ "tokio",
  "toml",
 ]
 
@@ -1187,6 +1189,7 @@ name = "flint-utils"
 version = "0.1.0"
 dependencies = [
  "directories",
+ "dotenvy",
  "mlua",
  "thiserror 2.0.12",
  "toml",
