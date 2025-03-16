@@ -1,0 +1,5 @@
+locust
+fastapi
+pandas
+matplotlib
+uvicorn
