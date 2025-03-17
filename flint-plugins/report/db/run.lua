@@ -14,12 +14,12 @@ local function ensure_table_exists(conn, table_name, create_table_sql)
         AND table_name = '%s';
         ]], table_name)
 
-    local table_exists_result = async.block_on(conn.query, conn, query)
+    local table_exists_result = async.await(conn.query, conn, query)
     local table_exists = table_exists_result[1] and table_exists_result[1].table_exists
 
     if not table_exists then
         log.info("Creating " .. table_name .. " table as it does not exist")
-        local create_table_result = async.block_on(conn.execute, conn, create_table_sql)
+        local create_table_result = async.await(conn.execute, conn, create_table_sql)
         if not create_table_result then
             log.error("Failed to create " .. table_name .. " table")
             return false
@@ -29,15 +29,28 @@ local function ensure_table_exists(conn, table_name, create_table_sql)
     return true
 end
 
+-- Gets database connection details from environment variables
+local function get_db_config(config)
+    local env = require("env")
+    local output = {}
+    local keys = { "host", "port", "username", "password", "database" }
+    for _, key in ipairs(keys) do
+        log.debug(config[key])
+        output[key] = env.var(env.var_name(config[key]))
+    end
+    return output
+end
+
 function Run(options)
     local config = options.config
+
     local output = options.output
     local plugin_id = options.plugin_id
 
     local output_type = eval.get_output_type(output)
     output = eval.get_output(output)
-    local conn = sql.mysql(config)
-    conn = async.block_on(sql.connect, conn)
+    local conn = sql.mysql(get_db_config(config))
+    conn = async.await(sql.connect, conn)
 
     -- Test connection
     local connected = conn ~= nil
@@ -95,7 +108,7 @@ function Run(options)
             VALUES (?, ?, ?, ?, ?, ?, ?);
             ]]
 
-            local insert_result = async.block_on(
+            local insert_result = async.await(
                 conn.execute,
                 conn,
                 insert_query,
@@ -112,7 +125,7 @@ function Run(options)
                 log.error("Failed to insert lint result for file: " .. result.file_name)
             end
         end
-        log.info("Pushed " .. #output.lint_results .. " lint results to database")
+        log.success("Pushed " .. #output.lint_results .. " lint results to database")
     elseif output_type == eval.test then
         -- Process Test results
         for _, result in ipairs(output.test_results) do
@@ -122,7 +135,7 @@ function Run(options)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
             ]]
 
-            local insert_result = async.block_on(
+            local insert_result = async.await(
                 conn.execute,
                 conn,
                 insert_query,
@@ -141,7 +154,7 @@ function Run(options)
                 log.error("Failed to insert test result for file: " .. result.file_name)
             end
         end
-        log.info("Pushed " .. #output.test_results .. " test results to database")
+        log.success("Pushed " .. #output.test_results .. " test results to database")
     else
         log.error("Unknown output type")
     end

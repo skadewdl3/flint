@@ -1,6 +1,6 @@
 function Details()
     local details = {
-        id = "chaos",
+        id = "locust",
         author = "Soham Karandikar",
         version = "0.0.1",
         extensions = { "*" },
@@ -10,8 +10,8 @@ end
 
 function Dependencies()
     return {
-        npm = {
-            { name = "chaostoolkit", version = "latest" },
+        pip = {
+            { name = "locust", version = "latest" },
         },
     }
 end

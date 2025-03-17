@@ -2,6 +2,7 @@ local json = require("json")
 local path = require("path")
 local eval = require("eval")
 local log = require("log")
+local md = require("md")
 
 function Run(options)
     local config = options.config
@@ -11,8 +12,10 @@ function Run(options)
 
     output = eval.get_output(output)
 
+    local header = md.h1("Hello World")
+
 
     return {
-        [path.join(config.output_path, "report-" .. plugin_id .. ".json")] = json.stringify(output)
+        [path.join(config.output_path, "report-" .. plugin_id .. ".md")] = md.text(header)
     }
 end

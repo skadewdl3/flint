@@ -10,7 +10,7 @@ function Run(config)
 end
 
 function Eval(output)
-    local output = output.stdout
+    output = output.stdout
     local parsed_output = json.parse(output)
     -- log.debug(parsed_output)
     local cwd = path.cwd()

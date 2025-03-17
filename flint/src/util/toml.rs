@@ -16,14 +16,12 @@ pub struct FlintConfig {
     pub version: u8,
     #[serde(default = "default_plugins_branch")]
     pub plugins_branch: String,
+    pub env: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Config {
     pub flint: FlintConfig,
-
-    #[serde(default = "default_hashmap")]
-    pub common: HashMap<String, toml::Value>,
 
     #[serde(default = "default_hashmap")]
     pub rules: HashMap<String, toml::Value>,
@@ -58,8 +56,8 @@ impl Config {
             flint: FlintConfig {
                 version: 1,
                 plugins_branch: "main".into(),
+                env: None,
             },
-            common: HashMap::new(),
             rules: HashMap::new(),
             tests: HashMap::new(),
             config: HashMap::new(),

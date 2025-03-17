@@ -1,5 +1,7 @@
 local log = require("log")
 local yaml = require("yaml")
+local path = require("path")
+
 
 local function get_dependency_install_steps(dependencies)
     local steps = {}
@@ -117,7 +119,7 @@ function Generate(config, dependencies)
         -- TODO: Make it adapt to the outputs of reporting plugins
         with = {
             name = "Test Results",
-            path = "reports/report.json"
+            path = config.artifacts
         }
     })
 

@@ -55,6 +55,11 @@ impl AppWidget for TestWidget {
     fn setup(&mut self) -> Result<()> {
         let config_path = get_flag!(config_path);
         let toml = Arc::new(Config::load(&config_path).unwrap());
+        if let Some(ref env) = toml.flint.env {
+            let cwd = get_flag!(current_dir);
+            let env_path = cwd.join(env);
+            flint_utils::env::load_from_file(&env_path)?;
+        }
         let plugins = plugin::list_from_config(&toml);
 
         let run_plugins: Vec<Plugin> = plugins
@@ -120,6 +125,7 @@ impl AppWidget for TestWidget {
                     Err(e) => error!("Failed to evaluate plugin: {}", e),
                     Ok(res) => {
                         for report_plugin in report_plugins.iter() {
+                            info!("Running report plugin: {}", report_plugin.details.id);
                             match report_plugin.report(&toml_clone, &res, &plugin.details.id) {
                                 Err(e) => {
                                     error!("Report plugin error: {}", e);
@@ -128,11 +134,6 @@ impl AppWidget for TestWidget {
                                     for (file_name, contents) in res {
                                         let flint_path = get_flag!(current_dir);
                                         let file_path = flint_path.join(&file_name);
-
-                                        info!(
-                                            "Running report plugin: {}",
-                                            report_plugin.details.id
-                                        );
 
                                         if let Some(parent) = file_path.parent() {
                                             if !parent.exists() {

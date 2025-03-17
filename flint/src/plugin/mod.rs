@@ -52,8 +52,10 @@ impl PluginKind {
 
 impl Plugin {
     pub fn get_config_lua(&self, lua: &Lua, toml: &Arc<Config>) -> Table {
+        let temp_default = toml::Value::Table(toml::map::Map::new());
+        let common_config = toml.rules.get("common").unwrap_or(&temp_default);
         let common_config = lua
-            .to_value(&toml.common)
+            .to_value(&common_config)
             .expect("unable to convert common config to lua value");
 
         let plugin_config = match self.kind {
