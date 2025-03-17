@@ -5,22 +5,28 @@ local json = require("json")
 function Run(config)
     local cwd = path.cwd()
     local files = path.ls(cwd)
-    -- return { "jest", "--json", "--passWithNoTests", "--logHeapUsage", "--testLocationInResults" }
-    return { "chaos", "run" }
+    local locustfile = path.join(path.cwd(), config.locustfile)
+    local command =
+    { "locust", "-f", locustfile, "--host", config.host, "--headless", "--users", tostring(config.users),
+        "--spawn-rate",
+        tostring(config.spawn_rate), "--run-time", config.run_time, "--json", "--skip-log" }
+    log.debug(table.concat(command, " "))
+    return command
 end
 
 function Eval(output)
-    -- if not output.success then
-    --     return {
-    --         tests_passed = 0,
-    --         total_tests = 0,
-    --         passing_percentage = 0,
-    --         test_results = {}
-    --     }
-    -- end
-    -- local output = output.stdout
-    -- local parsed_output = json.parse(output)
-    -- local testResults = parsed_output.testResults
+    log.debug(output)
+    if not output.success then
+        return {
+            tests_passed = 0,
+            total_tests = 0,
+            passing_percentage = 0,
+            test_results = {}
+        }
+    end
+    output = output.stdout
+    local parsed_output = json.parse(output)
+    log.debug(parsed_output)
 
     local results = {}
     local tests_passed = 0
