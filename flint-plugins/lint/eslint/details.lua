@@ -11,7 +11,11 @@ end
 function Dependencies()
     return {
         npm = {
-            { name = "eslint", version = "latest" }
+            { name = "eslint",                      version = "latest" },
+            { name = "@stylisic/eslint-plugin",     version = "latest" },
+            { name = "@stylisic/eslint-plugin-js",  version = "latest" },
+            { name = "@stylisic/eslint-plugin-jsx", version = "latest" },
+            { name = "@stylisic/eslint-config",     version = "latest" },
         },
     }
 end
