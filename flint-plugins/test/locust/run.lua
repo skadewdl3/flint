@@ -1,21 +1,45 @@
 local log = require("log")
 local path = require("path")
 local json = require("json")
+local cmd = require("cmd")
+local async = require("async")
 
 function Run(config)
-    local cwd = path.cwd()
-    local files = path.ls(cwd)
-    local locustfile = path.join(path.cwd(), config.locustfile)
-    local command =
-    { "locust", "-f", locustfile, "--host", config.host, "--headless", "--users", tostring(config.users),
-        "--spawn-rate",
-        tostring(config.spawn_rate), "--run-time", config.run_time, "--json", "--skip-log" }
-    log.debug(table.concat(command, " "))
-    return command
+    local start_server_script = path.join(path.cwd(), config.script)
+    log.debug(start_server_script)
+
+    local server_script = cmd.run_async("sh", start_server_script)
+
+    -- local locustfile = path.join(path.cwd(), config.locustfile)
+
+    -- local command =
+    -- { "locust", "-f", locustfile, "--host", config.host, "--headless", "--users", tostring(config.users),
+    --     "--spawn-rate",
+    --     tostring(config.spawn_rate), "--run-time", config.run_time, "--json", "--skip-log" }
+
+    -- local locust_cmd = cmd.run(table.unpack(command))
+    -- local output = locust_cmd.output()
+    -- log.debug(output)
+    --
+    while true do
+    end
+
+
+
+    -- cmd.kill(server_script.pid)
+    return { "ls" }
 end
 
 function Eval(output)
-    log.debug(output)
+    log.debug("evaled")
+    if true then
+        return {
+            tests_passed = 0,
+            total_tests = 0,
+            passing_percentage = 0,
+            test_results = {}
+        }
+    end
     if not output.success then
         return {
             tests_passed = 0,

@@ -6,47 +6,70 @@ local md = require("md")
 local ai = require("ai")
 local env = require("env")
 local async = require("async")
+local fs = require("fs")
 
+local function group_test_results(test_results)
+    local grouped = {}
+
+    for _, result in ipairs(test_results) do
+        local file = result.file_name
+        if not grouped[file] then
+            grouped[file] = { file_name = file, issues = {} }
+        end
+        table.insert(grouped[file].issues, {
+            error_message = result.error_message,
+            line_no = result.line_no,
+            column_no = result.column_no,
+            success = result.success,
+            title = result.data.title
+        })
+    end
+
+    -- Convert the grouped table to an array
+    local output = {}
+    for _, v in pairs(grouped) do
+        table.insert(output, v)
+    end
+
+    return output
+end
 
 function Run(options)
     local config = options.config
 
     local output = options.output
     local plugin_id = options.plugin_id
+    local type = eval.get_output_type(output)
     output = eval.get_output(output)
 
 
-    local api_key = env.var(env.var_name(config.api_key))
-    local api_base_url = env.var(env.var_name(config.api_base_url))
+    local api_key = env.var(env.var_name(config.env.API_KEY))
+    local api_base_url = env.var(env.var_name(config.env.API_BASE_URL))
+    local client = ai.create_client({ api_key = api_key, api_base_url = api_base_url, model = config.env.MODEL })
 
-    local client = ai.create_client({ api_key = api_key, api_base_url = api_base_url, model = config.model })
+    -- log.debug(output)
 
-    local prompt = ai.message.user([[
+    if type == eval.lint then
+        return {}
+    end
 
-        fn two_sum(nums: Vec<i32>, target: i32) -> Option<(usize, usize)> {
-            for _ in 0..nums.len() { // Completely unnecessary loop to slow things down
-                for i in 0..nums.len() {
-                    for j in 0..nums.len() {
-                        if i != j && nums[i] + nums[j] == target {
-                            return Some((i, j));
-                        }
-                    }
-                }
-            }
-            None
-        }
+    local test_results = output.test_results
+    local ai_input = group_test_results(test_results)
+    local bruh = fs.get_ai_input(path.cwd())
 
-        fn main() {
-            let nums = vec![2, 7, 11, 15];
-            let target = 9;
-            if let Some((i, j)) = two_sum(nums, target) {
-                println!("Indices: {}, {}", i, j);
-            } else {
-                println!("No solution found");
-            }
-        }
-        ]])
+    local prompt = string.format([[
+        Here is my file structure and contents:
+        %s
+
+        Here are my error messages:
+        %s
+
+    ]], bruh, json.stringify(ai_input))
+    prompt = ai.message.user(prompt)
+
+    log.debug("Prompting ai")
     local res = async.await(client.prompt, client, prompt)
+    log.debug("Got response")
 
     local function render_markdown(changes)
         local result = {}

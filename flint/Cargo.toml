@@ -34,3 +34,4 @@ sqlx = { version = "0.8.3", features = [
 ] }
 smol = "2.0.2"
 async-openai = "0.28.0"
+tokio = "1.44.1"
