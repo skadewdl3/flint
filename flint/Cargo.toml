@@ -24,7 +24,7 @@ flint-ffi = { path = "../flint-ffi" }
 flint-utils = { path = "../flint-utils" }
 thiserror = "2.0.11"
 serde_yaml = "0.9.34"
-clap = { version = "4.5.31", features = ["derive"] }
+clap = { version = "4.5.32", features = ["derive"] }
 semver = "1.0.26"
 sqlx = { version = "0.8.3", features = [
     "postgres",
