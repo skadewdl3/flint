@@ -47,7 +47,6 @@ function Run(options)
     local api_base_url = env.var(env.var_name(config.env.API_BASE_URL))
     local client = ai.create_client({ api_key = api_key, api_base_url = api_base_url, model = config.env.MODEL })
 
-    -- log.debug(output)
 
     if type == eval.lint then
         return {}
@@ -97,6 +96,6 @@ function Run(options)
     end
 
     return {
-        ["temp.md"] = render_markdown(res)
+        [path.join(path.cwd(), config.output_path, "temp.md")] = render_markdown(res)
     }
 end

@@ -66,13 +66,16 @@ local function get_env_vars(env_vars)
     for k, v in pairs(env_vars) do
         local temp = get_env_name(v)
         if temp ~= nil then
-            v = "${{ secrets." .. temp .. " }}"
+            log.debug("${{ secrets." .. temp .. " }}")
+            res[temp] = "${{ secrets." .. temp .. " }}"
+        else
+            res[k] = v
         end
-        res[k] = v
     end
 
     return res
 end
+
 function Generate(config, dependencies, env)
     log.debug(dependencies)
 
@@ -101,9 +104,6 @@ function Generate(config, dependencies, env)
     local dependency_install_steps = get_dependency_install_steps(dependencies)
     local env_vars = get_env_vars(env)
 
-    if next(env_vars) ~= nil then
-        job.env = env_vars
-    end
 
     -- Add dependency install steps to the job
     for _, step in ipairs(dependency_install_steps) do
@@ -120,7 +120,7 @@ function Generate(config, dependencies, env)
             ["out-file-path"] = ".",
             fileName = "flint",
             prerelease = true
-        }
+        },
     })
 
     -- Run Flint Checks
@@ -131,7 +131,8 @@ function Generate(config, dependencies, env)
         chmod +x ./flint
         ./flint install
         ./flint test --test
-        ]]
+        ]],
+        env = env_vars
     })
 
     table.insert(job.steps, {

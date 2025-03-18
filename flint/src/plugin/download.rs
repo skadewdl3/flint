@@ -132,16 +132,8 @@ pub fn clone_plugin_folders(
             "Plugins directory not found: {}",
             temp_plugins_dir.display()
         );
-        _ = fs::remove_dir_all(&temp_path).map_err(|e| -> Result<()> {
-            app_err!(
-                "Failed to clean up temporary directory.\nError message: {}",
-                e
-            )
-        });
-        return app_err!(
-            "Plugins directory not found: {}",
-            temp_plugins_dir.display()
-        );
+
+        fs::create_dir_all(&temp_plugins_dir)?;
     }
 
     // Copy each requested plugin to the final destination
@@ -217,7 +209,11 @@ pub fn download_plugins(kind: PluginKind, ids: Vec<&String>) -> Result<()> {
 pub fn download_plugins_from_config(toml: &Config) -> Result<()> {
     info!("Loading configuration from flint.toml");
 
-    let linter_ids: Vec<&String> = toml.rules.keys().collect();
+    let linter_ids: Vec<&String> = toml
+        .rules
+        .keys()
+        .filter(|id| id.as_str() != "common")
+        .collect();
     let tester_ids: Vec<&String> = toml.tests.keys().collect();
     let ci_ids: Vec<&String> = toml.ci.keys().collect();
     let report_ids: Vec<&String> = toml.report.keys().collect();
@@ -242,5 +238,12 @@ pub fn download_plugins_from_config(toml: &Config) -> Result<()> {
     }
     success!("All plugins downloaded successfully");
 
+    let final_dest_path = get_flag!(plugins_dir);
+    let path = Path::new(&final_dest_path);
+
+    let entries = fs::read_dir(path)?;
+    for entry in entries.flatten() {
+        println!("{}", entry.path().display());
+    }
     Ok(())
 }
