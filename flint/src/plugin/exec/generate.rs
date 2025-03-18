@@ -4,8 +4,27 @@ use crate::{
 };
 use flint_ffi::add_ffi_modules;
 use flint_utils::{app_err, Result};
-use mlua::{Function, Lua, LuaSerdeExt};
+use mlua::{Function, Lua, LuaSerdeExt, Table};
 use std::{collections::HashMap, sync::Arc};
+
+pub fn collect_env_vars(
+    toml: &Arc<Config>,
+    active_plugins: &Vec<Plugin>,
+) -> HashMap<String, String> {
+    let mut env_vars = HashMap::new();
+    let lua = Lua::new();
+
+    for plugin in active_plugins {
+        let plugin_config = plugin.get_config_lua(&lua, toml);
+        if let Ok(env) = plugin_config.get::<HashMap<String, String>>("env") {
+            for (key, value) in env {
+                env_vars.insert(key, value);
+            }
+        }
+    }
+
+    env_vars
+}
 
 pub fn generate<'a>(plugin: &Plugin, toml: &Arc<Config>) -> Result<HashMap<String, String>> {
     let lua = Lua::new();
@@ -46,10 +65,12 @@ pub fn generate<'a>(plugin: &Plugin, toml: &Arc<Config>) -> Result<HashMap<Strin
             .collect::<Vec<_>>();
 
         let dependencies = collect_dependencies(&active_plugins)?;
+        let env = collect_env_vars(&toml.clone(), &active_plugins);
+        let env_table = lua.to_value(&env)?;
 
-        let deps_table = lua.to_value(&dependencies);
+        let deps_table = lua.to_value(&dependencies)?;
 
-        generate.call::<mlua::Value>((plugin_config, deps_table))
+        generate.call::<mlua::Value>((plugin_config, deps_table, env_table))
     } else {
         generate.call::<mlua::Value>(plugin_config)
     }?;

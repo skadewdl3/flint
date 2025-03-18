@@ -1,11 +1,11 @@
 local log = require("log")
 local yaml = require("yaml")
 local path = require("path")
+local env = require("env")
 
 
 local function get_dependency_install_steps(dependencies)
     local steps = {}
-    -- TODO: Add support for system dependencies
 
     -- Add support for node.js (npm) dependencies
     if dependencies.npm and #dependencies.npm > 0 then
@@ -56,7 +56,24 @@ local function get_dependency_install_steps(dependencies)
     return steps
 end
 
-function Generate(config, dependencies)
+
+local function get_env_vars(env_vars)
+    local function get_env_name(str)
+        return string.match(str, "^env:(.+)$") -- Capture everything after "env:"
+    end
+
+    local res = {}
+    for k, v in pairs(env_vars) do
+        local temp = get_env_name(v)
+        if temp ~= nil then
+            v = "${{ secrets." .. temp .. " }}"
+        end
+        res[k] = v
+    end
+
+    return res
+end
+function Generate(config, dependencies, env)
     log.debug(dependencies)
 
     local workflow = {}
@@ -82,6 +99,11 @@ function Generate(config, dependencies)
     })
 
     local dependency_install_steps = get_dependency_install_steps(dependencies)
+    local env_vars = get_env_vars(env)
+
+    if next(env_vars) ~= nil then
+        job.env = env_vars
+    end
 
     -- Add dependency install steps to the job
     for _, step in ipairs(dependency_install_steps) do

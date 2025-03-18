@@ -9,14 +9,6 @@ function Run(config)
 end
 
 function Eval(output)
-    if not output.success then
-        return {
-            tests_passed = 0,
-            total_tests = 0,
-            passing_percentage = 0,
-            test_results = {}
-        }
-    end
     local output = output.stdout
     local parsed_output = json.parse(output)
     local testResults = parsed_output.testResults
@@ -27,6 +19,7 @@ function Eval(output)
 
     for _, result in ipairs(testResults) do
         local file_name = result.name
+        -- log.debug(result)
 
         for _, assertion in ipairs(result.assertionResults) do
             total_tests = total_tests + 1
@@ -55,6 +48,7 @@ function Eval(output)
                     end
                 end
 
+
                 -- Get the error message from failureMessages if available
                 if assertion.failureMessages and #assertion.failureMessages > 0 then
                     test_result.error_message = assertion.failureMessages[1]
@@ -64,14 +58,12 @@ function Eval(output)
             end
 
 
-            if assertion.title then
-                test_result.data.title = assertion.title
-            end
 
             if not test_result.line_no and assertion.location then
                 test_result.line_no = assertion.location.line
                 test_result.column_no = assertion.location.column
             end
+
 
             table.insert(results, test_result)
         end
