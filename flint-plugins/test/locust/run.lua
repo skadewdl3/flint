@@ -3,43 +3,28 @@ local path = require("path")
 local json = require("json")
 local cmd = require("cmd")
 local async = require("async")
+local csv = require("csv")
+
 
 function Run(config)
-    local start_server_script = path.join(path.cwd(), config.script)
-    log.debug(start_server_script)
+    local locustfile = path.join(path.cwd(), config.locustfile)
 
-    local server_script = cmd.run_async("sh", start_server_script)
-
-    -- local locustfile = path.join(path.cwd(), config.locustfile)
-
-    -- local command =
-    -- { "locust", "-f", locustfile, "--host", config.host, "--headless", "--users", tostring(config.users),
-    --     "--spawn-rate",
-    --     tostring(config.spawn_rate), "--run-time", config.run_time, "--json", "--skip-log" }
-
-    -- local locust_cmd = cmd.run(table.unpack(command))
-    -- local output = locust_cmd.output()
-    -- log.debug(output)
-    --
-    while true do
-    end
-
-
-
-    -- cmd.kill(server_script.pid)
-    return { "ls" }
+    local command =
+    { "locust", "-f", locustfile, "--host", config.host, "--headless", "--users", tostring(config.users or 100),
+        "--spawn-rate",
+        tostring(config.spawn_rate or 1), "--run-time", config.run_time or "20s", "--json", "--csv=" ..
+    path.join(path.cwd(), config.output_path, "locust"),
+        "--skip-log" }
+    return command
 end
 
-function Eval(output)
-    log.debug("evaled")
-    if true then
-        return {
-            tests_passed = 0,
-            total_tests = 0,
-            passing_percentage = 0,
-            test_results = {}
-        }
-    end
+function Eval(output, config)
+    log.debug(config.output_path)
+    local stats_file = path.join(path.cwd(), config.output_path, "locust_stats.csv")
+    local locust_stats = csv.read(stats_file)
+
+    log.debug(locust_stats)
+
     if not output.success then
         return {
             tests_passed = 0,
@@ -50,7 +35,7 @@ function Eval(output)
     end
     output = output.stdout
     local parsed_output = json.parse(output)
-    log.debug(parsed_output)
+    -- log.debug(parsed_output)
 
     local results = {}
     local tests_passed = 0
