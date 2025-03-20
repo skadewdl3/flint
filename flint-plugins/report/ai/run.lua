@@ -82,10 +82,12 @@ function Run(options)
             -- Explanation as a paragraph
             table.insert(result, change.explanation)
             table.insert(result,
-                md.text(
+                md.link(
+                    "Changes in " .. change.file,
                     (repo_branch_url or "") ..
-                    change.file,
-                    "/",
+                    "/" ..
+                    change.file ..
+                    "/" ..
                     change.line_no
                 )
             )
