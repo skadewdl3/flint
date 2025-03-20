@@ -134,10 +134,8 @@ function Generate(config, dependencies, env)
     })
 
     -- Run Flint Checks
-    table.insert(env_vars, {
-        REPO_BRANCH_URL =
-        "${{ github.server_url }}/${{ github.repository }}/blob/${{ github.head_ref || github.ref_name }}/"
-    })
+    env_vars.REPO_BRANCH_URL =
+    "${{ github.server_url }}/${{ github.repository }}/blob/${{ github.head_ref || github.ref_name }}"
     table.insert(job.steps, {
         name = "Run Tests",
         run =
