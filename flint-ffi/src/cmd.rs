@@ -7,7 +7,7 @@ pub fn command_helpers(lua: &Lua) -> LuaResult<Table> {
     let processes: Arc<Mutex<Vec<Child>>> = Arc::new(Mutex::new(vec![]));
 
     let cmd_run = lua.create_function({
-        let processes = processes.clone();
+        let _processes = processes.clone();
         move |lua, args: Variadic<String>| {
             if args.is_empty() {
                 return Err(mlua::Error::RuntimeError(
@@ -97,6 +97,7 @@ pub fn command_helpers(lua: &Lua) -> LuaResult<Table> {
         }
     })?;
 
+    cmd_module.set("run", cmd_run)?;
     cmd_module.set("run_async", cmd_run_async)?;
     cmd_module.set("kill", kill)?;
     Ok(cmd_module)

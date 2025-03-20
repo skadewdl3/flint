@@ -108,8 +108,8 @@ impl Plugin {
         run::run(&self, toml)
     }
 
-    pub fn eval(&self, output: Output) -> Result<PluginEvalOutput> {
-        eval::eval(&self, output)
+    pub fn eval(&self, output: Output, config: &Arc<Config>) -> Result<PluginEvalOutput> {
+        eval::eval(&self, output, config)
     }
 
     pub fn report(

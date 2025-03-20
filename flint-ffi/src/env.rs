@@ -1,4 +1,5 @@
-use mlua::{Lua, Table};
+use mlua::LuaSerdeExt;
+use mlua::{Lua, Table, Value::Nil};
 
 pub fn env_helpers(lua: &Lua) -> mlua::Result<Table> {
     let tbl = lua.create_table().unwrap();
@@ -7,6 +8,16 @@ pub fn env_helpers(lua: &Lua) -> mlua::Result<Table> {
         lua.create_function(|_, name: String| -> mlua::Result<String> {
             let env_var = flint_utils::env::get_env_var(&name)?;
             Ok(env_var)
+        })?,
+    )?;
+
+    tbl.set(
+        "var_unsafe",
+        lua.create_function(|lua, name: String| -> mlua::Result<mlua::Value> {
+            Ok(match flint_utils::env::get_env_var(&name) {
+                Ok(env_var) => lua.to_value(&env_var).unwrap(),
+                Err(_) => mlua::Value::Nil,
+            })
         })?,
     )?;
 

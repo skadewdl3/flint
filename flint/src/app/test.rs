@@ -122,7 +122,7 @@ impl AppWidget for TestWidget {
 
                 let output = cmd_output.unwrap();
 
-                let eval_result = plugin.eval(output);
+                let eval_result = plugin.eval(output, &toml_clone);
 
                 match eval_result {
                     Err(e) => error!("Failed to evaluate plugin: {}", e),

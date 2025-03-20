@@ -1,10 +1,10 @@
 use flint_ffi::add_ffi_modules;
-use flint_utils::{app_err, Result};
-use mlua::{Function, Lua, LuaSerdeExt, Result as LuaResult, Value};
+use flint_utils::app_err;
+use mlua::{Function, Lua, LuaSerdeExt, Value};
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, process::Output};
+use std::{collections::HashMap, process::Output, sync::Arc};
 
-use crate::plugin::Plugin;
+use crate::{plugin::Plugin, util::toml::Config};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct TestCaseOutput {
@@ -36,8 +36,13 @@ pub enum PluginEvalOutput {
     Test(TestPluginEvalOutput),
 }
 
-pub fn eval(plugin: &Plugin, output: Output) -> Result<PluginEvalOutput> {
+pub fn eval(
+    plugin: &Plugin,
+    output: Output,
+    config: &Arc<Config>,
+) -> flint_utils::Result<PluginEvalOutput> {
     let lua = Lua::new();
+    let plugin_config = plugin.get_config_lua(&lua, config);
     add_ffi_modules(&lua)?;
 
     let eval: Function = {
@@ -55,7 +60,7 @@ pub fn eval(plugin: &Plugin, output: Output) -> Result<PluginEvalOutput> {
 
     evaluation_state.set("success", output.status.success())?;
 
-    let eval_output = eval.call::<mlua::Value>(evaluation_state)?;
+    let eval_output = eval.call::<mlua::Value>((evaluation_state, plugin_config))?;
 
     let eval_output_table = match &eval_output {
         Value::Table(table) => table,
