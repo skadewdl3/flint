@@ -10,24 +10,26 @@ pub fn eval_helpers(lua: &Lua) -> LuaResult<Table> {
 
     eval_table.set(
         "get_output_type",
-        lua.create_function(move |_, table: Table| -> LuaResult<String> {
+        lua.create_function(move |_, table: Table| -> LuaResult<mlua::Value> {
             if table.contains_key("Lint")? {
                 Ok(tbl.get("lint")?)
-            } else {
+            } else if table.contains_key("Test")? {
                 Ok(tbl.get("test")?)
+            } else {
+                Ok(mlua::Value::Nil)
             }
         })?,
     )?;
 
     eval_table.set(
         "get_output",
-        lua.create_function(move |_, table: Table| -> LuaResult<Table> {
+        lua.create_function(move |_, table: Table| -> LuaResult<mlua::Value> {
             if table.contains_key("Lint")? {
                 Ok(table.get("Lint")?)
             } else if table.contains_key("Test")? {
                 Ok(table.get("Test")?)
             } else {
-                Err(mlua::Error::RuntimeError("No output found".to_string()))
+                Ok(mlua::Value::Nil)
             }
         })?,
     )?;

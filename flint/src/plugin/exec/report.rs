@@ -5,7 +5,7 @@ use crate::{
 use flint_ffi::add_ffi_modules;
 use flint_utils::app_err;
 use flint_utils::Result;
-use mlua::{Function, Lua, LuaSerdeExt, Result as LuaResult, Value};
+use mlua::{Function, Lua, LuaSerdeExt, Value};
 use std::{collections::HashMap, sync::Arc};
 
 use super::eval::PluginEvalOutput;

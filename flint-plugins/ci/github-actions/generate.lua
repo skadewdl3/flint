@@ -81,8 +81,8 @@ function Generate(config, dependencies, env)
 
     local workflow = {}
     workflow.name = "Flint CI"
-    workflow.on = {
-        pull_request = { branches = { "main" } },
+    workflow.on = config.on or {
+        pull_request = { branches = { "main" }, types = { "opened", "synchronize", "reopened" } },
         push = { branches = { "main" } }
     }
 
@@ -91,6 +91,10 @@ function Generate(config, dependencies, env)
     local job = {
         name = "Flint Checks",
         ["runs-on"] = "ubuntu-latest",
+        permissions = {
+            ["pull-requests"] = "write",
+            contents = "read"
+        },
         steps = {}
     }
 
@@ -98,7 +102,13 @@ function Generate(config, dependencies, env)
     -- Add checkout step
     table.insert(job.steps, {
         name = "Checkout code",
-        uses = "actions/checkout@v4"
+        uses = "actions/checkout@v4",
+        with = {
+            ref = "${{ github.event.pull_request.head.ref || github.ref_ame }}",
+            repository = "${{ github.event.pull_request.head.repo.full_name || github.repository }}",
+            ["persist-credentials"] = false,
+            token = "${{ secrets.GITHUB_TOKEN }}"
+        },
     })
 
     local dependency_install_steps = get_dependency_install_steps(dependencies)
@@ -124,6 +134,10 @@ function Generate(config, dependencies, env)
     })
 
     -- Run Flint Checks
+    table.insert(env_vars, {
+        REPO_BRANCH_URL =
+        "${{ github.server_url }}/${{ github.repository }}/blob/${{ github.head_ref || github.ref_name }}/"
+    })
     table.insert(job.steps, {
         name = "Run Tests",
         run =
@@ -136,10 +150,22 @@ function Generate(config, dependencies, env)
     })
 
     table.insert(job.steps, {
+        name = "Comment AI Suggestions",
+        run = [[
+        if [ -f reports/temp.md ]; then
+        gh pr comment ${{ github.event.pull_request.number }} --body "$(cat reports/temp.md)"
+        else
+        echo "AI suggestions not found, skipping PR comment."
+        fi
+        ]],
+        env = {
+            GH_TOKEN = "${{ secrets.GITHUB_TOKEN }} "
+        }
+    })
+
+    table.insert(job.steps, {
         name = "Upload Test Results",
         uses = "actions/upload-artifact@v4",
-        -- TODO: Make it return all logs
-        -- TODO: Make it adapt to the outputs of reporting plugins
         with = {
             name = "Test Results",
             path = config.artifacts

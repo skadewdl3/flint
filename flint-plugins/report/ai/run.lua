@@ -68,7 +68,7 @@ function Run(options)
 
     log.debug("Prompting ai")
     local res = async.await(client.prompt, client, prompt)
-    log.debug("Got response")
+    local repo_branch_url = env.var_unsafe("REPO_BRANCH_URL")
 
     local function render_markdown(changes)
         local result = {}
@@ -81,6 +81,14 @@ function Run(options)
 
             -- Explanation as a paragraph
             table.insert(result, change.explanation)
+            table.insert(result,
+                md.text(
+                    (repo_branch_url or "") ..
+                    change.file,
+                    "/",
+                    change.line_no
+                )
+            )
             table.insert(result, md.newline())
 
             -- Code block with syntax highlighting

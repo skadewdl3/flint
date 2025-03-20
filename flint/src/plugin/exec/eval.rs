@@ -1,6 +1,6 @@
 use flint_ffi::add_ffi_modules;
-use flint_utils::{app_err, Result};
-use mlua::{Function, Lua, LuaSerdeExt, Result as LuaResult, Value};
+use flint_utils::app_err;
+use mlua::{Function, Lua, LuaSerdeExt, Value};
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, process::Output, sync::Arc};
 
@@ -36,7 +36,11 @@ pub enum PluginEvalOutput {
     Test(TestPluginEvalOutput),
 }
 
-pub fn eval(plugin: &Plugin, output: Output, config: &Arc<Config>) -> Result<PluginEvalOutput> {
+pub fn eval(
+    plugin: &Plugin,
+    output: Output,
+    config: &Arc<Config>,
+) -> flint_utils::Result<PluginEvalOutput> {
     let lua = Lua::new();
     let plugin_config = plugin.get_config_lua(&lua, config);
     add_ffi_modules(&lua)?;

@@ -4,7 +4,7 @@ use crate::{
 };
 use flint_ffi::add_ffi_modules;
 use flint_utils::{app_err, Result};
-use mlua::{Function, Lua, LuaSerdeExt, Table};
+use mlua::{Function, Lua, LuaSerdeExt};
 use std::{collections::HashMap, sync::Arc};
 
 pub fn collect_env_vars(

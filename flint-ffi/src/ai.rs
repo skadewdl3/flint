@@ -1,8 +1,7 @@
 use async_openai::config::Config;
-use async_openai::types::BatchRequestOutputResponse;
 use async_openai::{Client, config::OpenAIConfig};
 use flint_utils::debug;
-use mlua::{Error, Lua, Result as LuaResult, Table, UserData, Variadic};
+use mlua::{Lua, Result as LuaResult, Table, UserData, Variadic};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
@@ -17,6 +16,8 @@ struct AiResponse {
     pub explanation: String,
     pub code_language: String,
     pub code_changes: String,
+    pub line_no: u32,
+    pub file: String,
 }
 
 impl UserData for AiResponse {
@@ -76,6 +77,9 @@ impl UserData for ClientWrapper<OpenAIConfig> {
                     - code_language: The programming language of the code changes. This should be comptaible with markdown languages.
                     For example, "Rust" won't work since ```Rust doesn't work in markdown. It has to be "rust", since ```rust works in markdown.
                     - code_changes: The code changes needed to implement the suggestion.
+                    - file: The path of the file relative to the project directory.
+                    - line_no: The line number where this suggestion should be applied.
+
 
                     Here's an example of the output:
                     [
@@ -83,13 +87,17 @@ impl UserData for ClientWrapper<OpenAIConfig> {
                     "suggestion": "Suggestion 1",
                     "explanation": "Explanation for suggestion 1",
                     "code_language": "rust",
-                    "code_changes": "Code changes for suggestion 1"
+                    "code_changes": "Code changes for suggestion 1",
+                    "line_no": 10,
+                    "file": "Name of the file"
                     },
                     {
                     "suggestion": "Suggestion 2",
                     "explanation": "Explanation for suggestion 2",
                     "code_language": "js",
-                    "code_changes": "Code changes for suggestion 2"
+                    "code_changes": "Code changes for suggestion 2",
+                    "line_no": 1,
+                    "file": "Name of the file"
                     }
                     ]"#
 
@@ -99,6 +107,7 @@ impl UserData for ClientWrapper<OpenAIConfig> {
             for msg in msgs {
                 messages.push(msg);
             }
+
 
             let response: serde_json::Value = this
                 .client
@@ -119,7 +128,9 @@ impl UserData for ClientWrapper<OpenAIConfig> {
                                             "suggestion": { "type": "string" },
                                             "explanation": { "type": "string" },
                                             "code_changes": { "type": "string" },
-                                            "code_language": { "type": "string" }
+                                            "code_language": { "type": "string" },
+                                            "file": { "type": "string" },
+                                            "line_no": { "type": "number" },
                                         },
                                         "required": ["suggestion", "explanation", "code_changes", "code_language"],
                                         "additionalProperties": false
@@ -134,6 +145,7 @@ impl UserData for ClientWrapper<OpenAIConfig> {
                 .map_err(|e| mlua::Error::runtime(format!("{:#?}", e)))?;
 
 
+            debug!("{:#?}", response);
             let response = response["choices"][0]["message"]["content"].clone();
 
             // Parse once to handle escaped characters
@@ -153,6 +165,8 @@ impl UserData for ClientWrapper<OpenAIConfig> {
                 tbl.set("explanation", response.explanation.clone())?;
                 tbl.set("code_changes", response.code_changes.clone())?;
                 tbl.set("code_language", response.code_language.clone())?;
+                tbl.set("file", response.file.clone())?;
+                tbl.set("line_no", response.line_no.clone())?;
                 table.set(i + 1, tbl)?;
             }
 
