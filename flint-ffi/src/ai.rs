@@ -27,6 +27,9 @@ impl UserData for AiResponse {
         fields.add_field_method_get("code_changes", |_, this: &Self| {
             Ok(this.code_changes.clone())
         });
+        fields.add_field_method_get("code_language", |_, this: &Self| {
+            Ok(this.code_language.clone())
+        });
         fields.add_field_method_get("file", |_, this: &Self| Ok(this.file.clone()));
         fields.add_field_method_get("line_no", |_, this: &Self| Ok(this.line_no));
     }

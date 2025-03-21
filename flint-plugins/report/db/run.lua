@@ -49,7 +49,7 @@ function Run(options)
 
     local output_type = eval.get_output_type(output)
     output = eval.get_output(output)
-    local conn = sql.mysql(get_db_config(config))
+    local conn = sql.mysql(get_db_config(config.env))
     conn = async.await(sql.connect, conn)
 
     -- Test connection
