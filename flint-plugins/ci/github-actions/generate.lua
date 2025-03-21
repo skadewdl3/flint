@@ -142,7 +142,7 @@ function Generate(config, dependencies, env)
         [[
         chmod +x ./flint
         ./flint install
-        ./flint test --test
+        ./flint test
         ]],
         env = env_vars
     })
