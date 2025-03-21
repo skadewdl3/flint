@@ -4,7 +4,7 @@ local path = require("path")
 
 function Run(config)
     local extra = config.config
-    local args = { "npx", "eslint", "--format", "json" }
+    local args = { "eslint", "--format", "json" }
 
     return args
 end
