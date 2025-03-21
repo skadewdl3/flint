@@ -71,7 +71,7 @@ impl UserData for ClientWrapper<OpenAIConfig> {
                     and bottleneck improvements to the code snippet. You will provide explanation with changed code only.
                     If you don't understand the code, or lack context to make a useful suggestion, you will not provide
                     any suggestions and will specify that you lack the required information. You will limit your response
-                    to 100 characters for the explanation, and only the required code changes. Output a JSON array.
+                    to 300 characters for the explanation, and only the required code changes. Output a JSON array.
                     Every element in the JSON array should have the following fields:
 
                     - suggestion: A one line suggestion telling what changes are needed. This should be a single line only.

@@ -87,7 +87,7 @@ function Run(options)
                     (repo_branch_url or "") ..
                     "/" ..
                     change.file ..
-                    "/" ..
+                    "#L" ..
                     change.line_no
                 )
             )

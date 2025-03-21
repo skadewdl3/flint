@@ -10,6 +10,8 @@ function Run(config)
 end
 
 function Eval(output)
+
+    log.warn(json.stringify(output))
     output = output.stdout
     local parsed_output = json.parse(output)
     -- log.debug(parsed_output)
