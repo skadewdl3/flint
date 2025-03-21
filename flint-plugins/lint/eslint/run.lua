@@ -11,7 +11,7 @@ end
 
 function Eval(output)
     output = output.stdout
-    log.warn(output)
+    log.warn(json.stringify(output))
     local parsed_output = json.parse(output)
     -- log.debug(parsed_output)
     local cwd = path.cwd()
