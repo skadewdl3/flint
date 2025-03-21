@@ -77,9 +77,9 @@ function Generate(config)
     local stylisticJs = js.imports.default("stylisticJs", '@stylistic/eslint-plugin-js')
     local stylisticTs = js.imports.default("stylisticTs", '@stylistic/eslint-plugin-ts')
     local stylisticJsx = js.imports.default("stylisticJsx", '@stylistic/eslint-plugin-jsx')
-    local defineConfig = js.imports.named("defineConfig", "eslint/config")
+    local defineConfig = js.imports.named("defineConfig", "@eslint/config")
     local recommended = js.imports.default("js", "@eslint/js")
-    local globalIgnores = js.imports.named("globalIgnores", "eslint/config")
+    local globalIgnores = js.imports.named("globalIgnores", "@eslint/config")
 
     local imports = js.imports.merge(stylistic, stylisticJs, stylisticTs, stylisticJsx, defineConfig, globalIgnores,
         recommended)
