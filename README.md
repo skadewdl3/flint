@@ -259,6 +259,7 @@ We welcome contributions to Flint! I don't really have a `CONTRIBUTING.md` file 
 For the basics, follow these steps to start contributing:
 1. Install [Rust](https://www.rust-lang.org/learn/get-started)
 2. Install [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
+3. Clone this repo. Then, clone its submodules using `git submodule update --init --recursive`.
 3. If your'e modifying the core functionality of Flint, you'll need to work with the `flint` and `flint-ffi` crates.
 4. If you're contributing a new plugin, you can use the plugin template from any of the plugins in the `flint-plugins` folder.
 5. You can use the `run.sh` file included in this repo to easily test Flint. This is recommended so because Flint tries to install plugins if it can't find them in the user data directory every time it is run. To prevent this, the `--no-install` flag must be passed along with the `--plugins-dir` flag.
