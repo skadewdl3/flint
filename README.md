@@ -31,7 +31,7 @@ Flint aims to achieve the following goals:
 
 ## Getting Started
 
-1.  **Download the latest release:** Obtain the latest pre-built binary from the [Releases page](link-to-releases-page).
+1.  **Download the latest release:** Obtain the latest pre-built binary from the [Releases page](link-to-releases-page). Also make sure you have **Git** installed on your system, since Flint requires Git to download plugins.
 2.  **Make Flint executable:** Open your terminal and navigate to the directory where you downloaded the Flint binary. Then, run the following command to make it executable:
 
     ```bash
@@ -255,6 +255,15 @@ Flint provides the following commands:
 ## Contributing
 
 We welcome contributions to Flint! I don't really have a `CONTRIBUTING.md` file yet, but I'd be more than happy to help you out if you need any help. If this project some, if any, traction, I'll add a `CONTRIBUTING.md` file to the repository.
+
+For the basics, follow these steps to start contributing:
+1. Install [Rust](https://www.rust-lang.org/learn/get-started)
+2. Install [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
+3. If your'e modifying the core functionality of Flint, you'll need to work with the `flint` and `flint-ffi` crates.
+4. If you're contributing a new plugin, you can use the plugin template from any of the plugins in the `flint-plugins` folder.
+5. You can use the `run.sh` file included in this repo to easily test Flint. This is recommended so because Flint tries to install plugins if it can't find them in the user data directory every time it is run. To prevent this, the `--no-install` flag must be passed along with the `--plugins-dir` flag.
+6. `flint-utils` contains some utility functions to be used with Flint. This mostly involves custom error types, functions to load config files, read/set env variables, etc.
+7. The `flint-macros` crate contains two macros - `widget!()` and `ui!()`. These are used to simplify writing Ratatui UI widgets. The macros are mostly complete, and work as expected pretty much everywhere. If you're working with the UI, I recommend you use them.
 
 ## License
 
